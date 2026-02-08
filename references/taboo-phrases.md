@@ -78,6 +78,25 @@ Replace with direct alternatives.
 | Thought leader | Expert, specialist |
 | Best-in-class | Leading, top-tier |
 | Cutting-edge | Modern, advanced, new |
+| Crucial | Important, key (or cut) |
+| Delve | Explore, examine, look at |
+| Enhance | Improve, strengthen |
+| Garner | Get, earn, attract |
+| Pivotal | Important, key |
+| Showcase | Show, demonstrate |
+| Testament | Proof, evidence, sign |
+| Underscore | Show, highlight, prove |
+| Fostering | Building, encouraging, creating |
+| Align with | Match, fit, support |
+| Robust | Strong, solid, thorough |
+| Comprehensive | Full, complete, thorough |
+| Utilize | Use |
+| Facilitate | Help, enable, run |
+| Spearhead | Lead, start, run |
+| Bolster | Support, strengthen |
+| Streamline | Simplify, speed up |
+| Harness | Use, tap, apply |
+| Multifaceted | Complex, varied |
 
 ---
 
@@ -107,6 +126,19 @@ These add words without adding meaning.
 | "To be honest" | Cut—implies prior dishonesty |
 | "Needless to say" | Then don't say it |
 | "It goes without saying" | Then don't say it |
+| "In order to" | Replace with "To" |
+| "Due to the fact that" | Replace with "Because" |
+| "Is able to" | Replace with "Can" |
+| "Has the ability to" | Replace with "Can" |
+| "At this point in time" | Replace with "Now" |
+| "In the event that" | Replace with "If" |
+| "Prior to" | Replace with "Before" |
+| "Subsequent to" | Replace with "After" |
+| "A large number of" | Replace with "Many" |
+| "The vast majority of" | Replace with "Most" |
+| "In terms of" | Cut or use "for" |
+| "It is important to note that" | Cut |
+| "The fact that" | Cut and restructure |
 
 ---
 
@@ -234,6 +266,283 @@ These make claims that are usually false.
 
 ---
 
+## Significance & Legacy Inflation
+
+These phrases manufacture gravitas. If something is truly significant, the facts show it.
+
+| Phrase | Why It's Bad |
+|--------|--------------|
+| "stands as" | Inflated copula — just use "is" |
+| "stands as a testament to" | Double inflation |
+| "testament to" | Let evidence speak for itself |
+| "pivotal moment" | Almost never actually pivotal |
+| "indelible mark" | Cliché gravitas |
+| "rich history" | Vague filler |
+| "rich tapestry" | AI favorite — never use |
+| "a legacy of" | Unearned weight |
+| "iconic" | Overused to meaninglessness |
+| "seminal" | Usually hyperbolic |
+| "trailblazing" | Promotional, not analytical |
+| "groundbreaking" | Usually not |
+| "transformative" | Rarely earned |
+| "cornerstone of" | Inflated significance |
+
+---
+
+## Promotional Language
+
+These phrases read like tourism brochures or press releases. AI defaults to promotional framing.
+
+| Phrase | Why It's Bad |
+|--------|--------------|
+| "nestled" | Tourism cliché |
+| "boasts a" | Promotional voice |
+| "breathtaking" | Unearned superlative |
+| "must-visit" | Promotional, not descriptive |
+| "in the heart of" | Geographic cliché |
+| "world-class" | Empty superlative |
+| "state-of-the-art" | Empty superlative |
+| "second to none" | Empty superlative |
+| "a hidden gem" | Tourism cliché |
+| "vibrant community" | Vague promotional (soft — context-dependent) |
+| "bustling" | Tourism filler |
+| "picturesque" | Lazy description |
+| "renowned for" | Promotional attribution |
+| "a beacon of" | Inflated metaphor |
+
+---
+
+## Superficial -ing Analyses
+
+Participial clauses tacked onto the end of sentences as fake analysis.
+
+| Pattern | Why It's Bad |
+|---------|--------------|
+| ", highlighting..." | Pretends to analyze, just restates |
+| ", showcasing..." | Same |
+| ", underscoring..." | Same |
+| ", fostering..." | Same |
+| ", demonstrating..." | Same |
+| ", reflecting..." | Same |
+| ", signaling..." | Same |
+| ", paving the way for..." | Cliché + fake analysis |
+
+**Fix**: Delete the participial clause. If the analysis matters, give it its own sentence with actual reasoning.
+
+---
+
+## Vague Attributions
+
+These attribute claims to unnamed sources, creating an illusion of authority.
+
+| Phrase | Why It's Bad |
+|--------|--------------|
+| "Experts argue" | Which experts? Name them or cut. |
+| "Industry reports suggest" | Which reports? Cite or cut. |
+| "Some critics" | Who? Be specific or cut. |
+| "Many believe" | Weasel phrasing |
+| "Research suggests" | Which research? |
+| "Studies show" | Which studies? |
+| "It is widely regarded" | By whom? |
+| "According to experts" | Name the experts |
+| "Observers note" | Which observers? |
+| "Analysts predict" | Which analysts? |
+
+---
+
+## Copula Avoidance
+
+AI avoids "is/are" by substituting fancier verbs. The result reads as pretentious.
+
+| Avoid | Use Instead |
+|-------|-------------|
+| "serves as a" | "is a" |
+| "stands as a" | "is a" |
+| "represents a" | "is a" |
+| "constitutes a" | "is a" |
+| "functions as a" | "is a" |
+| "operates as a" | "is a" |
+| "acts as a" | "is a" |
+| "features a" | "has a" or restructure |
+| "remains a" | "is still a" or just "is a" |
+
+---
+
+## Formulaic Challenges Sections
+
+AI-generated articles follow a predictable structure: history → significance → challenges → future outlook.
+
+| Pattern | Why It's Bad |
+|---------|--------------|
+| "Despite its [achievements], [X] faces challenges..." | Formulaic concession structure |
+| "Challenges and Controversies" (as a section header) | AI structural tell |
+| "Future Outlook" (as a section header) | AI structural tell |
+| "Looking Ahead" (as a section header) | AI structural tell |
+| "However, it is not without its challenges" | Mechanical concession |
+| "While [positive], [negative] remains a concern" | Template balanced structure |
+
+---
+
+## Negative Parallelisms
+
+"Not only...but also" and similar constructions that signal AI generation.
+
+| Pattern | Fix |
+|---------|-----|
+| "Not only...but also..." | State both points directly |
+| "It's not just about X, it's about Y" | State what it's about |
+| "Not merely X, but Y" | State Y |
+| "Beyond X, it also Y" | State the second point directly |
+| "More than just X" | State what it actually is |
+
+---
+
+## Communication Artifacts
+
+Phrases left over from chatbot interaction that don't belong in published text.
+
+| Phrase | Why It's Bad |
+|--------|--------------|
+| "I hope this helps" | Chatbot sign-off |
+| "Certainly!" | Chatbot compliance marker |
+| "Great question!" | Chatbot flattery |
+| "That's a great point" | Chatbot agreement |
+| "Absolutely!" | Chatbot enthusiasm |
+| "Of course!" | Chatbot compliance |
+| "Happy to help" | Chatbot sign-off |
+| "Let me know if you need anything else" | Chatbot sign-off |
+| "I'd be happy to" | Chatbot compliance |
+| "Sure thing!" | Chatbot casualness |
+
+---
+
+## Knowledge-Cutoff Disclaimers
+
+Phrases that betray AI-generated text by referencing training data limitations.
+
+| Phrase | Why It's Bad |
+|--------|--------------|
+| "as of my last" | Direct AI tell |
+| "based on available information" | Hedging that reveals source |
+| "as of my knowledge cutoff" | Direct AI tell |
+| "I don't have access to real-time" | Direct AI tell |
+| "based on my training data" | Direct AI tell |
+| "as of [date]" (when used as disclaimer) | AI hedging pattern |
+
+---
+
+## Generic Positive Conclusions
+
+AI defaults to optimistic, empty endings.
+
+| Phrase | Why It's Bad |
+|--------|--------------|
+| "The future looks bright" | Empty optimism |
+| "Exciting times lie ahead" | Content-free conclusion |
+| "Only time will tell" | Cliché non-conclusion |
+| "One thing is certain" | False certainty wrapper |
+| "What remains clear is" | Filler conclusion opener |
+| "continues to shape" | Vague ongoing-ness |
+| "continues to evolve" | Says nothing |
+| "poised for growth" | Promotional conclusion |
+| "remains to be seen" | Non-conclusion |
+
+---
+
+## False Ranges
+
+"From X to Y" constructions that create a false sense of breadth.
+
+| Pattern | Why It's Bad |
+|---------|--------------|
+| "from X to Y, from A to B" | Stacked ranges = AI tell |
+| "ranging from X to Y" | Often unnecessary — just list items |
+| "spanning everything from X to Y" | Inflated scope |
+| "whether X or Y" (repeated) | Parallel false range |
+
+**Fix**: Pick the most relevant items. If the range matters, state the endpoints with actual data.
+
+---
+
+## Elegant Variation / Synonym Cycling
+
+AI rotates synonyms to avoid repeating a word, producing unnatural prose.
+
+| Signal | Example |
+|--------|---------|
+| Entity cycling | "The company... the firm... the organization... the enterprise" |
+| Verb rotation | "said... stated... noted... remarked... observed" |
+| Adjective swapping | "significant... notable... remarkable... considerable" |
+
+**Fix**: Repeat the natural word. English prose allows and expects repetition of key terms. Forced variation is more distracting than repetition.
+
+---
+
+## AI Vocabulary (Additional)
+
+Single words that appear at disproportionately high rates in AI text.
+
+| Word | Problem | Severity |
+|------|---------|----------|
+| delve | AI-favorite verb | hard |
+| garner | Rarely used by humans in casual writing | hard |
+| interplay | AI-formal | hard |
+| intricate | Overused AI descriptor | hard |
+| tapestry | AI metaphor cliché | hard |
+| underscore | AI-formal for "show" | hard |
+| multifaceted | AI-formal for "complex" | hard |
+| nuanced | Overused AI qualifier | soft |
+| myriad | AI-formal for "many" | soft |
+| plethora | AI-formal for "many" | soft |
+| paramount | AI-formal for "important" | hard |
+| encompass | AI-formal for "include" | soft |
+| pertaining to | AI-formal for "about" | hard |
+| aforementioned | AI-formal for "this" or "that" | hard |
+| henceforth | AI-formal — use "from now on" | hard |
+| whereby | AI-formal — restructure sentence | hard |
+| therein | AI-formal | hard |
+| moreover | AI transition word | soft |
+| furthermore | AI transition word | soft |
+| nevertheless | AI transition word | soft |
+| notwithstanding | AI-legal — restructure | hard |
+| burgeoning | AI-formal for "growing" | hard |
+| ubiquitous | AI-formal for "everywhere" or "common" | soft |
+
+**Hard severity**: Always an AI tell regardless of context.
+**Soft severity**: Context-dependent — may be appropriate in academic or formal writing.
+
+---
+
+## Structural Patterns to Avoid (Additional)
+
+### Boldface Abuse
+
+| Pattern | Fix |
+|---------|-----|
+| **Bold** on every key term | Reserve bold for truly critical items — max 1-2 per section |
+| **Inline headers** in body text | Use actual headers or let prose flow |
+
+### Em-Dash Overuse
+
+| Pattern | Fix |
+|---------|-----|
+| Em-dash before every reveal | Use periods or commas for most cases |
+| Multiple em-dashes per paragraph | Max one per paragraph |
+| Em-dash as dramatic pause substitute | Let sentence structure create rhythm |
+
+### Title Case in Body Text
+
+| Pattern | Fix |
+|---------|-----|
+| "Digital Transformation Journey" | Lowercase unless proper noun |
+| "Thought Leadership Strategy" | These aren't titles — don't capitalize |
+
+### Curly Quote / Smart Punctuation Artifacts
+
+Watch for inconsistent quote styles — a sign of copy-paste from AI output into different editors.
+
+---
+
 ## Quick Reference: Detection Regex
 
 ```
@@ -251,4 +560,40 @@ These make claims that are usually false.
 
 # Filler adverbs
 (?i)^(interestingly|importantly|crucially|fundamentally),
+
+# Significance inflation
+(?i)(stands as a testament|pivotal moment|indelible mark|rich tapestry|cornerstone of)
+
+# Promotional language
+(?i)(nestled|boasts a|breathtaking|must-visit|in the heart of|world-class|state-of-the-art|a hidden gem)
+
+# Superficial -ing analyses
+(?i),\s+(highlighting|showcasing|underscoring|fostering|demonstrating|reflecting|signaling|paving the way)
+
+# Vague attributions
+(?i)(experts argue|industry reports|some critics|many believe|it is widely regarded)
+
+# Copula avoidance
+(?i)(serves as a|stands as a|represents a|constitutes a|functions as a|operates as a)
+
+# Communication artifacts
+(?i)(i hope this helps|certainly!|great question|happy to help|let me know if you need)
+
+# Knowledge-cutoff disclaimers
+(?i)(as of my last|as of my knowledge cutoff|based on my training data|based on available information)
+
+# Generic positive conclusions
+(?i)(the future looks bright|exciting times lie ahead|only time will tell|one thing is certain|continues to evolve)
+
+# Negative parallelisms
+(?i)(not only .+? but also|it's not just about|not merely .+? but)
+
+# AI vocabulary
+(?i)\b(delve|garner|interplay|intricate|tapestry|underscore|multifaceted|paramount|burgeoning|notwithstanding|henceforth|aforementioned|pertaining to)\b
+
+# False ranges
+(?i)(from .+? to .+?, from .+? to|spanning everything from|ranging from .+? to)
+
+# Elegant variation (requires manual review - look for entity cycling)
+# "The company... the firm... the organization... the enterprise"
 ```

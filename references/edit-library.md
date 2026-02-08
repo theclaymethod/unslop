@@ -251,6 +251,157 @@ Before/after transformation examples showing specific edit patterns.
 
 ---
 
+## Pattern 16: Significance Inflation
+
+### Before
+> The Apollo program stands as a testament to human ingenuity, leaving an indelible mark on the history of space exploration and serving as a cornerstone of scientific achievement.
+
+### After
+> The Apollo program put twelve people on the moon between 1969 and 1972.
+
+### Changes
+- "stands as a testament to human ingenuity" → cut (inflated copula + significance)
+- "leaving an indelible mark" → cut (cliché)
+- "cornerstone of scientific achievement" → cut (inflation)
+- Replaced abstract praise with the specific fact
+- 30 words → 13 words (57% reduction)
+
+---
+
+## Pattern 17: Promotional Language
+
+### Before
+> Nestled in the heart of downtown, the restaurant boasts a world-class menu featuring breathtaking flavors. A hidden gem that's a must-visit for any food lover.
+
+### After
+> The restaurant, on Main Street downtown, serves Southern-French fusion. The duck confit tacos are worth the trip.
+
+### Changes
+- "Nestled in the heart of" → specific location
+- "boasts a world-class menu" → describes the actual cuisine
+- "breathtaking flavors" → named a specific dish
+- "hidden gem" / "must-visit" → concrete recommendation
+- 27 words → 18 words (33% reduction)
+
+---
+
+## Pattern 18: Superficial -ing Analysis
+
+### Before
+> The company reported 40% revenue growth, highlighting the effectiveness of its strategy, showcasing the strength of its market position, and underscoring the importance of innovation in the tech sector.
+
+### After
+> The company's revenue grew 40%. Its new API product drove most of that — enterprise contracts tripled.
+
+### Changes
+- Deleted all three participial clauses (highlighting, showcasing, underscoring)
+- Replaced fake analysis with actual causal explanation
+- 31 words → 17 words (45% reduction)
+
+---
+
+## Pattern 19: Copula Avoidance
+
+### Before
+> The library serves as a community hub that functions as a gathering place and represents a vital resource for residents.
+
+### After
+> The library is where the neighborhood meets. Residents use it for everything from job searches to story time.
+
+### Changes
+- "serves as" → "is"
+- "functions as" → cut (redundant with "serves as")
+- "represents a vital resource" → concrete examples of use
+- 20 words → 19 words (same length, more information)
+
+---
+
+## Pattern 20: Negative Parallelism
+
+### Before
+> It's not just about building a product. It's about building a community. Not only does the platform connect users, but it also fosters meaningful relationships and drives engagement.
+
+### After
+> The platform's value is its community. Users keep coming back because they've built relationships there.
+
+### Changes
+- "It's not just about X, it's about Y" → stated Y directly
+- "Not only...but also..." → collapsed into cause-effect
+- "fosters meaningful relationships and drives engagement" → concrete behavior
+- 30 words → 16 words (47% reduction)
+
+---
+
+## Pattern 21: Communication Artifacts
+
+### Before
+> Great question! I'd be happy to help with that. Certainly, there are several approaches you could take. I hope this helps — let me know if you need anything else!
+
+### After
+> Three approaches work here: [approach 1], [approach 2], [approach 3].
+
+### Changes
+- "Great question!" → cut (chatbot flattery)
+- "I'd be happy to help" → cut (chatbot compliance)
+- "Certainly" → cut (chatbot filler)
+- "I hope this helps" / "let me know if..." → cut (chatbot sign-off)
+- 31 words → 9 words (71% reduction)
+
+---
+
+## Pattern 22: False Ranges
+
+### Before
+> The festival attracts visitors from young professionals to retirees, from local residents to international tourists, spanning everything from music enthusiasts to casual attendees.
+
+### After
+> The festival draws 50,000 people annually, mostly locals and tourists from neighboring states.
+
+### Changes
+- Collapsed three stacked "from X to Y" ranges into specific data
+- Replaced vague breadth claim with actual numbers
+- 25 words → 13 words (48% reduction)
+
+---
+
+## Pattern 23: Generic Positive Conclusion
+
+### Before
+> As the industry continues to evolve, the future looks bright. Exciting times lie ahead for all stakeholders involved. One thing is certain: innovation will continue to shape the landscape.
+
+### After
+> Two trends to watch: edge computing costs dropping 30% annually, and enterprise AI adoption doubling each quarter.
+
+### Changes
+- "continues to evolve" → cut (says nothing)
+- "the future looks bright" → cut (empty optimism)
+- "exciting times lie ahead" → cut (content-free)
+- "one thing is certain" → replaced with specific predictions
+- 30 words → 16 words (47% reduction)
+
+---
+
+## Pattern 24: Compound Example (Multiple Pattern Types)
+
+### Before
+> In today's rapidly evolving digital landscape, the groundbreaking initiative serves as a testament to the company's commitment to innovation. Not only does it showcase their robust capabilities, but it also underscores the importance of fostering collaboration. Experts argue this represents a pivotal moment. The future looks bright.
+
+### After
+> The company shipped a new collaboration tool. Early numbers: 2,000 teams signed up in the first week, 85% retention at day 30.
+
+### Changes
+- "In today's rapidly evolving digital landscape" → cut (filler)
+- "groundbreaking initiative serves as a testament to" → named the actual thing
+- "Not only...but also..." → cut (negative parallelism)
+- "showcasing robust capabilities" / "underscoring importance" → cut (superficial -ing)
+- "fostering collaboration" → named the product category
+- "Experts argue" → cut (vague attribution)
+- "represents a pivotal moment" → replaced with data
+- "The future looks bright" → cut (generic conclusion)
+- 47 words → 22 words (53% reduction), information density dramatically higher
+
+---
+
 ## Transformation Principles
 
 1. **Cut setup, keep substance** - Remove everything before the actual point

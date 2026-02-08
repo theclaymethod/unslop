@@ -48,6 +48,8 @@ Before rewriting, analyze the input:
    - `references/taboo-phrases.md` - banned phrases and patterns
    - `references/rubric.md` - 8 scoring criteria
    - `references/fact-preservation.md` - what must survive
+   - `references/personality-guide.md` - voice and personality guidance
+   - `references/edit-library.md` - before/after transformation examples
 
 2. **Extract constraints** (facts that must survive):
    ```bash
@@ -166,8 +168,33 @@ After rewriting, validate:
 | Leverage | Use |
 | Deep dive | Analysis |
 | Game-changer | (cut or use specific claim) |
+| Delve | Explore, examine |
+| Garner | Get, earn |
+| Utilize | Use |
+| Foster | Build, encourage |
 
-See `references/taboo-phrases.md` for the complete list.
+### Significance Inflation
+- "stands as a testament to" → state the fact
+- "pivotal moment" → be specific about what happened
+- "rich tapestry" → never use
+- "groundbreaking" → name the specific first
+
+### Promotional Language
+- "nestled in the heart of" → give the actual address
+- "boasts a" → "has a"
+- "world-class" / "state-of-the-art" → describe specifically
+- "a hidden gem" → cut
+
+### Superficial -ing Analyses
+- ", highlighting..." / ", showcasing..." / ", underscoring..." → delete or give actual analysis in its own sentence
+
+### Communication Artifacts
+- "I hope this helps" / "Certainly!" / "Great question!" → cut (chatbot residue)
+
+### AI Vocabulary
+- delve, garner, interplay, intricate, tapestry, underscore, multifaceted, paramount, burgeoning
+
+See `references/taboo-phrases.md` for the complete list (~150 phrases across 22 categories).
 
 ## Scoring Rubric
 
@@ -190,12 +217,15 @@ Located in this skill's directory:
 
 | File | Purpose |
 |------|---------|
-| `references/taboo-phrases.md` | Comprehensive banned phrase list |
+| `references/taboo-phrases.md` | Banned phrases (~150 across 22 categories) |
 | `references/rubric.md` | Detailed scoring criteria |
-| `references/edit-library.md` | Before/after examples |
+| `references/edit-library.md` | 24 before/after transformation examples |
 | `references/fact-preservation.md` | Constraint rules |
+| `references/personality-guide.md` | Voice and personality guidance |
 | `presets/*.md` | Voice preset instructions |
-| `scripts/*.py` | Validation scripts |
+| `scripts/banned_phrase_scan.py` | AI-ism detection (with severity levels) |
+| `scripts/wiki_sync.py` | Wikipedia source page sync |
+| `scripts/*.py` | Other validation scripts |
 | `assets/examples/*.md` | Extended examples by content type |
 
 ## Maintenance Commands
@@ -206,6 +236,38 @@ Located in this skill's directory:
 | `/unslop --add-structure "pattern\|fix"` | Add structural pattern |
 | `/unslop --list-phrases` | List all banned phrases |
 | `/unslop --list-structures` | List structural patterns |
+| `/unslop --wiki-sync` | Check Wikipedia for new AI patterns and self-update |
+
+### Wiki Sync (`/unslop --wiki-sync`)
+
+This command syncs the skill's pattern rules with Wikipedia's [Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing) page. Run it periodically to pick up new patterns added by Wikipedia editors.
+
+**Workflow — execute these steps in order:**
+
+1. **Check for updates**:
+   ```bash
+   python3 <skill-path>/scripts/wiki_sync.py check
+   ```
+   If exit code is 0, report "No updates" and stop.
+
+2. **Get structured diff**:
+   ```bash
+   python3 <skill-path>/scripts/wiki_sync.py diff
+   ```
+   Parse the JSON output. Each change has `type`, `section`, `words`.
+
+3. **For each change with new words/phrases**, apply updates:
+   - Read `references/taboo-phrases.md` — add new phrases to the matching section (use the section mapping in the diff output). Skip phrases that already exist.
+   - Read `scripts/banned_phrase_scan.py` — add corresponding entries to `BANNED_PHRASES` dict with appropriate `category`, `severity` ("hard" for clear AI tells, "soft" for context-dependent), and `suggestion`.
+   - If a change warrants a new before/after example, add it to `references/edit-library.md`.
+
+4. **Verify**:
+   ```bash
+   python3 <skill-path>/scripts/banned_phrase_scan.py < /dev/null
+   ```
+   Confirm no syntax errors. Report what was added.
+
+**Important**: Only add phrases that are genuine AI writing tells applicable to general prose. Skip Wikipedia-specific patterns (broken wikitext, DOI issues, category errors, etc.) that don't apply outside Wikipedia.
 
 ## Key Principles
 

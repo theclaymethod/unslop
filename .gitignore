@@ -20,3 +20,6 @@ Thumbs.db
 # Test artifacts
 *.tmp
 test_*.txt
+
+# Wiki sync state
+scripts/.wiki_sync_state.json

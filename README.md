@@ -61,6 +61,9 @@ python3 scripts/validate_preservation.py original.txt transformed.txt
 
 # Check change percentage
 python3 scripts/diff_check.py original.txt transformed.txt
+
+# Check Wikipedia for pattern updates
+python3 scripts/wiki_sync.py check
 ```
 
 ## Usage
@@ -144,10 +147,11 @@ unslop/
 ├── SKILL.md                    # Main skill file (with YAML frontmatter)
 ├── README.md                   # This file
 ├── references/
-│   ├── taboo-phrases.md       # Banned phrases and patterns
+│   ├── taboo-phrases.md       # Banned phrases (~150 across 22 categories)
 │   ├── rubric.md              # Scoring criteria
-│   ├── edit-library.md        # Transformation examples
-│   └── fact-preservation.md   # What to preserve
+│   ├── edit-library.md        # 24 transformation examples
+│   ├── fact-preservation.md   # What to preserve
+│   └── personality-guide.md   # Voice and personality guidance
 ├── presets/
 │   ├── crisp-human.md         # Short, direct
 │   ├── warm-human.md          # Friendly, conversational
@@ -156,9 +160,10 @@ unslop/
 ├── scripts/
 │   ├── extract_constraints.py # Find must-preserve facts
 │   ├── validate_preservation.py # Verify facts survived
-│   ├── banned_phrase_scan.py  # Detect AI-isms
+│   ├── banned_phrase_scan.py  # Detect AI-isms (with severity levels)
 │   ├── readability_metrics.py # Grade level, variance
-│   └── diff_check.py          # Change percentage
+│   ├── diff_check.py          # Change percentage
+│   └── wiki_sync.py           # Wikipedia source page sync
 └── assets/
     └── examples/
         ├── before-after-article.md
@@ -177,6 +182,29 @@ This skill follows the [Agent Skills specification](https://agentskills.io) and 
 - Cline
 - Roo Code
 - And [35+ other agents](https://github.com/vercel-labs/skills#supported-agents)
+
+## Wikipedia Auto-Update
+
+The rules in this skill are partially derived from Wikipedia's [Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing) guide. The skill can sync itself with that page to pick up new patterns as Wikipedia editors add them.
+
+```bash
+# Tell the skill to check Wikipedia and update itself
+/unslop --wiki-sync
+```
+
+This checks the Wikipedia page for changes, diffs against the last sync, and updates `taboo-phrases.md` and `banned_phrase_scan.py` with any new patterns. Wikipedia-specific patterns (broken wikitext, DOI issues, etc.) are skipped automatically.
+
+### Manual usage
+
+The underlying sync script can also be run directly:
+
+```bash
+python3 scripts/wiki_sync.py check   # Check for updates (exit 0 = no changes)
+python3 scripts/wiki_sync.py diff    # Structured JSON diff
+python3 scripts/wiki_sync.py prompt  # Claude Code integration prompt
+```
+
+State is stored in `scripts/.wiki_sync_state.json` (gitignored). First run treats all content as new.
 
 ## Maintenance
 

@@ -72,17 +72,19 @@ Does the text trust the reader, or over-explain and patronize?
 
 ## 5. Human Authenticity (1-5)
 
-Does the text sound like a person wrote it, or an AI performing humanity?
+Does the text sound like a person wrote it, or an AI performing humanity? This criterion evaluates both the absence of AI patterns and the presence of human voice.
 
 | Score | Criteria |
 |-------|----------|
-| 5 | Could have been written by a specific person. Has voice and opinion. |
-| 4 | Sounds human. Minor generic touches. Clear perspective. |
-| 3 | Mostly human. Some AI tells. Personality visible but muted. |
-| 2 | Generic tone. Multiple AI patterns. Corporate speak. |
-| 1 | Obvious AI. Performative emphasis, binary contrasts, dramatic fragmentation. |
+| 5 | Could have been written by a specific person. Has voice, opinion, and lived experience. Rhythm varies naturally. Reader can sense the author's personality. |
+| 4 | Sounds human. Clear perspective. Minor generic patches. Mostly specific with occasional abstraction. |
+| 3 | Clean but anonymous. No glaring AI tells, but no personality either. Could be anyone. Reads as competent but soulless. |
+| 2 | Generic tone. Multiple AI patterns. Corporate-neutral. Hedges everything. No first person, no specificity, no stance. |
+| 1 | Obvious AI. Performative emphasis, binary contrasts, dramatic fragmentation. Significance inflation, promotional language, chatbot artifacts. |
 
-**Red flags:** "Full stop." "Period." "Let me be clear." Stacked short sentences for effect. Rhetorical questions answered immediately.
+**Red flags (AI tells):** "Full stop." "Period." "Let me be clear." Stacked short sentences for effect. Rhetorical questions answered immediately. Significance inflation ("stands as a testament"). Promotional language ("nestled", "boasts"). Superficial -ing analyses. Vague attributions ("experts argue"). Copula avoidance ("serves as a"). Communication artifacts ("I hope this helps").
+
+**Red flags (soulless):** No opinions stated. No first person. Every claim hedged. Uniform sentence rhythm. No specific names, numbers, or dates. Balanced-to-a-fault framing. Sanitized vocabulary only. See `references/personality-guide.md` for detailed guidance.
 
 ---
 
