@@ -1,6 +1,6 @@
 # unslop
 
-A Claude Code skill for humanizing AI-generated content.
+An agent skill for humanizing AI-generated content.
 
 ## What It Does
 
@@ -11,13 +11,34 @@ Removes predictable AI writing patterns from prose using a two-pass system:
 
 ## Installation
 
-### Claude Code Skill (Recommended)
+### Using Skills CLI (Recommended)
+
+Install to any supported coding agent using [npx skills](https://github.com/vercel-labs/skills):
+
+```bash
+# Install to Claude Code (global)
+npx skills add theclaymethod/unslop -g -a claude-code
+
+# Install to multiple agents
+npx skills add theclaymethod/unslop -g -a claude-code -a cursor -a codex
+
+# Install to all detected agents
+npx skills add theclaymethod/unslop -g
+
+# List available skills first
+npx skills add theclaymethod/unslop --list
+```
+
+### Manual Installation
 
 ```bash
 # Clone the repo
-git clone https://github.com/claytonkim/unslop.git ~/dev/unslop
+git clone https://github.com/theclaymethod/unslop.git ~/dev/unslop
 
-# Symlink to Claude Code commands
+# Symlink to Claude Code skills directory
+ln -s ~/dev/unslop ~/.claude/skills/unslop
+
+# Or symlink to commands (for /unslop invocation)
 ln -s ~/dev/unslop/SKILL.md ~/.claude/commands/unslop.md
 ```
 
@@ -120,7 +141,7 @@ Passing score: 32/40 (80%)
 
 ```
 unslop/
-├── SKILL.md                    # Main skill file
+├── SKILL.md                    # Main skill file (with YAML frontmatter)
 ├── README.md                   # This file
 ├── references/
 │   ├── taboo-phrases.md       # Banned phrases and patterns
@@ -144,6 +165,18 @@ unslop/
         ├── before-after-linkedin.md
         └── before-after-sales.md
 ```
+
+## Supported Agents
+
+This skill follows the [Agent Skills specification](https://agentskills.io) and works with:
+
+- Claude Code
+- Cursor
+- Codex
+- OpenCode
+- Cline
+- Roo Code
+- And [35+ other agents](https://github.com/vercel-labs/skills#supported-agents)
 
 ## Maintenance
 
@@ -187,7 +220,7 @@ Key principles:
 ## Requirements
 
 - Python 3.8+
-- Claude Code CLI
+- Any supported coding agent
 
 ## License
 
