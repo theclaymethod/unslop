@@ -243,6 +243,48 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
     "nevertheless": {"category": "ai_vocabulary", "severity": "soft", "suggestion": "still, but, yet"},
     "ubiquitous": {"category": "ai_vocabulary", "severity": "soft", "suggestion": "everywhere, common"},
     "nuanced": {"category": "ai_vocabulary", "severity": "soft", "suggestion": "subtle, complex"},
+
+    # Commonly missed AI tells
+    "resonates with": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "matters to, connects with"},
+    "resonate with": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "matters to, connects with"},
+    "at the intersection of": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "where X meets Y, or just state both"},
+    "it's no secret that": {"category": "throat_clearing", "severity": "hard", "suggestion": None},
+    "speaks volumes": {"category": "significance_inflation", "severity": "hard", "suggestion": "shows, demonstrates"},
+    "the elephant in the room": {"category": "performative", "severity": "hard", "suggestion": "state the problem directly"},
+    "it begs the question": {"category": "performative", "severity": "hard", "suggestion": "this raises, or just ask the question"},
+    "a deep understanding": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "understanding, knowledge of"},
+    "double-edged sword": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "has tradeoffs, cuts both ways"},
+    "sends a clear message": {"category": "significance_inflation", "severity": "hard", "suggestion": "shows, signals"},
+    "here's why": {"category": "throat_clearing", "severity": "hard", "suggestion": None},
+    "let's dive in": {"category": "throat_clearing", "severity": "hard", "suggestion": None},
+    "let's unpack": {"category": "throat_clearing", "severity": "hard", "suggestion": None},
+    "the bottom line": {"category": "filler", "severity": "hard", "suggestion": None},
+    "the key takeaway": {"category": "filler", "severity": "hard", "suggestion": None},
+    "it's clear that": {"category": "filler", "severity": "hard", "suggestion": None},
+    "what's clear is": {"category": "filler", "severity": "hard", "suggestion": None},
+    "it's a no-brainer": {"category": "performative", "severity": "hard", "suggestion": None},
+    "at the forefront of": {"category": "promotional", "severity": "hard", "suggestion": "leading, ahead in"},
+    "a testament to": {"category": "significance_inflation", "severity": "hard", "suggestion": "shows, proves"},
+    "the landscape of": {"category": "jargon", "severity": "hard", "suggestion": "cut or use specific domain"},
+    "a game changer": {"category": "jargon", "severity": "hard", "suggestion": "significant, important"},
+    "needless to say": {"category": "filler", "severity": "hard", "suggestion": None},
+    "navigating the complexities": {"category": "jargon", "severity": "hard", "suggestion": "handling, dealing with"},
+    "in an era of": {"category": "filler", "severity": "hard", "suggestion": None},
+    "the fabric of": {"category": "significance_inflation", "severity": "hard", "suggestion": "part of, within"},
+    "it's worth mentioning": {"category": "filler", "severity": "hard", "suggestion": None},
+    "sheds light on": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "explains, reveals, shows"},
+    "strikes a balance": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "balances"},
+    "paints a picture": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "shows, describes"},
+    "raises the bar": {"category": "significance_inflation", "severity": "hard", "suggestion": "improves, sets a new standard"},
+    "food for thought": {"category": "performative", "severity": "hard", "suggestion": None},
+    "the million-dollar question": {"category": "performative", "severity": "hard", "suggestion": "the question is"},
+    "this is where it gets interesting": {"category": "throat_clearing", "severity": "hard", "suggestion": None},
+    "buckle up": {"category": "performative", "severity": "hard", "suggestion": None},
+    "spoiler alert": {"category": "meta", "severity": "hard", "suggestion": None},
+    "pro tip": {"category": "meta", "severity": "hard", "suggestion": None},
+    "hot take": {"category": "meta", "severity": "hard", "suggestion": None},
+    "unpopular opinion": {"category": "meta", "severity": "hard", "suggestion": None},
+    "a closer look": {"category": "filler", "severity": "hard", "suggestion": None},
 }
 
 # Structural patterns (regex)
@@ -342,6 +384,52 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "category": "superficial_ing",
         "severity": "hard",
         "suggestion": "State the consequence directly"
+    },
+
+    # Em-dash overuse
+    {
+        "pattern": r"—[^—]*—",
+        "category": "em_dash_overuse",
+        "severity": "hard",
+        "suggestion": "Max one em-dash per paragraph. Use commas, periods, or parentheses instead."
+    },
+    {
+        "pattern": r"—",
+        "category": "em_dash_usage",
+        "severity": "soft",
+        "suggestion": "Prefer commas or periods over em-dashes. Em-dashes are an AI tell when overused."
+    },
+
+    # Staccato fragmentation (3+ consecutive short sentences)
+    {
+        "pattern": r"(?:\.\s+\S{1,15}){3,}\.",
+        "category": "staccato_fragmentation",
+        "severity": "soft",
+        "suggestion": "Vary sentence length. Stacked short sentences are an AI rhythm tell."
+    },
+
+    # Paragraph starting with "So,"
+    {
+        "pattern": r"(?:^|\n)So,?\s",
+        "category": "filler_opener",
+        "severity": "hard",
+        "suggestion": "Start with content, not 'So'"
+    },
+
+    # Colon-before-dramatic-reveal
+    {
+        "pattern": r"(?:the (?:answer|secret|key|trick|truth|reality|problem|issue|question|solution|takeaway|lesson|difference|reason) (?:is|was|isn't|remains))\s*:",
+        "category": "colon_reveal",
+        "severity": "hard",
+        "suggestion": "Remove the setup. State the point directly."
+    },
+
+    # Excessive exclamation marks
+    {
+        "pattern": r"!\s+[^.]*!",
+        "category": "exclamation_overuse",
+        "severity": "soft",
+        "suggestion": "Multiple exclamation marks signal AI enthusiasm. Use sparingly."
     },
 ]
 

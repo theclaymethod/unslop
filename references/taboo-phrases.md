@@ -24,6 +24,11 @@ These phrases delay getting to the point. Cut them entirely.
 | "Let's be real" | Performative |
 | "Here's the deal:" | Informal padding |
 | "Here's what nobody tells you:" | Clickbait-style |
+| "It's no secret that" | Performative |
+| "Here's why" | Delays content |
+| "Let's dive in" | Workshop filler |
+| "Let's unpack" | Workshop filler |
+| "This is where it gets interesting" | Performative delay |
 
 ---
 
@@ -126,6 +131,13 @@ These add words without adding meaning.
 | "To be honest" | Cut—implies prior dishonesty |
 | "Needless to say" | Then don't say it |
 | "It goes without saying" | Then don't say it |
+| "The bottom line" | Cut and state the point |
+| "The key takeaway" | Cut and state the point |
+| "It's clear that" | Cut, just state it |
+| "What's clear is" | Cut, just state it |
+| "It's worth mentioning" | Just mention it |
+| "In an era of" | Cut entirely |
+| "A closer look" | Cut entirely |
 | "In order to" | Replace with "To" |
 | "Due to the fact that" | Replace with "Because" |
 | "Is able to" | Replace with "Can" |
@@ -160,6 +172,10 @@ These break the fourth wall unnecessarily.
 | "In other words" | Say it right the first time |
 | "If you think about it" | Patronizing |
 | "As I mentioned" | Redundant reference |
+| "Spoiler alert" | Performative |
+| "Pro tip" | Performative authority |
+| "Hot take" | Performative casualness |
+| "Unpopular opinion" | Usually neither unpopular nor an opinion |
 
 ---
 
@@ -177,6 +193,11 @@ These try too hard to sound genuine.
 | "Trust me" | Undermines trust |
 | "Believe me" | Same |
 | "Honestly" | Implies prior dishonesty |
+| "The elephant in the room" | Over-dramatic framing |
+| "It begs the question" | Usually misused, always performative |
+| "It's a no-brainer" | Performative certainty |
+| "Buckle up" | Performative hype |
+| "Food for thought" | Performative |
 | "Truly" | Overemphasis |
 | "Literally" | Usually used incorrectly |
 
@@ -286,6 +307,11 @@ These phrases manufacture gravitas. If something is truly significant, the facts
 | "groundbreaking" | Usually not |
 | "transformative" | Rarely earned |
 | "cornerstone of" | Inflated significance |
+| "speaks volumes" | Cliche inflation |
+| "sends a clear message" | Cliche inflation |
+| "raises the bar" | Cliche inflation |
+| "the fabric of" | Vague inflation |
+| "a testament to" | Let evidence speak for itself |
 
 ---
 
@@ -309,6 +335,7 @@ These phrases read like tourism brochures or press releases. AI defaults to prom
 | "picturesque" | Lazy description |
 | "renowned for" | Promotional attribution |
 | "a beacon of" | Inflated metaphor |
+| "at the forefront of" | Promotional positioning |
 
 ---
 
@@ -507,39 +534,75 @@ Single words that appear at disproportionately high rates in AI text.
 | notwithstanding | AI-legal — restructure | hard |
 | burgeoning | AI-formal for "growing" | hard |
 | ubiquitous | AI-formal for "everywhere" or "common" | soft |
+| resonates | AI-favorite for "matters" or "connects" | hard |
+| intersection | As in "at the intersection of" | hard |
+| double-edged sword | AI cliche | hard |
+| sheds light | AI-formal for "explains" or "shows" | hard |
+| strikes a balance | AI-formal for "balances" | hard |
+| paints a picture | AI metaphor cliche | hard |
 
 **Hard severity**: Always an AI tell regardless of context.
 **Soft severity**: Context-dependent — may be appropriate in academic or formal writing.
 
 ---
 
-## Structural Patterns to Avoid (Additional)
+## Punctuation Abuse
+
+AI text has distinctive punctuation habits. These are high-signal tells.
+
+### Em-Dash Overuse (HIGH PRIORITY)
+
+Em-dashes are the single most reliable AI punctuation tell. AI uses them for dramatic pauses, parenthetical asides, and reveals where humans would use commas, periods, or parentheses.
+
+| Pattern | Fix | Severity |
+|---------|-----|----------|
+| Em-dash before a reveal | Use a period or comma | hard |
+| Multiple em-dashes in one paragraph | Max zero. Prefer commas/periods. | hard |
+| Em-dash as dramatic pause | Let sentence structure create rhythm | hard |
+| Em-dash for parenthetical aside | Use commas or parentheses | soft |
+| En-dash used as em-dash | Fix the punctuation | soft |
+
+**Rule: Default to zero em-dashes.** If one is absolutely necessary for rhythm and a comma or period genuinely won't work, allow one per several paragraphs at most. Two or more in any paragraph is always wrong.
+
+### Colon Overuse
+
+AI loves the "setup: reveal" structure. Colons before dramatic reveals are a strong tell.
+
+| Pattern | Fix | Severity |
+|---------|-----|----------|
+| "The answer is: [reveal]" | State the answer directly | hard |
+| "The key takeaway: [point]" | Just make the point | hard |
+| "The bottom line: [conclusion]" | Just state the conclusion | hard |
+| "Here's the thing: [point]" | Cut the setup entirely | hard |
+| Multiple colons per paragraph | Restructure into separate sentences | soft |
+
+### Exclamation Mark Overuse
+
+AI-generated text, especially in emails and social content, over-uses exclamation marks to simulate enthusiasm.
+
+| Pattern | Fix | Severity |
+|---------|-----|----------|
+| Multiple exclamation marks in one paragraph | Max one per several paragraphs | hard |
+| Exclamation marks in professional prose | Use periods. Let content convey energy. | soft |
+| "!" after every sentence in a list | Remove all but possibly the last | hard |
 
 ### Boldface Abuse
 
 | Pattern | Fix |
 |---------|-----|
-| **Bold** on every key term | Reserve bold for truly critical items — max 1-2 per section |
+| **Bold** on every key term | Reserve bold for truly critical items, max 1-2 per section |
 | **Inline headers** in body text | Use actual headers or let prose flow |
-
-### Em-Dash Overuse
-
-| Pattern | Fix |
-|---------|-----|
-| Em-dash before every reveal | Use periods or commas for most cases |
-| Multiple em-dashes per paragraph | Max one per paragraph |
-| Em-dash as dramatic pause substitute | Let sentence structure create rhythm |
 
 ### Title Case in Body Text
 
 | Pattern | Fix |
 |---------|-----|
 | "Digital Transformation Journey" | Lowercase unless proper noun |
-| "Thought Leadership Strategy" | These aren't titles — don't capitalize |
+| "Thought Leadership Strategy" | These aren't titles, don't capitalize |
 
 ### Curly Quote / Smart Punctuation Artifacts
 
-Watch for inconsistent quote styles — a sign of copy-paste from AI output into different editors.
+Watch for inconsistent quote styles, a sign of copy-paste from AI output into different editors.
 
 ---
 
@@ -589,10 +652,20 @@ Watch for inconsistent quote styles — a sign of copy-paste from AI output into
 (?i)(not only .+? but also|it's not just about|not merely .+? but)
 
 # AI vocabulary
-(?i)\b(delve|garner|interplay|intricate|tapestry|underscore|multifaceted|paramount|burgeoning|notwithstanding|henceforth|aforementioned|pertaining to)\b
+(?i)\b(delve|garner|interplay|intricate|tapestry|underscore|multifaceted|paramount|burgeoning|notwithstanding|henceforth|aforementioned|pertaining to|resonates?|sheds light|strikes a balance|paints a picture|double-edged sword)\b
 
 # False ranges
 (?i)(from .+? to .+?, from .+? to|spanning everything from|ranging from .+? to)
+
+# Em-dash overuse (HIGH PRIORITY)
+\u2014              # Any em-dash usage (flag for review)
+\u2014[^\u2014]*\u2014  # Multiple em-dashes in same paragraph
+
+# Colon reveals
+(?i)(the (?:answer|secret|key|trick|truth|reality|problem|solution|takeaway|lesson|difference|reason) (?:is|was|isn't|remains))\s*:
+
+# Commonly missed tells
+(?i)(it's no secret|speaks volumes|the elephant in the room|it begs the question|sends a clear message|at the intersection of|resonates with|here's why\b|let's dive in|let's unpack|the bottom line|the key takeaway|it's clear that|what's clear is|buckle up|food for thought|raises the bar)
 
 # Elegant variation (requires manual review - look for entity cycling)
 # "The company... the firm... the organization... the enterprise"

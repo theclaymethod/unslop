@@ -70,9 +70,10 @@ Before rewriting, analyze the input:
 Rewrite following these rules:
 
 1. **Eliminate all AI-isms** cataloged in taboo-phrases.md
-2. **Follow preset voice** characteristics
-3. **Preserve all constraints** (numbers, names, dates, URLs)
-4. **Apply rubric criteria**:
+2. **Replace all em-dashes** with periods, commas, or parentheses (zero em-dashes is the target)
+3. **Follow preset voice** characteristics
+4. **Preserve all constraints** (numbers, names, dates, URLs)
+5. **Apply rubric criteria**:
    - Directness: No hedging, no throat-clearing
    - Natural rhythm: Vary sentence length (8-25 words)
    - Concrete verbs: Specific actions, not abstractions
@@ -134,7 +135,7 @@ After rewriting, validate:
 > Here's the thing: building products is hard. Not because the technology is complex. Because people are complex. Let that sink in.
 
 **Output (crisp):**
-> Building products is hard—not the technology, the people.
+> Building products is hard. Not the technology. The people.
 
 ---
 
@@ -146,16 +147,20 @@ After rewriting, validate:
 
 ## Common AI Patterns to Eliminate
 
+### Em-Dash Overuse (HIGH PRIORITY)
+Em-dashes are the most reliable AI punctuation tell. Default to zero.
+- Replace em-dashes with periods, commas, or parentheses
+- Never allow multiple em-dashes per paragraph
+- If one is absolutely necessary, max one per several paragraphs
+
 ### Throat-Clearing Openers
-- "Here's the thing:"
-- "The uncomfortable truth is"
-- "Let me be clear"
-- "It turns out"
+- "Here's the thing:" / "Here's why" / "Let's dive in" / "Let's unpack"
+- "The uncomfortable truth is" / "It's no secret that"
+- "Let me be clear" / "It turns out"
 
 ### Emphasis Crutches
-- "Full stop."
-- "Let that sink in."
-- "Make no mistake"
+- "Full stop." / "Let that sink in." / "Make no mistake"
+- "Buckle up" / "Food for thought" / "It's a no-brainer"
 
 ### Binary Contrasts
 - "Not because X. Because Y." → State Y directly
@@ -172,18 +177,21 @@ After rewriting, validate:
 | Garner | Get, earn |
 | Utilize | Use |
 | Foster | Build, encourage |
+| Resonate with | Matters to, connects with |
 
 ### Significance Inflation
 - "stands as a testament to" → state the fact
 - "pivotal moment" → be specific about what happened
 - "rich tapestry" → never use
 - "groundbreaking" → name the specific first
+- "speaks volumes" / "sends a clear message" / "raises the bar" → just state the fact
 
 ### Promotional Language
 - "nestled in the heart of" → give the actual address
 - "boasts a" → "has a"
 - "world-class" / "state-of-the-art" → describe specifically
 - "a hidden gem" → cut
+- "at the forefront of" → "leading"
 
 ### Superficial -ing Analyses
 - ", highlighting..." / ", showcasing..." / ", underscoring..." → delete or give actual analysis in its own sentence
@@ -191,10 +199,16 @@ After rewriting, validate:
 ### Communication Artifacts
 - "I hope this helps" / "Certainly!" / "Great question!" → cut (chatbot residue)
 
+### Filler Setups
+- "The key takeaway:" / "The bottom line:" / "It's clear that" → just state the point
+- "At the intersection of" / "In an era of" → cut entirely
+- "Pro tip:" / "Hot take:" / "Unpopular opinion:" → cut (meta-commentary)
+
 ### AI Vocabulary
 - delve, garner, interplay, intricate, tapestry, underscore, multifaceted, paramount, burgeoning
+- resonates, sheds light, strikes a balance, paints a picture, double-edged sword
 
-See `references/taboo-phrases.md` for the complete list (~150 phrases across 22 categories).
+See `references/taboo-phrases.md` for the complete list (~200 phrases across 24 categories).
 
 ## Scoring Rubric
 

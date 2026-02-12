@@ -33,14 +33,14 @@ State what you believe. Qualify only when accuracy demands it, not out of habit.
 ### 2. Vary Rhythm Deliberately
 
 Voiceless: "The team reviewed the metrics. The team discussed the findings. The team decided on next steps."
-Human: "The team reviewed metrics. Three hours of argument later, they had a plan. Not a great one — but a plan."
+Human: "The team reviewed metrics. Three hours of argument later, they had a plan. Not a great one, but a plan."
 
 Mix short punches with longer flowing sentences. Break patterns. A fragment works. So does a 30-word sentence if it earns the length.
 
 ### 3. Be Specific
 
 Voiceless: "The company experienced significant growth in the past year."
-Human: "Revenue hit $4.2M — up from $1.8M twelve months ago."
+Human: "Revenue hit $4.2M, up from $1.8M twelve months ago."
 
 Names, numbers, dates. Replace every "significant" with the actual data.
 
@@ -54,14 +54,14 @@ Human: "I ship early. Half the time the first version is wrong, but I learn fast
 ### 5. Leave Some Mess
 
 Voiceless: "The approach combines agile methodology with user-centered design principles to deliver optimal outcomes."
-Human: "We mashed agile and UCD together. It's messy but it works — users get what they need faster."
+Human: "We mashed agile and UCD together. It's messy but it works. Users get what they need faster."
 
 Real writing has parenthetical asides, self-corrections, and imperfect phrasing. Overpolished prose reads as synthetic.
 
 ### 6. Show Uncertainty Honestly
 
 Voiceless: "Further research is needed to determine the optimal approach."
-Human: "I don't know the right answer yet. Two options look promising — we'll know more after the pilot."
+Human: "I don't know the right answer yet. Two options look promising. We'll know more after the pilot."
 
 Admitting you don't know something is more human than hedging behind passive constructions.
 
@@ -80,7 +80,7 @@ Let the reader see, hear, feel the situation instead of categorizing it abstract
 > Remote work has both benefits and challenges. Many organizations have adopted hybrid models. Research suggests that employee satisfaction increases with flexibility. Companies should consider their specific needs when designing work policies. The key is finding the right balance.
 
 ### After (Has Voice)
-> I've worked remote for three years. Some weeks I get more done by Thursday than I used to in a full office week. Other weeks I don't put on pants until noon and accomplish nothing. The trick isn't policy — it's trust. Let people figure out where they work best and hold them to outcomes, not hours.
+> I've worked remote for three years. Some weeks I get more done by Thursday than I used to in a full office week. Other weeks I don't put on pants until noon and accomplish nothing. The trick isn't policy, it's trust. Let people figure out where they work best and hold them to outcomes, not hours.
 
 ### What Changed
 - Added first person and lived experience

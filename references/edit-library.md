@@ -10,7 +10,7 @@ Before/after transformation examples showing specific edit patterns.
 > Here's the thing: building products is hard. Not because the technology is complex. Because people are complex. Let that sink in.
 
 ### After
-> Building products is hard—not the technology, the people.
+> Building products is hard. Not the technology. The people.
 
 ### Changes
 - Removed opener "Here's the thing:"
@@ -59,7 +59,7 @@ Before/after transformation examples showing specific edit patterns.
 > Speed. Quality. Cost. You can only pick two. That's it. That's the tradeoff.
 
 ### After
-> Speed, quality, cost—pick two.
+> Speed, quality, cost. Pick two.
 
 ### Changes
 - Collapsed fragmented list into single sentence
@@ -208,7 +208,7 @@ Before/after transformation examples showing specific edit patterns.
 > It's worth noting that in Q3 2024, Acme Corp reported revenue of $47.3M, which represents a truly impressive 23% year-over-year increase. This is a game-changing result for the industry.
 
 ### After
-> Acme Corp reported $47.3M revenue in Q3 2024—up 23% year-over-year.
+> Acme Corp reported $47.3M revenue in Q3 2024, up 23% year-over-year.
 
 ### Changes
 - "It's worth noting that" → cut
