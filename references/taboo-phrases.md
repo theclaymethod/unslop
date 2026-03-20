@@ -1,6 +1,33 @@
 # Taboo Phrases Reference
 
-AI-generated text follows predictable patterns. This reference catalogs common tells to eliminate.
+AI-generated text follows predictable patterns. This reference catalogs ~200 common tells to eliminate, organized by category.
+
+## Table of Contents
+
+1. [Throat-Clearing Openers](#throat-clearing-openers)
+2. [Emphasis Crutches](#emphasis-crutches)
+3. [Business Jargon](#business-jargon)
+4. [Filler Adverbs & Phrases](#filler-adverbs--phrases)
+5. [Meta-Commentary](#meta-commentary)
+6. [Performative Emphasis](#performative-emphasis)
+7. [Overused Intensifiers](#overused-intensifiers)
+8. [Absolute Words](#absolute-words)
+9. [Structural Patterns to Avoid](#structural-patterns-to-avoid)
+10. [Significance & Legacy Inflation](#significance--legacy-inflation)
+11. [Promotional Language](#promotional-language)
+12. [Superficial -ing Analyses](#superficial--ing-analyses)
+13. [Vague Attributions](#vague-attributions)
+14. [Copula Avoidance](#copula-avoidance)
+15. [Formulaic Challenges Sections](#formulaic-challenges-sections)
+16. [Negative Parallelisms](#negative-parallelisms)
+17. [Communication Artifacts](#communication-artifacts)
+18. [Knowledge-Cutoff Disclaimers](#knowledge-cutoff-disclaimers)
+19. [Generic Positive Conclusions](#generic-positive-conclusions)
+20. [False Ranges](#false-ranges)
+21. [Elegant Variation / Synonym Cycling](#elegant-variation--synonym-cycling)
+22. [AI Vocabulary (Additional)](#ai-vocabulary-additional)
+23. [Punctuation Abuse](#punctuation-abuse)
+24. [Quick Reference: Detection Regex](#quick-reference-detection-regex)
 
 ---
 
