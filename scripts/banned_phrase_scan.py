@@ -206,6 +206,15 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
     "happy to help": {"category": "communication_artifact", "severity": "hard", "suggestion": None},
     "let me know if you need anything else": {"category": "communication_artifact", "severity": "hard", "suggestion": None},
     "i'd be happy to": {"category": "communication_artifact", "severity": "hard", "suggestion": None},
+    "i am happy to address": {"category": "communication_artifact", "severity": "hard", "suggestion": None},
+    "i am open to any suggestions": {"category": "communication_artifact", "severity": "hard", "suggestion": None},
+    "i am open to feedback": {"category": "communication_artifact", "severity": "hard", "suggestion": None},
+    "i would appreciate any feedback": {"category": "communication_artifact", "severity": "hard", "suggestion": None},
+    "i am willing to address": {"category": "communication_artifact", "severity": "hard", "suggestion": None},
+    "i assure you": {"category": "communication_artifact", "severity": "hard", "suggestion": None},
+    "demonstrate my commitment": {"category": "communication_artifact", "severity": "hard", "suggestion": None},
+    "with the utmost care": {"category": "communication_artifact", "severity": "hard", "suggestion": None},
+    "if you have any concerns or suggestions": {"category": "communication_artifact", "severity": "hard", "suggestion": None},
 
     # Knowledge-cutoff disclaimers
     "as of my last": {"category": "knowledge_cutoff", "severity": "hard", "suggestion": None},
@@ -243,6 +252,12 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
     "nevertheless": {"category": "ai_vocabulary", "severity": "soft", "suggestion": "still, but, yet"},
     "ubiquitous": {"category": "ai_vocabulary", "severity": "soft", "suggestion": "everywhere, common"},
     "nuanced": {"category": "ai_vocabulary", "severity": "soft", "suggestion": "subtle, complex"},
+    "meticulous": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "careful, thorough"},
+    "meticulously": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "carefully, thoroughly"},
+    "bolstered": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "supported, boosted"},
+    "emphasizing": {"category": "ai_vocabulary", "severity": "soft", "suggestion": "stressing, focusing on"},
+    "enduring": {"category": "ai_vocabulary", "severity": "soft", "suggestion": "lasting, long-standing"},
+    "vibrant": {"category": "ai_vocabulary", "severity": "soft", "suggestion": "lively, busy, colorful"},
 
     # Commonly missed AI tells
     "resonates with": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "matters to, connects with"},
@@ -354,6 +369,24 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "category": "negative_parallelism",
         "severity": "hard",
         "suggestion": "State what it's about directly"
+    },
+    {
+        "pattern": r"it'?s not just .+?,?\s*it'?s\s",
+        "category": "negative_parallelism",
+        "severity": "hard",
+        "suggestion": "State both points directly"
+    },
+    {
+        "pattern": r"\bnot\s+[^,\n]{1,40},\s+not\s+[^,\n]{1,40},\s+(?:just|but)\s",
+        "category": "negative_parallelism",
+        "severity": "hard",
+        "suggestion": "Stacked negation for false drama. State the affirmative directly."
+    },
+    {
+        "pattern": r"\bis not\b.+?\.\s*rather,\s+it\s+(?:is|constitutes|represents)",
+        "category": "negative_parallelism",
+        "severity": "hard",
+        "suggestion": "Drop the negation + 'rather' setup. State what it is."
     },
     {
         "pattern": r"from .+? to .+?,\s*from .+? to",

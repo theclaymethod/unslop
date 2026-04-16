@@ -448,6 +448,9 @@ AI-generated articles follow a predictable structure: history → significance �
 | "Not merely X, but Y" | State Y |
 | "Beyond X, it also Y" | State the second point directly |
 | "More than just X" | State what it actually is |
+| "No X, no Y, just Z" | Stacked negation for false drama — state Z |
+| "Not X. Rather, Y." | Copula-avoidance + binary contrast — just state Y |
+| "It's not just X, it's Y" | Same as "not only…but also" — state both directly |
 
 ---
 
@@ -467,6 +470,15 @@ Phrases left over from chatbot interaction that don't belong in published text.
 | "Let me know if you need anything else" | Chatbot sign-off |
 | "I'd be happy to" | Chatbot compliance |
 | "Sure thing!" | Chatbot casualness |
+| "I am happy to address" | Chatbot deference (offers to receive criticism) |
+| "I am open to any suggestions" | Chatbot deference |
+| "I am open to feedback" | Chatbot deference |
+| "I would appreciate any feedback" | Chatbot deference |
+| "I am willing to address" | Chatbot deference |
+| "I assure you" | Chatbot reassurance |
+| "demonstrate my commitment" | Performative compliance |
+| "with the utmost care" | Performative respect |
+| "If you have any concerns or suggestions" | Chatbot solicitation |
 
 ---
 
@@ -567,6 +579,13 @@ Single words that appear at disproportionately high rates in AI text.
 | sheds light | AI-formal for "explains" or "shows" | hard |
 | strikes a balance | AI-formal for "balances" | hard |
 | paints a picture | AI metaphor cliche | hard |
+| meticulous | AI-formal for "careful" or "thorough" | hard |
+| meticulously | AI-formal adverb (companion to "meticulous") | hard |
+| bolstered | AI-formal past tense for "supported" or "boosted" | hard |
+| emphasizing | Common AI participial padding | soft |
+| enduring | AI-formal for "lasting" — significance inflation adjacent | soft |
+| vibrant | Tourism/promotional default — frequent AI tell | soft |
+| valuable | Empty positive descriptor when used without object | soft |
 
 **Hard severity**: Always an AI tell regardless of context.
 **Soft severity**: Context-dependent — may be appropriate in academic or formal writing.
