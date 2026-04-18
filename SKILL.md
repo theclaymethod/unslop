@@ -1,15 +1,15 @@
 ---
 name: unslop
-description: Remove AI writing patterns from prose using a two-pass system (diagnosis then reconstruction). Use this skill when editing, reviewing, or rewriting AI-generated content to make it sound human. Triggers on requests to "humanize", "de-slop", "fix AI text", "make it sound human", "remove AI patterns", or when reviewing text that contains obvious AI tells like "Here's the thing:", "Let that sink in", or "In today's fast-paced landscape". Also use when the user pastes text and says it "sounds like ChatGPT", "sounds robotic", "needs to sound more natural", or asks you to "clean up" drafted content before publishing. Even if they don't use the word "slop", if the text has visible AI patterns, this skill applies.
+description: Remove AI writing patterns from prose using either audit-only detection or a two-pass rewrite flow (diagnosis then reconstruction). Use this skill when editing, reviewing, or rewriting AI-generated content to make it sound human. Triggers on requests to "humanize", "de-slop", "fix AI text", "make it sound human", "remove AI patterns", or when reviewing text that contains obvious AI tells like "Here's the thing:", "Let that sink in", or "In today's fast-paced landscape". Also use when the user pastes text and says it "sounds like ChatGPT", "sounds robotic", "needs to sound more natural", or asks you to "clean up" drafted content before publishing. Even if they don't use the word "slop", if the text has visible AI patterns, this skill applies.
 license: MIT
 metadata:
   author: claytonkim
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # Unslop
 
-Humanize AI-generated prose. Two passes: diagnose what's wrong, then reconstruct without the tells.
+Humanize AI-generated prose. Audit it first. Rewrite only when the user wants a rewrite.
 
 ## When to Use
 
@@ -26,7 +26,17 @@ Humanize AI-generated prose. Two passes: diagnose what's wrong, then reconstruct
 |----------|-------------|---------|
 | `--preset` | Voice style: `crisp`, `warm`, `expert`, `story` | `crisp` |
 | `--strict` | Fail if rubric score < 32/40 | false |
+| `--audit-only` | Flag AI patterns without rewriting | false |
 | Input | Text to transform (argument, file path, or stdin) | required |
+
+## Modes
+
+This skill has two modes:
+
+- `rewrite` (default) — diagnose, rewrite, then validate the rewrite
+- `audit-only` — diagnose and assess the text without rewriting it
+
+Trigger audit-only mode when the user says "audit only," "flag only," "scan this," "just detect," "don't rewrite," or passes `--audit-only`.
 
 ## Voice Presets
 
@@ -46,11 +56,11 @@ Read the selected preset file from `presets/` (e.g., `presets/crisp-human.md`) b
 Before rewriting anything, understand what's wrong. This prevents blind rewriting that loses meaning.
 
 1. **Read the relevant references** based on what you see in the input:
-   - `references/taboo-phrases.md` — the complete catalog of ~200 banned phrases across 24 categories, with regex patterns for detection. This is the authoritative list; read it on first use and refer back for edge cases.
+   - `references/taboo-phrases.md` — the complete catalog of banned phrases and newer structural families, with regex patterns for detection. This is the authoritative list; read it on first use and refer back for edge cases.
    - `references/rubric.md` — 8 scoring criteria (directness, rhythm, verbs, trust, authenticity, density, fact preservation, template avoidance), 5 points each.
    - `references/fact-preservation.md` — rules for what must survive transformation unchanged (numbers, names, dates, URLs, quotes, technical terms).
 
-2. **Extract constraints** from the input — facts that must survive:
+2. **Extract constraints** from the input — facts that must survive if you rewrite:
    ```bash
    python3 scripts/extract_constraints.py <<< "$INPUT"
    ```
@@ -60,13 +70,18 @@ Before rewriting anything, understand what's wrong. This prevents blind rewritin
    ```bash
    python3 scripts/banned_phrase_scan.py <<< "$INPUT"
    ```
-   This returns violations grouped by category and severity (hard = always an AI tell, soft = context-dependent).
+   This returns violations grouped by category and severity (hard = always an AI tell, soft = context-dependent). Quoted examples, markdown blockquotes, and code snippets are ignored by default so you don't flag illustrative bad writing in docs. If you explicitly need to audit quoted examples too, run:
+   ```bash
+   python3 scripts/banned_phrase_scan.py --include-quoted <<< "$INPUT"
+   ```
 
 4. **Read the selected preset** from `presets/` and note its voice rules.
 
 5. **Identify**: audience, content type, tone target. A LinkedIn post needs different treatment than a technical doc.
 
 ### Pass 2: Reconstruction
+
+Skip this pass in `--audit-only` mode.
 
 Rewrite the text. The references you read in Pass 1 are your guide — don't duplicate their rules here, just apply them.
 
@@ -83,6 +98,8 @@ Follow the preset voice characteristics for sentence length, paragraph structure
 For guidance on adding genuine human voice (not just removing AI tells), read `references/personality-guide.md`. Clean text that's still anonymous and voiceless scores a 3/5 on authenticity — aim for 4+.
 
 ### Validation
+
+Only run this section when you rewrote the text.
 
 After rewriting, verify your work:
 
@@ -111,6 +128,18 @@ After rewriting, verify your work:
 ## Output Format
 
 Adapt output to the context. For a quick fix, just return the cleaned text. For a thorough review, include validation:
+
+**Audit Only** (`--audit-only` or user asks for flag-only scan):
+```markdown
+## Issues Found
+
+- [Quoted issue, category, why it reads as AI]
+
+## Assessment
+
+- [Which issues are clear problems]
+- [Which issues are judgment calls or context-dependent]
+```
 
 **Minimal** (default for short text / quick fixes):
 ```
@@ -156,7 +185,7 @@ Located in this skill's directory. Read them as needed — don't front-load ever
 
 | File | When to Read |
 |------|-------------|
-| `references/taboo-phrases.md` | First use, then for edge cases. ~200 phrases across 24 categories with detection regex. |
+| `references/taboo-phrases.md` | First use, then for edge cases. Expanded pattern catalog with detection regex, newer structural families, and quote-exemption rules. |
 | `references/rubric.md` | When scoring output or in `--strict` mode. 8 criteria, detailed rubrics. |
 | `references/edit-library.md` | When unsure how to transform a specific pattern. 24 before/after examples. |
 | `references/fact-preservation.md` | When input has lots of data, names, or quotes. Constraint rules. |
@@ -206,4 +235,5 @@ Only add phrases that are genuine AI writing tells for general prose. Skip Wikip
 2. **Facts are sacred** — never sacrifice accuracy for style
 3. **Presets guide, don't constrain** — adapt to content type
 4. **When in doubt, cut** — shorter is almost always better
-5. **Validation is mandatory** — run the scripts, especially fact preservation
+5. **Quoted examples are exempt by default** — don't flag illustrative bad writing unless the user explicitly wants that
+6. **Validation is mandatory** — run the scripts, especially fact preservation

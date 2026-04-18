@@ -1,6 +1,8 @@
 # Taboo Phrases Reference
 
-AI-generated text follows predictable patterns. This reference catalogs ~200 common tells to eliminate, organized by category.
+AI-generated text follows predictable patterns. This reference catalogs common tells to eliminate, organized by category.
+
+Quoted examples are exempt by default. When you're documenting bad AI writing, sentences inside quotes, markdown blockquotes, or code fences are illustrative examples rather than prose to rewrite.
 
 ## Table of Contents
 
@@ -21,13 +23,21 @@ AI-generated text follows predictable patterns. This reference catalogs ~200 com
 15. [Formulaic Challenges Sections](#formulaic-challenges-sections)
 16. [Negative Parallelisms](#negative-parallelisms)
 17. [Communication Artifacts](#communication-artifacts)
-18. [Knowledge-Cutoff Disclaimers](#knowledge-cutoff-disclaimers)
-19. [Generic Positive Conclusions](#generic-positive-conclusions)
-20. [False Ranges](#false-ranges)
-21. [Elegant Variation / Synonym Cycling](#elegant-variation--synonym-cycling)
-22. [AI Vocabulary (Additional)](#ai-vocabulary-additional)
-23. [Punctuation Abuse](#punctuation-abuse)
-24. [Quick Reference: Detection Regex](#quick-reference-detection-regex)
+18. [Reader-Steering Frames & Vague Endorsements](#reader-steering-frames--vague-endorsements)
+19. [Reasoning-Chain Artifacts](#reasoning-chain-artifacts)
+20. [Acknowledgment Loops](#acknowledgment-loops)
+21. [Novelty Inflation](#novelty-inflation)
+22. [False Concession Structures](#false-concession-structures)
+23. [Rhetorical Question Openers](#rhetorical-question-openers)
+24. [Parenthetical Hedging](#parenthetical-hedging)
+25. [Numbered List Inflation](#numbered-list-inflation)
+26. [Knowledge-Cutoff Disclaimers](#knowledge-cutoff-disclaimers)
+27. [Generic Positive Conclusions](#generic-positive-conclusions)
+28. [False Ranges](#false-ranges)
+29. [Elegant Variation / Synonym Cycling](#elegant-variation--synonym-cycling)
+30. [AI Vocabulary (Additional)](#ai-vocabulary-additional)
+31. [Punctuation Abuse](#punctuation-abuse)
+32. [Quick Reference: Detection Regex](#quick-reference-detection-regex)
 
 ---
 
@@ -482,6 +492,131 @@ Phrases left over from chatbot interaction that don't belong in published text.
 
 ---
 
+## Reader-Steering Frames & Vague Endorsements
+
+These cues tell the reader how to feel before earning it.
+
+| Phrase | Why It's Bad |
+|--------|--------------|
+| "Here's what's interesting" | Pre-interprets importance |
+| "Here's what caught my eye" | Reader-steering frame |
+| "Here's what stood out" | Same |
+| "worth reading" | Empty thumbs-up without reason |
+| "worth paying attention to" | Say why it matters |
+| "worth a look" | Vague endorsement |
+| "worth exploring" | Generic approval instead of substance |
+| "worth checking out" | Same |
+| "worth your time" | Says nothing about the value |
+
+**Fix**: State the actual point or the specific reason something matters.
+
+---
+
+## Reasoning-Chain Artifacts
+
+These leak internal scaffolding instead of delivering the point.
+
+| Phrase | Why It's Bad |
+|--------|--------------|
+| "Let me think step by step" | Internal reasoning leak |
+| "Breaking this down" | Filler setup |
+| "To approach this systematically" | Procedural throat-clearing |
+| "Here's my thought process" | The reader wants the conclusion |
+| "Working through this logically" | Internal monologue, not prose |
+
+**Fix**: State the conclusion first. Give evidence after.
+
+---
+
+## Acknowledgment Loops
+
+These restate the prompt before answering it.
+
+| Phrase | Why It's Bad |
+|--------|--------------|
+| "You're asking about" | Restates the obvious |
+| "To answer your question" | Pure filler |
+| "The question of whether" | Indirect setup |
+
+**Fix**: Just answer.
+
+---
+
+## Novelty Inflation
+
+These frame routine ideas as secret discoveries or inventions.
+
+| Phrase | Why It's Bad |
+|--------|--------------|
+| "introduced a term" | Often factually risky |
+| "coined the phrase" | Same unless sourced |
+| "a concept nobody's naming" | Fake scarcity |
+| "a problem nobody talks about" | Engagement bait |
+| "the insight everyone's missing" | Inflated exclusivity |
+| "what nobody tells you about" | Clickbait framing |
+
+**Fix**: Describe what the person explained or what the concept does. Don't claim novelty unless you can prove it.
+
+---
+
+## False Concession Structures
+
+These simulate balance without saying anything precise.
+
+| Pattern | Why It's Bad |
+|---------|--------------|
+| "While X is promising, Y remains a challenge" | Template balance |
+| "Although X has made strides, Y is still an open question" | Same |
+| "While X has limitations, Y is still remarkable" | Empty concession |
+
+**Fix**: Name the actual tradeoff or pick a side and argue it.
+
+---
+
+## Rhetorical Question Openers
+
+These stall instead of making the point.
+
+| Phrase | Why It's Bad |
+|--------|--------------|
+| "What does this mean for..." | Just tell the reader |
+| "Why should you care?" | Engagement bait |
+| "What's next?" | Often empty transition |
+
+**Fix**: Replace with the direct answer.
+
+---
+
+## Parenthetical Hedging
+
+Parenthetical asides often smuggle in weak nuance instead of committing.
+
+| Pattern | Why It's Bad |
+|---------|--------------|
+| "(and perhaps more importantly, ...)" | Performs nuance |
+| "(and, increasingly, ...)" | Weak hedge |
+| "(or, more precisely, ...)" | Usually should be a sentence |
+| "(arguably ...)" | Hedged aside |
+
+**Fix**: If the aside matters, give it its own sentence. If it doesn't, cut it.
+
+---
+
+## Numbered List Inflation
+
+AI overuses counted lists because they are structurally safe.
+
+| Phrase | Why It's Bad |
+|--------|--------------|
+| "Three key takeaways" | Number chosen for format, not meaning |
+| "Five things to know" | Same |
+| "Top seven" | Inflated list framing |
+| "Here are 7 reasons..." | Usually padding |
+
+**Fix**: Use a list only when the count matters. Otherwise write the point directly.
+
+---
+
 ## Knowledge-Cutoff Disclaimers
 
 Phrases that betray AI-generated text by referencing training data limitations.
@@ -688,6 +823,18 @@ Watch for inconsistent quote styles, a sign of copy-paste from AI output into di
 # Communication artifacts
 (?i)(i hope this helps|certainly!|great question|happy to help|let me know if you need)
 
+# Reader-steering + vague endorsement
+(?i)(here's what's interesting|here's what caught my eye|here's what stood out|worth reading|worth paying attention to|worth a look|worth exploring|worth checking out|worth your time)
+
+# Reasoning-chain artifacts
+(?i)(let me think step by step|breaking this down|to approach this systematically|here's my thought process|working through this logically)
+
+# Acknowledgment loops
+(?i)(you're asking about|to answer your question|the question of whether)
+
+# Novelty inflation
+(?i)(introduced a term|coined the phrase|a concept nobody's naming|a problem nobody talks about|the insight everyone's missing|what nobody tells you about)
+
 # Knowledge-cutoff disclaimers
 (?i)(as of my last|as of my knowledge cutoff|based on my training data|based on available information)
 
@@ -697,11 +844,23 @@ Watch for inconsistent quote styles, a sign of copy-paste from AI output into di
 # Negative parallelisms
 (?i)(not only .+? but also|it's not just about|not merely .+? but)
 
+# False concession structures
+(?i)((while|although) .+?, .+? (remains|is still) .+?(challenge|concern|open question|limitation|constraint))
+
 # AI vocabulary
 (?i)\b(delve|garner|interplay|intricate|tapestry|underscore|multifaceted|paramount|burgeoning|notwithstanding|henceforth|aforementioned|pertaining to|resonates?|sheds light|strikes a balance|paints a picture|double-edged sword)\b
 
 # False ranges
 (?i)(from .+? to .+?, from .+? to|spanning everything from|ranging from .+? to)
+
+# Rhetorical question openers
+(?im)(^\s*(?:but\s+)?what does this mean for|^\s*so why should you care\??|what's next\?)
+
+# Parenthetical hedging
+(?i)(\((?:and,?\s+)?(?:perhaps|more importantly|increasingly|more precisely|arguably)\b[^)]*\))
+
+# Numbered list inflation
+(?im)(^(?:here are|these are|the top)\s+\d+\s+(?:reasons|things|takeaways|lessons|ways)\b|three key takeaways|five things to know|top seven)
 
 # Em-dash overuse (HIGH PRIORITY)
 \u2014              # Any em-dash usage (flag for review)
@@ -712,6 +871,9 @@ Watch for inconsistent quote styles, a sign of copy-paste from AI output into di
 
 # Commonly missed tells
 (?i)(it's no secret|speaks volumes|the elephant in the room|it begs the question|sends a clear message|at the intersection of|resonates with|here's why\b|let's dive in|let's unpack|the bottom line|the key takeaway|it's clear that|what's clear is|buckle up|food for thought|raises the bar)
+
+# Quote exemptions
+# By default, quoted spans, markdown blockquotes, and code fences are masked before scanning.
 
 # Elegant variation (requires manual review - look for entity cycling)
 # "The company... the firm... the organization... the enterprise"

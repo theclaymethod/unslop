@@ -4,10 +4,10 @@ An agent skill for humanizing AI-generated content.
 
 ## What It Does
 
-Removes predictable AI writing patterns from prose using a two-pass system:
+Removes predictable AI writing patterns from prose using two modes:
 
-1. **Diagnosis**: Analyze input for AI-isms, extract must-preserve facts, identify violations
-2. **Reconstruction**: Rewrite following preset voice while eliminating patterns
+1. **Audit only**: Analyze input for AI-isms, severity, and context-dependent flags without rewriting
+2. **Rewrite**: Diagnose, then rewrite following a preset voice while eliminating patterns
 
 ## Installation
 
@@ -53,6 +53,9 @@ python3 scripts/extract_constraints.py < input.txt
 # Scan for AI-isms
 python3 scripts/banned_phrase_scan.py < input.txt
 
+# Scan including quoted examples and blockquotes
+python3 scripts/banned_phrase_scan.py --include-quoted < input.txt
+
 # Check readability metrics
 python3 scripts/readability_metrics.py < input.txt
 
@@ -91,6 +94,14 @@ Available presets:
 - `expert` - Authoritative, confident claims
 - `story` - Narrative flow, show don't tell
 
+### Audit Only
+
+```bash
+/unslop --audit-only "Here's what's interesting: this deck is worth reading."
+```
+
+Returns flagged AI patterns and an assessment without rewriting the text.
+
 ### Strict Mode
 
 ```bash
@@ -123,6 +134,14 @@ Fails if rubric score < 32/40.
 - "X. That's it. That's the thing." → Complete sentences
 - Three-item lists → Vary list length
 
+### Newer Pattern Families
+- Reasoning-chain leakage → "Let me think step by step" / "Breaking this down"
+- Reader-steering frames → "Here's what's interesting" / "Here's what stood out"
+- Acknowledgment loops → "To answer your question" / "You're asking about"
+- Novelty inflation → "A concept nobody's naming" / "The insight everyone's missing"
+- False concessions & parenthetical hedging → "While X is promising, Y remains..." / "(and perhaps more importantly...)"
+- Numbered-list inflation → "Three key takeaways" / "Five things to know"
+
 See `references/taboo-phrases.md` for the complete list.
 
 ## Scoring Rubric
@@ -147,7 +166,7 @@ unslop/
 ├── SKILL.md                    # Main skill file (with YAML frontmatter)
 ├── README.md                   # This file
 ├── references/
-│   ├── taboo-phrases.md       # Banned phrases (~150 across 22 categories)
+│   ├── taboo-phrases.md       # Banned phrases and structural patterns, incl. quote exemptions
 │   ├── rubric.md              # Scoring criteria
 │   ├── edit-library.md        # 24 transformation examples
 │   ├── fact-preservation.md   # What to preserve
@@ -160,7 +179,7 @@ unslop/
 ├── scripts/
 │   ├── extract_constraints.py # Find must-preserve facts
 │   ├── validate_preservation.py # Verify facts survived
-│   ├── banned_phrase_scan.py  # Detect AI-isms (with severity levels)
+│   ├── banned_phrase_scan.py  # Detect AI-isms (with severity levels and quote exemptions)
 │   ├── readability_metrics.py # Grade level, variance
 │   ├── diff_check.py          # Change percentage
 │   └── wiki_sync.py           # Wikipedia source page sync
@@ -244,6 +263,7 @@ Key principles:
 - **Trust the reader**: They don't need "let that sink in"
 - **Facts are sacred**: Numbers, names, dates survive unchanged
 - **Structure matters**: Binary contrasts and three-item lists are tells
+- **Quoted examples are exempt by default**: Tutorials and docs should not self-flag their own bad examples
 
 ## Requirements
 

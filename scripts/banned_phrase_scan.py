@@ -5,16 +5,20 @@ Scan text for AI-isms and banned phrases.
 Checks against taboo phrases list and returns violations with line numbers.
 Provides suggested replacements where available.
 
+By default, quoted examples and code snippets are ignored so the scanner
+doesn't flag illustrative bad writing inside docs or tutorials. Pass
+--include-quoted to scan those spans too.
+
 Usage:
     python banned_phrase_scan.py < input.txt
     python banned_phrase_scan.py input.txt
-    python banned_phrase_scan.py input.txt --taboo-file custom_taboo.md
+    python banned_phrase_scan.py input.txt --include-quoted
 """
 
+import argparse
 import sys
 import re
 import json
-from pathlib import Path
 from typing import TypedDict
 
 
@@ -26,6 +30,34 @@ class Violation(TypedDict):
     column: int
     context: str
     suggestion: str | None
+
+
+def _mask_non_newlines(text: str) -> str:
+    """Replace visible characters with spaces while preserving line/column layout."""
+    return re.sub(r"[^\n]", " ", text)
+
+
+def mask_ignored_spans(text: str, include_quoted: bool = False) -> str:
+    """Mask examples and code so they don't produce false-positive matches."""
+    masked = re.sub(r"```[\s\S]*?```", lambda m: _mask_non_newlines(m.group(0)), text)
+    masked = re.sub(r"`[^`\n]+`", lambda m: _mask_non_newlines(m.group(0)), masked)
+
+    if include_quoted:
+        return masked
+
+    # Markdown blockquotes are almost always cited examples rather than prose to edit.
+    masked = re.sub(r"(?m)^>.*$", lambda m: _mask_non_newlines(m.group(0)), masked)
+
+    quote_patterns = [
+        r'"[^"\n]{1,500}"',
+        r"“[^”\n]{1,500}”",
+        r"(?<!\w)'[^'\n]{2,500}'(?!\w)",
+        r"(?<!\w)‘[^’\n]{2,500}’(?!\w)",
+    ]
+    for pattern in quote_patterns:
+        masked = re.sub(pattern, lambda m: _mask_non_newlines(m.group(0)), masked)
+
+    return masked
 
 
 # Banned phrases with categories, suggestions, and severity.
@@ -273,6 +305,10 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
     "here's why": {"category": "throat_clearing", "severity": "hard", "suggestion": None},
     "let's dive in": {"category": "throat_clearing", "severity": "hard", "suggestion": None},
     "let's unpack": {"category": "throat_clearing", "severity": "hard", "suggestion": None},
+    "let's explore": {"category": "throat_clearing", "severity": "hard", "suggestion": None},
+    "let's break this down": {"category": "throat_clearing", "severity": "hard", "suggestion": None},
+    "let's take a look": {"category": "throat_clearing", "severity": "hard", "suggestion": None},
+    "let's examine": {"category": "throat_clearing", "severity": "hard", "suggestion": None},
     "the bottom line": {"category": "filler", "severity": "hard", "suggestion": None},
     "the key takeaway": {"category": "filler", "severity": "hard", "suggestion": None},
     "it's clear that": {"category": "filler", "severity": "hard", "suggestion": None},
@@ -300,6 +336,45 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
     "hot take": {"category": "meta", "severity": "hard", "suggestion": None},
     "unpopular opinion": {"category": "meta", "severity": "hard", "suggestion": None},
     "a closer look": {"category": "filler", "severity": "hard", "suggestion": None},
+
+    # Reader-steering frames and vague endorsements
+    "here's what's interesting": {"category": "reader_steering", "severity": "hard", "suggestion": "Lead with the actual point"},
+    "here's what caught my eye": {"category": "reader_steering", "severity": "hard", "suggestion": "State the observation directly"},
+    "here's what stood out": {"category": "reader_steering", "severity": "hard", "suggestion": "State what matters directly"},
+    "worth reading": {"category": "vague_endorsement", "severity": "soft", "suggestion": "Say why it's worth reading"},
+    "worth paying attention to": {"category": "vague_endorsement", "severity": "soft", "suggestion": "Say why it matters"},
+    "worth a look": {"category": "vague_endorsement", "severity": "soft", "suggestion": "Say what's useful about it"},
+    "worth exploring": {"category": "vague_endorsement", "severity": "soft", "suggestion": "Say what the reader will learn"},
+    "worth checking out": {"category": "vague_endorsement", "severity": "soft", "suggestion": "Say what makes it useful"},
+    "worth your time": {"category": "vague_endorsement", "severity": "soft", "suggestion": "Say why it matters"},
+
+    # Reasoning-chain leakage and acknowledgment loops
+    "let me think step by step": {"category": "reasoning_chain", "severity": "hard", "suggestion": "State the conclusion, then the evidence"},
+    "breaking this down": {"category": "reasoning_chain", "severity": "soft", "suggestion": "State the point directly"},
+    "to approach this systematically": {"category": "reasoning_chain", "severity": "hard", "suggestion": "Cut the scaffolding and make the point"},
+    "here's my thought process": {"category": "reasoning_chain", "severity": "hard", "suggestion": "Remove internal-monologue framing"},
+    "working through this logically": {"category": "reasoning_chain", "severity": "hard", "suggestion": "State the argument directly"},
+    "you're asking about": {"category": "acknowledgment_loop", "severity": "hard", "suggestion": "Just answer directly"},
+    "to answer your question": {"category": "acknowledgment_loop", "severity": "hard", "suggestion": "Just answer directly"},
+    "the question of whether": {"category": "acknowledgment_loop", "severity": "soft", "suggestion": "State the issue directly"},
+
+    # Novelty inflation
+    "introduced a term": {"category": "novelty_inflation", "severity": "soft", "suggestion": "Describe what they explained instead"},
+    "coined the phrase": {"category": "novelty_inflation", "severity": "soft", "suggestion": "Describe the concept or cite the source"},
+    "a concept nobody's naming": {"category": "novelty_inflation", "severity": "hard", "suggestion": "Describe the concept without claiming novelty"},
+    "a problem nobody talks about": {"category": "novelty_inflation", "severity": "hard", "suggestion": "Describe the problem without fake scarcity"},
+    "the insight everyone's missing": {"category": "novelty_inflation", "severity": "hard", "suggestion": "Make the argument without hype framing"},
+    "what nobody tells you about": {"category": "novelty_inflation", "severity": "hard", "suggestion": "State the point directly"},
+
+    # Rhetorical question openers
+    "what does this mean for": {"category": "rhetorical_question", "severity": "soft", "suggestion": "Answer directly instead of teeing it up"},
+    "why should you care": {"category": "rhetorical_question", "severity": "hard", "suggestion": "State why it matters directly"},
+    "what's next?": {"category": "rhetorical_question", "severity": "soft", "suggestion": "State the next step directly"},
+
+    # Numbered-list inflation
+    "three key takeaways": {"category": "numbered_list_inflation", "severity": "soft", "suggestion": "List only the points that matter"},
+    "five things to know": {"category": "numbered_list_inflation", "severity": "soft", "suggestion": "List the points without hype framing"},
+    "top seven": {"category": "numbered_list_inflation", "severity": "soft", "suggestion": "Use the real count only if it matters"},
 }
 
 # Structural patterns (regex)
@@ -413,6 +488,12 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "suggestion": "State the concern directly without balanced-template framing"
     },
     {
+        "pattern": r"(?:while|although)\s+[^.\n]{1,120}?,\s*[^.\n]{1,120}?\b(?:remains|is still)\b[^.\n]{0,80}\b(?:challenge|concern|open question|limitation|constraint)",
+        "category": "false_concession",
+        "severity": "hard",
+        "suggestion": "Drop the fake balance. State the tradeoff directly."
+    },
+    {
         "pattern": r"paving the way for",
         "category": "superficial_ing",
         "severity": "hard",
@@ -464,14 +545,44 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "severity": "soft",
         "suggestion": "Multiple exclamation marks signal AI enthusiasm. Use sparingly."
     },
+
+    # Parenthetical hedging
+    {
+        "pattern": r"\((?:and,?\s+)?(?:perhaps|more importantly|increasingly|more precisely|arguably)\b[^)]*\)",
+        "category": "parenthetical_hedging",
+        "severity": "soft",
+        "suggestion": "If the aside matters, give it its own sentence. Otherwise cut it."
+    },
+
+    # Numbered-list inflation
+    {
+        "pattern": r"(?m)^(?:here are|these are|the top)\s+\d+\s+(?:reasons|things|takeaways|lessons|ways)\b",
+        "category": "numbered_list_inflation",
+        "severity": "soft",
+        "suggestion": "Use a list only when the count matters."
+    },
+
+    # Rhetorical-question openers
+    {
+        "pattern": r"(?m)^\s*(?:but\s+)?what does this mean for\b",
+        "category": "rhetorical_question",
+        "severity": "soft",
+        "suggestion": "Answer directly instead of opening with a rhetorical question."
+    },
+    {
+        "pattern": r"(?m)^\s*so why should you care\??",
+        "category": "rhetorical_question",
+        "severity": "hard",
+        "suggestion": "State why it matters directly."
+    },
 ]
 
 
-def scan_for_violations(text: str) -> list[Violation]:
+def scan_for_violations(text: str, include_quoted: bool = False) -> list[Violation]:
     """Scan text for banned phrases and structural patterns."""
     violations: list[Violation] = []
-    lines = text.split('\n')
-    text_lower = text.lower()
+    scan_text = mask_ignored_spans(text, include_quoted=include_quoted)
+    text_lower = scan_text.lower()
 
     # Check banned phrases
     for phrase, info in BANNED_PHRASES.items():
@@ -533,10 +644,23 @@ def scan_for_violations(text: str) -> list[Violation]:
     return violations
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("input_file", nargs="?", help="Optional input file. Reads stdin when omitted.")
+    parser.add_argument(
+        "--include-quoted",
+        action="store_true",
+        help="Scan quoted examples and markdown blockquotes instead of skipping them.",
+    )
+    return parser.parse_args()
+
+
 def main() -> None:
+    args = parse_args()
+
     # Read input
-    if len(sys.argv) > 1 and not sys.argv[1].startswith('--'):
-        with open(sys.argv[1], 'r') as f:
+    if args.input_file:
+        with open(args.input_file, 'r') as f:
             text = f.read()
     else:
         text = sys.stdin.read()
@@ -545,7 +669,7 @@ def main() -> None:
         print(json.dumps({"error": "No input provided", "violations": []}))
         sys.exit(1)
 
-    violations = scan_for_violations(text)
+    violations = scan_for_violations(text, include_quoted=args.include_quoted)
 
     # Group by category for summary
     categories: dict[str, int] = {}
