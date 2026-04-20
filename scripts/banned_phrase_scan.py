@@ -404,6 +404,24 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "suggestion": "Use complete sentences"
     },
     {
+        "pattern": r"(?:^|[.!?]\s+|\n)\s*the\s+[a-z][a-z\-']*(?:\s+[a-z][a-z\-']*){0,2}\s+loop\.",
+        "category": "dramatic_fragment",
+        "severity": "hard",
+        "suggestion": "'The ___ loop.' is a dramatic fragment. Rewrite as a complete sentence or cut."
+    },
+    {
+        "pattern": r"\b\w+\s+(?:isn'?t|aren'?t|is\s+not|are\s+not)\s+[^.\n]{1,80}\.\s+it'?s\s+[^.\n]{1,120}",
+        "category": "binary_contrast",
+        "severity": "hard",
+        "suggestion": "'X isn't Y. It's Z.' is a formulaic contrast. State Z directly."
+    },
+    {
+        "pattern": r"\b\w+\s+things\.\s+one\s+thing\b",
+        "category": "dramatic_fragment",
+        "severity": "hard",
+        "suggestion": "'X things. One thing.' is a dramatic reduction cliche. State the single point directly."
+    },
+    {
         "pattern": r"what if i told you",
         "category": "rhetorical_setup",
         "severity": "hard",

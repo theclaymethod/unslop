@@ -293,6 +293,7 @@ These make claims that are usually false.
 | "[X] isn't the problem. [Y] is." | "The problem is Y" |
 | "It feels like X. It's actually Y." | Just state Y |
 | "Not X. But Y." | "Y matters here" |
+| "X isn't Y. It's Z." | State Z directly; drop the contrast scaffolding |
 
 ### Dramatic Fragmentation
 
@@ -301,6 +302,8 @@ These make claims that are usually false.
 | "[Noun]. That's it. That's the [thing]." | Complete sentences |
 | "X. And Y. And Z." | Normal flow |
 | "This unlocks something. [Word]." | Trust content |
+| "The ___ loop." (as standalone fragment) | Rewrite as a complete sentence or cut |
+| "X things. One thing." | State the single point directly |
 
 ### Rhetorical Setups
 
@@ -797,10 +800,12 @@ Watch for inconsistent quote styles, a sign of copy-paste from AI output into di
 (?i)(full stop\.|period\.|let that sink in|make no mistake|read that again)
 
 # Binary contrast pattern
-(?i)(not because .+\. because|isn't the problem\.|feels like .+\. it's actually)
+(?i)(not because .+\. because|isn't the problem\.|feels like .+\. it's actually|\b\w+\s+(?:isn'?t|aren'?t|is not|are not)\s+[^.\n]+?\.\s+it'?s\b)
 
 # Fragmentation
 \. (That's it\.|And that's|That's the)
+(?i)(?:^|[.!?]\s+|\n)\s*the\s+[a-z][a-z\-']*(?:\s+[a-z][a-z\-']*){0,2}\s+loop\.
+(?i)\b\w+\s+things\.\s+one\s+thing\b
 
 # Filler adverbs
 (?i)^(interestingly|importantly|crucially|fundamentally),

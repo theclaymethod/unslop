@@ -23,3 +23,6 @@ test_*.txt
 
 # Wiki sync state
 scripts/.wiki_sync_state.json
+
+# Packaged skill
+*.skill
