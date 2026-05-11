@@ -84,6 +84,8 @@ These phrases try to manufacture importance. The content should speak for itself
 | "Read that again." | Condescending |
 | "This is important." | Shows insecurity in content |
 | "This cannot be overstated." | Overstating the overstating |
+| "Why this is load-bearing" | Pre-announces importance instead of showing it |
+| "Why this matters" | Same — just make the point |
 
 ---
 
@@ -724,6 +726,8 @@ Single words that appear at disproportionately high rates in AI text.
 | enduring | AI-formal for "lasting" — significance inflation adjacent | soft |
 | vibrant | Tourism/promotional default — frequent AI tell | soft |
 | valuable | Empty positive descriptor when used without object | soft |
+| substrate | AI-formal for "foundation," "base," or "layer" — overused metaphor | hard |
+| load-bearing | AI-favorite metaphor for "essential" or "critical" | hard |
 
 **Hard severity**: Always an AI tell regardless of context.
 **Soft severity**: Context-dependent — may be appropriate in academic or formal writing.
@@ -853,7 +857,10 @@ Watch for inconsistent quote styles, a sign of copy-paste from AI output into di
 (?i)((while|although) .+?, .+? (remains|is still) .+?(challenge|concern|open question|limitation|constraint))
 
 # AI vocabulary
-(?i)\b(delve|garner|interplay|intricate|tapestry|underscore|multifaceted|paramount|burgeoning|notwithstanding|henceforth|aforementioned|pertaining to|resonates?|sheds light|strikes a balance|paints a picture|double-edged sword)\b
+(?i)\b(delve|garner|interplay|intricate|tapestry|underscore|multifaceted|paramount|burgeoning|notwithstanding|henceforth|aforementioned|pertaining to|resonates?|sheds light|strikes a balance|paints a picture|double-edged sword|substrate|load-bearing)\b
+
+# Importance pre-announcements
+(?i)(why this is load-bearing|why this matters)
 
 # False ranges
 (?i)(from .+? to .+?, from .+? to|spanning everything from|ranging from .+? to)
