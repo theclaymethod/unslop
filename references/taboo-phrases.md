@@ -728,6 +728,7 @@ Single words that appear at disproportionately high rates in AI text.
 | valuable | Empty positive descriptor when used without object | soft |
 | substrate | AI-formal for "foundation," "base," or "layer" — overused metaphor | hard |
 | load-bearing | AI-favorite metaphor for "essential" or "critical" | hard |
+| wedge | AI-favorite metaphor for "angle," "lever," "differentiator," or "entry point" | hard |
 
 **Hard severity**: Always an AI tell regardless of context.
 **Soft severity**: Context-dependent — may be appropriate in academic or formal writing.
@@ -857,7 +858,7 @@ Watch for inconsistent quote styles, a sign of copy-paste from AI output into di
 (?i)((while|although) .+?, .+? (remains|is still) .+?(challenge|concern|open question|limitation|constraint))
 
 # AI vocabulary
-(?i)\b(delve|garner|interplay|intricate|tapestry|underscore|multifaceted|paramount|burgeoning|notwithstanding|henceforth|aforementioned|pertaining to|resonates?|sheds light|strikes a balance|paints a picture|double-edged sword|substrate|load-bearing)\b
+(?i)\b(delve|garner|interplay|intricate|tapestry|underscore|multifaceted|paramount|burgeoning|notwithstanding|henceforth|aforementioned|pertaining to|resonates?|sheds light|strikes a balance|paints a picture|double-edged sword|substrate|load-bearing|wedge)\b
 
 # Importance pre-announcements
 (?i)(why this is load-bearing|why this matters)
