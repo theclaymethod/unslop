@@ -129,6 +129,7 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
     "bolster": {"category": "jargon", "severity": "hard", "suggestion": "support, strengthen"},
     "streamline": {"category": "jargon", "severity": "soft", "suggestion": "simplify, speed up"},
     "harness": {"category": "jargon", "severity": "hard", "suggestion": "use, tap, apply"},
+    "wedge": {"category": "jargon", "severity": "hard", "suggestion": "entry point, angle, differentiator"},
     "multifaceted": {"category": "jargon", "severity": "hard", "suggestion": "complex, varied"},
     "foster": {"category": "jargon", "severity": "hard", "suggestion": "build, encourage, create"},
     "enhance": {"category": "jargon", "severity": "soft", "suggestion": "improve, strengthen"},
