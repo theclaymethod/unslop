@@ -69,14 +69,29 @@ def check_assertion(a, proc):
     return False, f"unknown assertion type {t}"
 
 
-def run_case(ev):
-    proc = subprocess.run(
-        ev["command"],
-        input=ev.get("stdin", ""),
-        capture_output=True,
-        text=True,
-        cwd=ROOT,
-    )
+class _Failed:
+    """Stand-in process result when the command never produced output."""
+    def __init__(self, returncode, stderr):
+        self.returncode = returncode
+        self.stdout = ""
+        self.stderr = stderr
+
+
+def run_case(ev, timeout=30):
+    try:
+        proc = subprocess.run(
+            ev["command"],
+            input=ev.get("stdin", ""),
+            capture_output=True,
+            text=True,
+            cwd=ROOT,
+            timeout=timeout,
+        )
+    except subprocess.TimeoutExpired:
+        return False, f"timed out after {timeout}s"
+    except (FileNotFoundError, OSError) as e:
+        proc = _Failed(127, str(e))
+
     results = [check_assertion(a, proc) for a in ev["assertions"]]
     ok = all(r[0] for r in results)
     details = "; ".join(d for _, d in results)

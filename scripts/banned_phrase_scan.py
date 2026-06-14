@@ -155,9 +155,9 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
     "spearhead": {"category": "jargon", "severity": "hard", "suggestion": "lead, start, run"},
     "bolster": {"category": "jargon", "severity": "hard", "suggestion": "support, strengthen"},
     "streamline": {"category": "jargon", "severity": "soft", "suggestion": "simplify, speed up"},
-    "harness": {"category": "jargon", "severity": "hard", "suggestion": "use, tap, apply"},
     "multifaceted": {"category": "jargon", "severity": "hard", "suggestion": "complex, varied"},
-    "foster": {"category": "jargon", "severity": "hard", "suggestion": "build, encourage, create"},
+    # ("harness" and "foster" have literal senses (a horse harness, a foster
+    # family); their jargon use is matched as a collocation in STRUCTURAL_PATTERNS.)
     "enhance": {"category": "jargon", "severity": "soft", "suggestion": "improve, strengthen"},
     "showcase": {"category": "jargon", "severity": "hard", "suggestion": "show, demonstrate"},
     "align with": {"category": "jargon", "severity": "hard", "suggestion": "match, fit, support"},
@@ -433,6 +433,18 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "category": "jargon",
         "severity": "hard",
         "suggestion": "handle, address, manage"
+    },
+    {
+        "pattern": r"\bharness(?:es|ed|ing)?\s+(?:the\s+|its\s+|their\s+|our\s+)?(?:power|potential|strength|capabilit|energy|momentum|force|full\s+)",
+        "category": "jargon",
+        "severity": "hard",
+        "suggestion": "use, tap, apply"
+    },
+    {
+        "pattern": r"\bfoster(?:s|ed|ing)?\s+(?:a\s+|an\s+|greater\s+|deeper\s+|stronger\s+)?(?:culture|collaboration|innovation|sense\s+of|community|environment|growth|engagement|inclusion|creativity|dialogue|connection|belonging)",
+        "category": "jargon",
+        "severity": "hard",
+        "suggestion": "build, encourage, create"
     },
     # Promotional "boasts <boastful complement>" (not "boasts a capacity of 50,000").
     {
@@ -740,8 +752,12 @@ def main() -> None:
 
     # Read input
     if args.input_file:
-        with open(args.input_file, 'r') as f:
-            text = f.read()
+        try:
+            with open(args.input_file, 'r') as f:
+                text = f.read()
+        except OSError as e:
+            print(json.dumps({"error": f"Could not read input: {e}", "violations": []}))
+            sys.exit(2)
     else:
         text = sys.stdin.read()
 

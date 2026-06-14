@@ -150,8 +150,12 @@ def extract_constraints(text: str) -> list[Constraint]:
 def main() -> None:
     # Read input
     if len(sys.argv) > 1:
-        with open(sys.argv[1], 'r') as f:
-            text = f.read()
+        try:
+            with open(sys.argv[1], 'r') as f:
+                text = f.read()
+        except OSError as e:
+            print(json.dumps({"error": f"Could not read input: {e}", "constraints": []}))
+            sys.exit(2)
     else:
         text = sys.stdin.read()
 

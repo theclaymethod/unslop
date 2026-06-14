@@ -442,6 +442,309 @@
       ]
     },
     {
+      "id": "FP-07",
+      "category": "scanner_false_positive",
+      "title": "A horse harness is not 'harness the power'",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "She buckled the harness on the horse.",
+      "failure_mode": "Bare 'harness' flagged; literal tack has nothing to do with the AI 'harness the power of' cliche.",
+      "correct_behavior": "No violations.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-08",
+      "category": "scanner_false_positive",
+      "title": "A foster family is not 'foster a culture'",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The foster family adopted three kids.",
+      "failure_mode": "Bare 'foster' flagged; 'foster family/care/child' is a normal noun, not jargon.",
+      "correct_behavior": "No violations.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-09",
+      "category": "quote_exemption",
+      "title": "Curly (smart) double quotes are exempt too",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The slide read “Here’s the thing: leverage your synergy.” and moved on.",
+      "failure_mode": "Only straight quotes were masked; smart quotes from word processors must be exempt as illustrative.",
+      "correct_behavior": "Quoted example is exempt: 0 violations.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "REC-01",
+      "category": "scanner_recall",
+      "title": "Gating 'foster' must still catch the jargon use",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "We foster a culture of innovation across teams.",
+      "failure_mode": "Over-gating could silence the real tell. 'foster a culture' must still flag.",
+      "correct_behavior": "At least 1 violation.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        }
+      ]
+    },
+    {
+      "id": "REC-02",
+      "category": "scanner_recall",
+      "title": "Gating 'harness' must still catch the jargon use",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "We harness the power of AI to unlock value.",
+      "failure_mode": "'harness the power of' must still flag after gating.",
+      "correct_behavior": "At least 1 violation.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        }
+      ]
+    },
+    {
+      "id": "REC-03",
+      "category": "scanner_recall",
+      "title": "Classic stacked slop still flags after all the gating",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Here's the thing: we must leverage our synergies to navigate the landscape. Full stop.",
+      "failure_mode": "Regression guard: removing/gating entries must not gut recall on obvious slop.",
+      "correct_behavior": "Several violations.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 3
+        }
+      ]
+    },
+    {
+      "id": "PRES-05",
+      "category": "fact_preservation",
+      "title": "Comma formatting difference still counts as preserved",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/validate_preservation.py",
+        "evals/fixtures/pres05_original.txt",
+        "evals/fixtures/pres05_transformed.txt"
+      ],
+      "failure_mode": "Stricter numeric matching must not create false 'missing' when only comma formatting changed (2,500 -> 2500).",
+      "correct_behavior": "All preserved; missing_count 0.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "missing_count",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "PRES-06",
+      "category": "fact_preservation",
+      "title": "$2.4M == $2.4 million (same magnitude preserved)",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/validate_preservation.py",
+        "evals/fixtures/pres06_original.txt",
+        "evals/fixtures/pres06_transformed.txt"
+      ],
+      "failure_mode": "Magnitude-aware currency must treat M and 'million' as equal, not flag a faithful reword.",
+      "correct_behavior": "Preserved; missing_count 0.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "missing_count",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "PRES-07",
+      "category": "fact_preservation",
+      "title": "Dropping the quarter is a lost fact",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/validate_preservation.py",
+        "evals/fixtures/pres07_original.txt",
+        "evals/fixtures/pres07_transformed.txt"
+      ],
+      "failure_mode": "'Q3 2024' -> 'recently' drops a date; must be flagged missing.",
+      "correct_behavior": "missing_count >= 1.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "missing_count",
+          "gte": 1
+        }
+      ]
+    },
+    {
+      "id": "ROB-04",
+      "category": "robustness",
+      "title": "extract_constraints: missing file, no traceback",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/extract_constraints.py",
+        "evals/fixtures/does_not_exist.txt"
+      ],
+      "failure_mode": "Unguarded open() would crash.",
+      "correct_behavior": "Clean error, exit 2, no traceback.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 2
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        }
+      ]
+    },
+    {
+      "id": "ROB-05",
+      "category": "robustness",
+      "title": "banned_phrase_scan: missing file, no traceback",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py",
+        "evals/fixtures/does_not_exist.txt"
+      ],
+      "failure_mode": "Unguarded open() would crash.",
+      "correct_behavior": "Clean error, exit 2, no traceback.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 2
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        }
+      ]
+    },
+    {
+      "id": "ROB-06",
+      "category": "robustness",
+      "title": "readability_metrics: missing file, no traceback",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/readability_metrics.py",
+        "evals/fixtures/does_not_exist.txt"
+      ],
+      "failure_mode": "Unguarded open() would crash.",
+      "correct_behavior": "Clean error, exit 2, no traceback.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 2
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        }
+      ]
+    },
+    {
+      "id": "ROB-07",
+      "category": "robustness",
+      "title": "diff_check: missing file, no traceback",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/diff_check.py",
+        "evals/fixtures/does_not_exist.txt",
+        "evals/fixtures/pres05_original.txt"
+      ],
+      "failure_mode": "Unguarded open() would crash.",
+      "correct_behavior": "Clean error, exit 2, no traceback.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 2
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        }
+      ]
+    },
+    {
+      "id": "ROB-08",
+      "category": "robustness",
+      "title": "Empty stdin is handled, not crashed",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "",
+      "failure_mode": "Empty input should report cleanly, not raise.",
+      "correct_behavior": "Exit 1 with a 'No input' message, no traceback.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 1
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "No input"
+        }
+      ]
+    },
+    {
       "id": "SKILL-DONOHARM-01",
       "category": "do_no_harm",
       "title": "Already-human text: do (almost) nothing",

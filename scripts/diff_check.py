@@ -105,13 +105,15 @@ def main() -> None:
         print("Usage: diff_check.py <original.txt> <transformed.txt>")
         sys.exit(1)
 
-    # Read original
-    with open(sys.argv[1], 'r') as f:
-        original = f.read()
-
-    # Read transformed
-    with open(sys.argv[2], 'r') as f:
-        transformed = f.read()
+    # Read inputs
+    try:
+        with open(sys.argv[1], 'r') as f:
+            original = f.read()
+        with open(sys.argv[2], 'r') as f:
+            transformed = f.read()
+    except OSError as e:
+        print(json.dumps({"error": f"Could not read input: {e}"}))
+        sys.exit(2)
 
     result = calculate_diff(original, transformed)
     print(json.dumps(result, indent=2))
