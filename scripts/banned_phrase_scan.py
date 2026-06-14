@@ -116,6 +116,64 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
     "tells a clear story": {"category": "false_agency", "severity": "hard", "suggestion": "Say what the data shows."},
     "paints a clear picture": {"category": "false_agency", "severity": "hard", "suggestion": "Describe it directly."},
 
+    # Significance / legacy puffery (Wikipedia: Signs of AI writing)
+    "leaves a lasting impact": {"category": "significance_inflation", "severity": "hard", "suggestion": "State the specific effect."},
+    "lasting impact": {"category": "significance_inflation", "severity": "soft", "suggestion": "Name the actual effect."},
+    "enduring legacy": {"category": "significance_inflation", "severity": "hard", "suggestion": "State what actually persisted."},
+    "lasting legacy": {"category": "significance_inflation", "severity": "hard", "suggestion": "State what actually persisted."},
+    "watershed moment": {"category": "significance_inflation", "severity": "soft", "suggestion": "turning point (if sourced)"},
+    "in the realm of": {"category": "significance_inflation", "severity": "hard", "suggestion": "in"},
+
+    # Travel-brochure promotional language
+    "rich cultural heritage": {"category": "promotional", "severity": "hard", "suggestion": None},
+    "stunning natural beauty": {"category": "promotional", "severity": "soft", "suggestion": None},
+
+    # Vague attribution / weasel wording
+    "has been described as": {"category": "vague_attribution", "severity": "soft", "suggestion": "Name and cite who described it."},
+    "is widely regarded as": {"category": "vague_attribution", "severity": "soft", "suggestion": "Attribute to a named source."},
+    "some critics argue": {"category": "vague_attribution", "severity": "soft", "suggestion": "Name the critics."},
+    "observers have noted": {"category": "vague_attribution", "severity": "soft", "suggestion": "Name the observers."},
+
+    # Editorializing
+    "would be complete without": {"category": "editorializing", "severity": "hard", "suggestion": "Drop the editorial framing."},
+
+    # Future-outlook boilerplate
+    "future prospects": {"category": "conclusion_scaffold", "severity": "soft", "suggestion": "State a specific, sourced forecast."},
+    "future outlook": {"category": "conclusion_scaffold", "severity": "soft", "suggestion": None},
+
+    # Assistant / chatbot artifacts pasted into prose
+    "as an ai language model": {"category": "assistant_artifact", "severity": "hard", "suggestion": "Delete — this is chatbot boilerplate."},
+    "as an ai assistant": {"category": "assistant_artifact", "severity": "hard", "suggestion": "Delete — this is chatbot boilerplate."},
+    "as of my last knowledge update": {"category": "assistant_artifact", "severity": "hard", "suggestion": "Delete the training-cutoff disclaimer."},
+
+    # Academic/scientific excess vocabulary (Berens & Kobak, Science Advances 2024).
+    # Mostly soft: each is legitimate but over-represented in LLM prose; flag for
+    # judgment, especially when clustered.
+    "elucidate": {"category": "academic_excess", "severity": "soft", "suggestion": "explain, clarify"},
+    "delineate": {"category": "academic_excess", "severity": "soft", "suggestion": "describe, outline"},
+    "underpin": {"category": "academic_excess", "severity": "soft", "suggestion": "support, underlie"},
+    "unveil": {"category": "academic_excess", "severity": "soft", "suggestion": "show, present"},
+    "seamless": {"category": "academic_excess", "severity": "soft", "suggestion": "smooth"},
+    "invaluable": {"category": "academic_excess", "severity": "soft", "suggestion": "useful, important"},
+    "noteworthy": {"category": "academic_excess", "severity": "soft", "suggestion": "Cut or be specific."},
+    "revolutionize": {"category": "academic_excess", "severity": "soft", "suggestion": "change, improve"},
+    "revolutionizing": {"category": "academic_excess", "severity": "soft", "suggestion": "changing"},
+
+    # Formulaic academic phrases
+    "it should be noted that": {"category": "throat_clearing", "severity": "hard", "suggestion": "Cut — state it directly."},
+    "warrants further": {"category": "conclusion_scaffold", "severity": "hard", "suggestion": "Say what specifically to do next."},
+    "holds great promise": {"category": "significance_inflation", "severity": "hard", "suggestion": "State the concrete potential."},
+    "holds promise": {"category": "significance_inflation", "severity": "soft", "suggestion": "State the concrete potential."},
+    "new avenues": {"category": "significance_inflation", "severity": "soft", "suggestion": "Name the specific next steps."},
+    "shed new light": {"category": "significance_inflation", "severity": "soft", "suggestion": "State what was learned."},
+    "to the best of our knowledge": {"category": "vague_attribution", "severity": "soft", "suggestion": "Cut unless the novelty claim is load-bearing."},
+    "a growing body of": {"category": "vague_attribution", "severity": "soft", "suggestion": "Cite the specific evidence."},
+    "in recent years": {"category": "filler_opener", "severity": "soft", "suggestion": "Cut the time-filler opener."},
+    "with the advent of": {"category": "filler_opener", "severity": "soft", "suggestion": "when X arrived"},
+    "garnered significant attention": {"category": "significance_inflation", "severity": "soft", "suggestion": "State who paid attention and why."},
+    "garnered considerable attention": {"category": "significance_inflation", "severity": "soft", "suggestion": "State who paid attention and why."},
+    "taken together,": {"category": "conclusion_scaffold", "severity": "soft", "suggestion": "Cut the summarizer opener."},
+
     # Business jargon
     # ("navigate" and "leverage" alone have legitimate literal/financial senses;
     # they're matched as jargon collocations in STRUCTURAL_PATTERNS instead.)
@@ -250,8 +308,8 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
     "research suggests": {"category": "vague_attribution", "severity": "hard", "suggestion": "cite the research"},
 
     # Copula avoidance
-    "serves as a": {"category": "copula_avoidance", "severity": "hard", "suggestion": "is a"},
-    "stands as a": {"category": "copula_avoidance", "severity": "hard", "suggestion": "is a"},
+    # ("serves as a" / "stands as a" have literal-function senses (a room serves
+    # as a kitchen); the inflated significance use is matched in STRUCTURAL_PATTERNS.)
     "represents a": {"category": "copula_avoidance", "severity": "soft", "suggestion": "is a"},
     "constitutes a": {"category": "copula_avoidance", "severity": "hard", "suggestion": "is a"},
     "functions as a": {"category": "copula_avoidance", "severity": "hard", "suggestion": "is a"},
@@ -452,6 +510,41 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "category": "promotional",
         "severity": "hard",
         "suggestion": "has"
+    },
+    # "plays a crucial role / pivotal part" — the canonical AI academic frame.
+    {
+        "pattern": r"\bplays?\s+an?\s+(?:crucial|key|vital|pivotal|significant|central|important|critical|defining|major)\s+(?:role|part)\b",
+        "category": "significance_inflation",
+        "severity": "soft",
+        "suggestion": "State the specific effect, not that something 'plays a role'."
+    },
+    # "a deeper/more nuanced understanding of" — inflated stand-in for "understanding".
+    {
+        "pattern": r"\ba\s+(?:deeper|better|more\s+nuanced|comprehensive|fuller|richer)\s+understanding\s+of\b",
+        "category": "significance_inflation",
+        "severity": "soft",
+        "suggestion": "Just 'understanding of', or state what is understood."
+    },
+    # "highlights/emphasizes the need/importance of" — boilerplate significance closer.
+    {
+        "pattern": r"\b(?:highlight|emphasiz|reflect)\w*\s+the\s+(?:need|importance)\s+(?:for|of)\b",
+        "category": "significance_inflation",
+        "severity": "soft",
+        "suggestion": "State the takeaway directly."
+    },
+    # Reader-addressing essay frame ("In this article, we will explore …").
+    {
+        "pattern": r"(?i)\bin this (?:article|section|post|guide|chapter|paper),?\s+(?:we|i)\s+(?:will|'ll|are going to|shall)\b",
+        "category": "reader_addressing",
+        "severity": "soft",
+        "suggestion": "Drop the meta-framing; just deliver the content."
+    },
+    # Inflated "serves/stands as a <significance noun>" (not "serves as a kitchen").
+    {
+        "pattern": r"\b(?:serves|stands|stood)\s+as\s+(?:a|an|the)\s+(?:testament|reminder|symbol|beacon|foundation|cornerstone|gateway|catalyst|bridge|hub|springboard|window|monument|hallmark|blueprint|cautionary|stark|powerful|shining|prime example|case study|model for)\b",
+        "category": "copula_avoidance",
+        "severity": "hard",
+        "suggestion": "Use 'is', and state the specific fact."
     },
     {
         "pattern": r"not because .+?\. because",

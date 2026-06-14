@@ -745,6 +745,186 @@
       ]
     },
     {
+      "id": "DET-01",
+      "category": "scanner_detection",
+      "title": "Catches 'plays a crucial role' puffery",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Inflammation plays a crucial role in disease progression.",
+      "failure_mode": "Canonical AI academic frame was uncatalogued.",
+      "correct_behavior": "Flagged (>=1). Source: Wikipedia Signs of AI writing.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        }
+      ]
+    },
+    {
+      "id": "DET-02",
+      "category": "scanner_detection",
+      "title": "Catches travel-brochure puffery",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The town is known for its rich cultural heritage and stunning natural beauty.",
+      "failure_mode": "Promotional 'rich cultural heritage'/'stunning natural beauty' uncatalogued.",
+      "correct_behavior": "Flagged (>=1).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        }
+      ]
+    },
+    {
+      "id": "DET-03",
+      "category": "scanner_detection",
+      "title": "Catches vague attribution + editorializing",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The album has been described as a masterpiece by some critics.",
+      "failure_mode": "Weasel attribution 'has been described as'/'some critics' uncatalogued.",
+      "correct_behavior": "Flagged (>=1).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        }
+      ]
+    },
+    {
+      "id": "DET-04",
+      "category": "scanner_detection",
+      "title": "Catches pasted chatbot artifact",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "As an AI language model, I cannot provide opinions on this matter.",
+      "failure_mode": "Assistant boilerplate 'as an AI language model' uncatalogued.",
+      "correct_behavior": "Flagged (>=1).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        }
+      ]
+    },
+    {
+      "id": "DET-05",
+      "category": "scanner_detection",
+      "title": "Catches reader-addressing essay frame",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "In this article, we will explore the history of the telescope.",
+      "failure_mode": "'In this article, we will explore' uncatalogued.",
+      "correct_behavior": "Flagged (>=1).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        }
+      ]
+    },
+    {
+      "id": "DET-06",
+      "category": "scanner_detection",
+      "title": "Catches empty academic closers",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "This finding warrants further investigation and holds great promise for the field.",
+      "failure_mode": "'warrants further', 'holds great promise' uncatalogued.",
+      "correct_behavior": "Flagged (>=1). Source: Berens & Kobak 2024.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        }
+      ]
+    },
+    {
+      "id": "DET-07",
+      "category": "scanner_detection",
+      "title": "Catches inflated 'serves as a testament'",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The cathedral serves as a testament to medieval engineering.",
+      "failure_mode": "Significance-noun copula avoidance.",
+      "correct_behavior": "Flagged (>=1).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        }
+      ]
+    },
+    {
+      "id": "FP-10",
+      "category": "scanner_false_positive",
+      "title": "Literal 'serves as a kitchen' is not copula avoidance",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The spare room serves as a kitchen during renovations.",
+      "failure_mode": "Bare 'serves as a' flagged every literal function. Gated behind significance nouns.",
+      "correct_behavior": "No violations.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-11",
+      "category": "scanner_false_positive",
+      "title": "Literal 'elevated glucose' is not hype",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "We measured elevated glucose levels in three patients.",
+      "failure_mode": "Guard against over-adding 'elevate/elevated' as a blanket tell; literal lab usage must stay clean.",
+      "correct_behavior": "No violations.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
       "id": "SKILL-DONOHARM-01",
       "category": "do_no_harm",
       "title": "Already-human text: do (almost) nothing",

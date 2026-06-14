@@ -134,14 +134,21 @@ unslop's rubric is finer but, as §3 shows, gameable. The useful import is the
 
 `adversarial-evals.json` — 38 cases:
 
-- **35 `script` cases**: deterministic, run by `run_adversarial.py` with a
+- **44 `script` cases**: deterministic, run by `run_adversarial.py` with a
   per-case timeout. They encode the *correct* behavior; a case stays marked
   `xfail` only while its bug is open. The runner reports PASS / FAIL (undocumented
   regression, breaks build) / XFAIL (known/accepted limit) / XPASS (bug fixed →
-  remove the `xfail`). Today: 34 PASS, 1 XFAIL (FP-06), 0 FAIL. Includes
-  false-positive gates, recall guards (REC-*) that prove the gating didn't gut
-  detection, magnitude/format fact cases, and missing-file/empty-input robustness
-  for every script. `.github/workflows/evals.yml` runs this on every push and PR.
+  remove the `xfail`). Today: 43 PASS, 1 XFAIL (FP-06), 0 FAIL. Includes
+  false-positive gates (FP-*), recall guards (REC-*) that prove the gating didn't
+  gut detection, detection cases (DET-*) for research-sourced patterns,
+  magnitude/format fact cases, and missing-file/empty-input robustness for every
+  script. `.github/workflows/evals.yml` runs this on every push and PR.
+
+  New patterns this round are drawn from Wikipedia's *Signs of AI writing* and the
+  peer-reviewed Berens & Kobak excess-vocabulary study (14M PubMed abstracts),
+  added conservatively: academic single-words are `soft` (flag when clustered),
+  and the ambiguous ones (`serves as a`, `harness`, `foster`) are gated behind
+  their inflated collocations so literal usage stays clean.
 - **18 `skill` cases**: behavioral, judged against the agent's output. Cover
   do-no-harm, over-correction, fact traps, mode/preset routing, rubric gaming,
   content types, and prompt injection.

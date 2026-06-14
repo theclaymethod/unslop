@@ -39,7 +39,8 @@ Quoted examples are exempt by default. When you're documenting bad AI writing, s
 31. [Elegant Variation / Synonym Cycling](#elegant-variation--synonym-cycling)
 32. [AI Vocabulary (Additional)](#ai-vocabulary-additional)
 33. [Punctuation Abuse](#punctuation-abuse)
-34. [Quick Reference: Detection Regex](#quick-reference-detection-regex)
+34. [Research-Sourced Additions](#research-sourced-additions)
+35. [Quick Reference: Detection Regex](#quick-reference-detection-regex)
 
 ---
 
@@ -827,6 +828,59 @@ AI-generated text, especially in emails and social content, over-uses exclamatio
 ### Curly Quote / Smart Punctuation Artifacts
 
 Watch for inconsistent quote styles, a sign of copy-paste from AI output into different editors.
+
+---
+
+## Research-Sourced Additions
+
+Patterns added from external sources. Most academic single-words are `soft`
+(legitimate but over-represented in LLM prose — flag when clustered).
+
+**Significance & legacy puffery** (Wikipedia: Signs of AI writing)
+
+| Phrase | Note |
+|--------|------|
+| "plays a vital/crucial/significant role" | The canonical AI academic frame |
+| "leaves a lasting impact", "enduring/lasting legacy" | Vacuous legacy claims |
+| "watershed moment" | Soft — fine for a genuinely sourced turning point |
+| "in the realm of" | Almost always replaceable with "in" |
+| "serves/stands as a testament/reminder/symbol…" | Inflated copula; "serves as a kitchen" is fine |
+
+**Promotional drift** (Wikipedia)
+
+| Phrase | Note |
+|--------|------|
+| "rich cultural heritage" | Travel-brochure cliché |
+| "stunning natural beauty" | Soft — acceptable in overt travel writing |
+
+**Vague attribution / weasel wording** (Wikipedia)
+
+| Phrase | Note |
+|--------|------|
+| "has been described as", "is widely regarded as" | Soft — fine when the source is named |
+| "some critics argue", "observers have noted" | Name the critics/observers |
+| "to the best of our knowledge", "a growing body of" | Cite the specific evidence |
+
+**Editorializing / framing** (Wikipedia)
+
+| Phrase | Note |
+|--------|------|
+| "(no discussion) would be complete without" | Editorial voice |
+| "In this article, we will explore…" | Reader-addressing; alien to reference voice |
+| "as an AI language model", "as of my last knowledge update" | Pasted chatbot artifacts |
+
+**Academic excess vocabulary** (Berens & Kobak, *Science Advances* 2024 — excess-word frequency study of 14M PubMed abstracts)
+
+| Words / phrases | Note |
+|-----------------|------|
+| elucidate, delineate, underpin, unveil, seamless, invaluable, noteworthy | Soft — overused style verbs/adjectives |
+| revolutionize, "holds (great) promise", "new avenues", "shed new light" | Hype/discussion-section closers |
+| "warrants further investigation", "it should be noted that" | Empty closers / filler |
+| "in recent years", "with the advent of", "taken together," | Formulaic openers/summarizers |
+| "garnered significant/considerable attention" | Manufactured-consensus framing |
+| "a deeper/more nuanced understanding of" | Inflated stand-in for "understanding" |
+
+**Sources:** Wikipedia [Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing); Berens & Kobak, "Delving into ChatGPT usage in academic writing," *Science Advances* (2024), [llm-excess-vocab](https://github.com/berenslab/llm-excess-vocab); [hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop).
 
 ---
 
