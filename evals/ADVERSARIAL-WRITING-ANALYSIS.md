@@ -64,6 +64,39 @@ sub-five-word sentences, and antithesis without a connective. That *is* the
   `personality-guide.md` toward genuine sentence-length variety — a content change
   to the skill's taste, not just its tooling. Flagged for follow-up.
 
+## Re-test after the fixes — thesis now refuted
+
+The gold examples in `edit-library.md`, `crisp-human.md`, and `warm-human.md` were
+then revised toward varied rhythm (the skill had been *teaching* the anti-slop
+register), and a fresh adversary was pointed at the updated skill with the inverted
+incentive: prove the revisions are cosmetic and the thesis still holds.
+
+**Verdict: thesis refuted (high confidence).** Faithful rewrites of five inputs
+(including the medical caveat and the it-depends argument) under the revised skill
+scored **0 `anti_slop_register` violations and no staccato flag**, while a
+deliberately reconstructed *old*-register version of the same input still tripped
+both detectors — clean separation. Nuance survived in all five (medical caveats,
+the write-contention qualifier, the it-depends structure, the email's warmth).
+
+| Input | Faithful output trips `anti_slop_register`? | Nuance survived? |
+|-------|---------------------------------------------|------------------|
+| L1 (LinkedIn) | no | yes |
+| A1 (technical) | no | yes |
+| MED1 (medical caveat) | no | yes |
+| ARG1 (it-depends argument) | no | yes |
+| E1 (warm email) | no | yes |
+
+The fix is a closed loop: the guidance steers away from the register, the scanner
+catches it, and the gold examples model the replacement. Measured: gold "After"
+examples tripping the detectors went from **8 → 0**.
+
+Residuals: (R1, low) a dense argument can trip the readability "high reading level"
+flag — the opposite of staccato, a tolerated tradeoff, not bloat. (R2) the
+anti-slop checks are *soft*, so a non-compliant model could still emit the old
+register; the SKILL.md validation step now treats an `anti_slop_register` hit and a
+`Staccato cadence` flag as **blocking** (rewrite before returning), closing that gap
+as far as instructions can.
+
 ## Method note
 
 A neutral executor produced faithful skill rewrites of six diverse inputs (LinkedIn

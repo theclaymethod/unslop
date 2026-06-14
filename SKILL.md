@@ -121,11 +121,16 @@ After rewriting, verify your work:
    ```bash
    python3 scripts/banned_phrase_scan.py <<< "$OUTPUT"
    ```
+   **Blocking, even though they're "soft":** an `anti_slop_register` hit means you
+   replaced slop with your own tell (a bare "Not X. Y." contrast or a staccato
+   run). Do not ship it — rewrite that span with varied sentence length before
+   returning.
 
 3. **Readability metrics** — check rhythm and variance:
    ```bash
    python3 scripts/readability_metrics.py <<< "$OUTPUT"
    ```
+   A `Staccato cadence` flag is also blocking: vary the rhythm and re-check.
 
 4. **Change percentage** — flag if >40% changed (may indicate over-editing):
    ```bash
