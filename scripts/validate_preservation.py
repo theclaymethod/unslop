@@ -135,6 +135,41 @@ def find_constraint_in_text(constraint: Constraint, text: str) -> bool:
     return False
 
 
+_NEGATION_RE = re.compile(
+    r"\b(?:not|never|no|cannot|can't|won't|don't|doesn't|didn't|isn't|aren't|"
+    r"wasn't|weren't|without|neither|nor|none|fails?\s+to|rather\s+than)\b", re.I)
+_SCOPE_RE = re.compile(
+    r"\b(?:most|all|none|every|each|some|few|several|majority|minority|only|"
+    r"always|usually|typically|rarely|approximately|roughly|about|nearly)\b", re.I)
+_CONDITIONAL_RE = re.compile(
+    r"\b(?:if|unless|provided\s+that|only\s+if|assuming|given\s+that|"
+    r"in\s+the\s+event|contingent\s+on)\b", re.I)
+
+
+def semantic_drift_warnings(original: str, transformed: str) -> list[str]:
+    """Warn when meaning-bearing words present in the original vanish in the rewrite."""
+    out: list[str] = []
+    o, t = original.lower(), transformed.lower()
+
+    on, tn = len(_NEGATION_RE.findall(o)), len(_NEGATION_RE.findall(t))
+    if on > tn:
+        out.append(
+            f"Negation count dropped {on}->{tn}. Verify no claim was inverted or "
+            "weakened (e.g. 'does not support' -> 'supports').")
+
+    missing_scope = sorted({w for w in _SCOPE_RE.findall(o)} - {w for w in _SCOPE_RE.findall(t)})
+    for w in missing_scope:
+        out.append(f"Scope/precision word '{w}' not in output. Verify the claim's scope is unchanged.")
+
+    oc, tc = len(_CONDITIONAL_RE.findall(o)), len(_CONDITIONAL_RE.findall(t))
+    if oc > tc:
+        out.append(
+            f"Conditional count dropped {oc}->{tc}. Verify a conditional claim "
+            "wasn't turned into an unconditional one.")
+
+    return out
+
+
 def validate_preservation(
     original_text: str,
     transformed_text: str,
@@ -159,6 +194,13 @@ def validate_preservation(
             num = re.search(r'[\d.]+', m["value"])
             if num and num.group() in transformed_text:
                 warnings.append(f"Number {num.group()} found but missing '%' symbol")
+
+    # Semantic drift warnings. These are NOT numbers/names — they are the
+    # meaning-bearing words (negations, scope, conditionals) that the skill's
+    # de-hedging rules are most likely to delete and that pure fact-matching
+    # cannot see. Surfaced as warnings so the rewrite gets a human re-check;
+    # de-slopping legitimately removes some, so they don't hard-fail on their own.
+    warnings.extend(semantic_drift_warnings(original_text, transformed_text))
 
     preserved = len(constraints) - len(missing)
 

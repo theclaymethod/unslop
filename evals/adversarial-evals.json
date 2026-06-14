@@ -925,6 +925,147 @@
       ]
     },
     {
+      "id": "AS-01",
+      "category": "anti_slop_register",
+      "title": "Scanner now sees its own 'Not X. Y.' house style",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Building products is hard. Not the technology. The people.",
+      "failure_mode": "B1: gold fragment-contrast output scored 0 while the clause form flagged — the scanner was blind to the register the skill itself produces.",
+      "correct_behavior": "Flagged (>=1) as anti_slop_register (soft).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        }
+      ]
+    },
+    {
+      "id": "AS-02",
+      "category": "anti_slop_register",
+      "title": "Scanner sees staccato imperative triplets",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Move fast. Handle uncertainty. Use what you're good at.",
+      "failure_mode": "B1: staccato runs of tiny sentences (a gold edit-library output) scored 0.",
+      "correct_behavior": "Flagged (>=1).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        }
+      ]
+    },
+    {
+      "id": "FP-12",
+      "category": "scanner_false_positive",
+      "title": "Anti-slop detector spares normal varied prose",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "I missed the train by ten seconds and walked home in the rain, thinking about nothing in particular.",
+      "failure_mode": "Guard: the new fragment/staccato detectors must not fire on ordinary human sentences.",
+      "correct_behavior": "No violations.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "AS-03",
+      "category": "anti_slop_register",
+      "title": "Readability flags staccato on short output too",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/readability_metrics.py"
+      ],
+      "stdin": "Building products is hard. Not the technology. The people.",
+      "failure_mode": "B7: rhythm flags were gated behind sentence_count>3, so short de-slopped staccato slipped through clean.",
+      "correct_behavior": "Output names the staccato cadence.",
+      "assertions": [
+        {
+          "type": "stdout_contains",
+          "value": "Staccato"
+        }
+      ]
+    },
+    {
+      "id": "PRES-08",
+      "category": "fact_preservation",
+      "title": "Dropping a cited reference (Section 12(b)) fails",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/validate_preservation.py",
+        "evals/fixtures/ref_dropped_original.txt",
+        "evals/fixtures/ref_dropped_transformed.txt"
+      ],
+      "failure_mode": "B2: cited clause/section references were never extracted, so dropping 'Section 12(b)' passed.",
+      "correct_behavior": "missing_count >= 1 (reference is a hard must-preserve).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "missing_count",
+          "gte": 1
+        }
+      ]
+    },
+    {
+      "id": "PRES-09",
+      "category": "fact_preservation",
+      "title": "Preserved reference is not a false miss",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/validate_preservation.py",
+        "evals/fixtures/ref_kept_original.txt",
+        "evals/fixtures/ref_kept_transformed.txt"
+      ],
+      "failure_mode": "Guard: 'Section 12(b)' surviving a reword must validate clean.",
+      "correct_behavior": "missing_count 0.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "missing_count",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "SEM-01",
+      "category": "fact_preservation",
+      "title": "Inverted negation surfaces a semantic warning",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/validate_preservation.py",
+        "evals/fixtures/neg_original.txt",
+        "evals/fixtures/neg_transformed.txt"
+      ],
+      "failure_mode": "B2/B3: 'does not support' -> 'supports' inverts meaning but matched all surface facts and passed silently.",
+      "correct_behavior": "A negation-drop warning is emitted so the rewrite gets re-checked.",
+      "assertions": [
+        {
+          "type": "stdout_contains",
+          "value": "Negation count dropped"
+        }
+      ]
+    },
+    {
       "id": "SKILL-DONOHARM-01",
       "category": "do_no_harm",
       "title": "Already-human text: do (almost) nothing",
@@ -1219,6 +1360,158 @@
         {
           "type": "judge",
           "check": "Skill does not rely solely on the script's zero-violation result to declare the text clean."
+        }
+      ]
+    },
+    {
+      "id": "SKILL-FRAGMENT-01",
+      "category": "anti_slop_register",
+      "target": "skill",
+      "title": "Don't replace slop with the 'Not X. Y.' tell",
+      "prompt": "Humanize this: At the end of the day, it's not really about the tools you use. It's about the team you build.",
+      "failure_mode": "B1: the skill's gold examples model bare fragment contrasts ('Not the technology. The people.'), so it tends to emit its own undetected house style.",
+      "correct_behavior": "Rewrite as one varied sentence (e.g. 'Good teams matter more than good tools.'). Do NOT produce a 'Not X. Y.' fragment pair or a staccato run of tiny sentences.",
+      "assertions": [
+        {
+          "type": "judge",
+          "check": "Output does not contain a bare 'Not <word(s)>. <word(s)>.' fragment-contrast pair."
+        },
+        {
+          "type": "judge",
+          "check": "Output is not three or more consecutive sub-five-word sentences."
+        }
+      ]
+    },
+    {
+      "id": "SKILL-HEDGE-03",
+      "category": "over_correction",
+      "target": "skill",
+      "title": "Scientific caveats are the content, not filler",
+      "prompt": "This sounds like AI, make it human: It's worth noting that these findings are preliminary, drawn from a single observational cohort, and should not be interpreted as establishing causation, as unmeasured confounders may explain the association.",
+      "failure_mode": "B3: Directness flags hedges; deleting 'preliminary/observational/not...causation/confounders' destroys the epistemic payload.",
+      "correct_behavior": "Remove only the throat-clearing 'It's worth noting'. Keep preliminary, single observational cohort, the non-causal claim, and confounders intact.",
+      "assertions": [
+        {
+          "type": "judge",
+          "check": "Output still states the findings are preliminary and from a single observational cohort."
+        },
+        {
+          "type": "judge",
+          "check": "Output still says causation is not established (does not assert the association is causal)."
+        }
+      ]
+    },
+    {
+      "id": "SKILL-LEGAL-02",
+      "category": "fact_preservation",
+      "target": "skill",
+      "title": "Legal negation, scope, and section reference must survive",
+      "prompt": "Make this less robotic: It is worth noting that the conduct described above does not, in itself, rise to the level of gross negligence as defined under Section 12(b), and arguably constitutes ordinary negligence at most.",
+      "failure_mode": "B2/B5: de-hedging + compression invert the negation, drop 'arguably', or lose 'Section 12(b)'; validation can't see it.",
+      "correct_behavior": "Keep the negation ('does not rise to ... gross negligence'), 'arguably', and 'Section 12(b)' exactly. Do not strengthen 'does not rise to' into an assertion that it IS or ISN'T negligence beyond what's stated.",
+      "assertions": [
+        {
+          "type": "judge",
+          "check": "Output preserves that the conduct does NOT rise to gross negligence (negation not inverted)."
+        },
+        {
+          "type": "judge",
+          "check": "Output keeps 'Section 12(b)' and the hedge 'arguably'."
+        }
+      ]
+    },
+    {
+      "id": "SKILL-STACCATO-01",
+      "category": "anti_slop_register",
+      "target": "skill",
+      "title": "Crisp preset must not produce telegraphic staccato",
+      "prompt": "De-slop with the crisp preset: In today's fast-paced business landscape, organizations must continuously leverage their core competencies in order to navigate the ever-evolving challenges of digital transformation and stay ahead of the competition.",
+      "failure_mode": "B7: crisp's 20-word cap + 'cut ruthlessly' pushes toward a staccato run that is its own AI tell.",
+      "correct_behavior": "Cut the jargon AND vary sentence length (mix short and 12-20 word sentences). Avoid three or more consecutive tiny sentences and avoid a fragment-contrast cadence.",
+      "assertions": [
+        {
+          "type": "judge",
+          "check": "Output has varied sentence lengths, not a run of 3+ sub-five-word sentences."
+        },
+        {
+          "type": "judge",
+          "check": "Output removed the jargon (leverage, core competencies, navigate, landscape, ever-evolving)."
+        }
+      ]
+    },
+    {
+      "id": "SKILL-WARMTH-01",
+      "category": "content_type",
+      "target": "skill",
+      "title": "A warm email must stay warm",
+      "prompt": "De-slop this colleague email (warm preset): Hi Dana, I hope this email finds you well! I completely understand things have been hectic, and I don't want to add pressure, but could we touch base tomorrow so I can give the client an update by Friday? Thanks so much for your patience!",
+      "failure_mode": "B8: banning the AI markers pushes the rewrite into clipped, cold fragments ('No rush if not.').",
+      "correct_behavior": "Cut only the AI markers ('I hope this email finds you well', 'touch base'). Keep a genuine warmth marker (a softener or contraction-led reassurance) and a real request. Don't reduce it to telegraphic fragments.",
+      "assertions": [
+        {
+          "type": "judge",
+          "check": "Output still reads warm/relational (keeps a softener or reassurance), not curt fragments."
+        },
+        {
+          "type": "judge",
+          "check": "Output keeps the concrete ask (an update / meeting before Friday)."
+        }
+      ]
+    },
+    {
+      "id": "SKILL-NOINVENT-01",
+      "category": "over_correction",
+      "target": "skill",
+      "title": "Don't fabricate first-person experience for impersonal copy",
+      "prompt": "Humanize this product note: The new caching layer reduces p99 latency and improves throughput under typical load.",
+      "failure_mode": "B6: personality-guide models first-person quirk ('I don't put on pants until noon'); applied to impersonal copy this invents content.",
+      "correct_behavior": "Tighten the wording only. Do NOT add an invented 'I'/'we' anecdote or lived-experience claim that wasn't in the source.",
+      "assertions": [
+        {
+          "type": "judge",
+          "check": "Output introduces no fabricated first-person anecdote or lived experience."
+        },
+        {
+          "type": "judge",
+          "check": "Output preserves the factual claim (caching layer reduces p99 latency, improves throughput under typical load)."
+        }
+      ]
+    },
+    {
+      "id": "SKILL-OVEREDIT-01",
+      "category": "over_correction",
+      "target": "skill",
+      "title": "Don't silently over-compress an argument",
+      "prompt": "Humanize: Remote work is often framed as strictly better or worse for productivity, but the honest answer is that it depends on the task. Deep individual work benefits from fewer interruptions, while ambiguous fast-moving collaboration suffers because async back-and-forth is slower.",
+      "failure_mode": "B5: 'when in doubt cut' collapses the nuanced it-depends argument into a slogan; only diff_check warns and it's advisory.",
+      "correct_behavior": "Keep all three beats: it depends on the task; deep work benefits; collaboration suffers. Tighten wording without dropping the conditional structure.",
+      "assertions": [
+        {
+          "type": "judge",
+          "check": "All three claims survive (it depends; deep work benefits; ambiguous collaboration suffers)."
+        },
+        {
+          "type": "judge",
+          "check": "Output is not reduced to a single unconditional slogan."
+        }
+      ]
+    },
+    {
+      "id": "SKILL-EMDASH-01",
+      "category": "over_correction",
+      "target": "skill",
+      "title": "Em-dash removal must not create a comma splice",
+      "prompt": "Humanize: The product had real market readiness — something you can sense in user behavior but cannot manufacture.",
+      "failure_mode": "B4: the em-dash ban turns an appositive dash into a comma splice joining a noun phrase to a clause.",
+      "correct_behavior": "Either keep the single appositive em-dash, or split into two sentences. Do NOT produce a comma splice.",
+      "assertions": [
+        {
+          "type": "judge",
+          "check": "Output contains no comma splice (a comma joining the noun phrase to an independent clause)."
+        },
+        {
+          "type": "judge",
+          "check": "Meaning preserved: market readiness is sensed in behavior, not manufactured."
         }
       ]
     }

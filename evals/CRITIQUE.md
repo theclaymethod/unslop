@@ -149,9 +149,17 @@ unslop's rubric is finer but, as §3 shows, gameable. The useful import is the
   added conservatively: academic single-words are `soft` (flag when clustered),
   and the ambiguous ones (`serves as a`, `harness`, `foster`) are gated behind
   their inflated collocations so literal usage stays clean.
-- **18 `skill` cases**: behavioral, judged against the agent's output. Cover
+- **26 `skill` cases**: behavioral, judged against the agent's output. Cover
   do-no-harm, over-correction, fact traps, mode/preset routing, rubric gaming,
-  content types, and prompt injection.
+  content types, prompt injection, and the writing-quality failures from the
+  adversarial writing audit (anti-slop register, de-hedging, manufactured voice).
+
+Current totals: **77 cases — 51 script (50 PASS / 1 XFAIL / 0 FAIL), 26 behavioral.**
+
+A separate red-team of the *writing the skill produces* (not just detection) is in
+[`ADVERSARIAL-WRITING-ANALYSIS.md`](ADVERSARIAL-WRITING-ANALYSIS.md): it found the
+scanner was blind to the skill's own "anti-slop" house style and that validation
+couldn't see negations/scope/conditionals. Both are now addressed.
 
 ```bash
 python3 evals/run_adversarial.py          # run deterministic harness

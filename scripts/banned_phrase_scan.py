@@ -546,6 +546,23 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "severity": "hard",
         "suggestion": "Use 'is', and state the specific fact."
     },
+    # Anti-slop register tells: the skill's OWN house style. De-slopped text often
+    # over-relies on bare fragment contrasts ("Not the technology. The people.") and
+    # staccato runs of tiny sentences. These read as "LinkedIn-influencer / AI-
+    # humanizer voice" — a tell in their own right — but the binary_contrast regex
+    # only caught the full-clause form. Soft: judgment call, but it must be visible.
+    {
+        "pattern": r"(?im)(?:^|[.!?]\s+)(?:not|no)\b[^.!?]{0,28}[.!?]\s+(?:the\s+|it'?s?\s+|that'?s?\s+)?[a-z][^.!?]{0,28}[.!?]",
+        "category": "anti_slop_register",
+        "severity": "soft",
+        "suggestion": "Bare fragment contrast ('Not X. Y.') is its own AI tell. Use one varied sentence."
+    },
+    {
+        "pattern": r"(?:\b[\w'’]+(?:\s+[\w'’]+){0,4}[.!?]\s+){2,}[\w'’]+(?:\s+[\w'’]+){0,4}[.!?]",
+        "category": "anti_slop_register",
+        "severity": "soft",
+        "suggestion": "Three+ consecutive tiny sentences is staccato AI cadence. Vary sentence length."
+    },
     {
         "pattern": r"not because .+?\. because",
         "category": "binary_contrast",

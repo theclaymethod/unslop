@@ -67,6 +67,10 @@ PATTERNS: dict[str, str] = {
     # Direct quotes (longer than 10 chars)
     "quote": r'"[^"]{10,}"',
 
+    # Cited references (Section 12(b), Article 5, Figure 2, Table 1, Eq. 3 …) —
+    # must-preserve per fact-preservation.md and easy to silently drop.
+    "reference": r"\b(?:Sections?|Sec\.|§|Articles?|Clauses?|Paragraphs?|Para\.|Figures?|Fig\.|Tables?|Appendix|Appendices|Schedule|Exhibit|Equations?|Eq\.|Chapters?|Rules?|Items?)\s+\d+[A-Za-z]?(?:\([a-z0-9]+\))?(?:[.\-]\d+)*",
+
     # Version numbers
     "version": r"v?\d+\.\d+(?:\.\d+)?(?:-[a-zA-Z0-9]+)?",
 
