@@ -25,9 +25,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SUITE = Path(__file__).resolve().parent / "adversarial-evals.json"
 
-GREEN, RED, YELLOW, BLUE, DIM, RESET = (
-    "\033[32m", "\033[31m", "\033[33m", "\033[34m", "\033[2m", "\033[0m"
-)
+if sys.stdout.isatty():
+    GREEN, RED, YELLOW, BLUE, DIM, RESET = (
+        "\033[32m", "\033[31m", "\033[33m", "\033[34m", "\033[2m", "\033[0m"
+    )
+else:  # don't emit escape codes into pipes / CI logs
+    GREEN = RED = YELLOW = BLUE = DIM = RESET = ""
 
 
 def _dig(obj, path):
