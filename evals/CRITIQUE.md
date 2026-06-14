@@ -32,9 +32,30 @@ blind spots:
 - **No adversarial input.** No prompt-injection, no dialogue/code/poetry, no
   formal register, no very-short input.
 
-## 2. Confirmed script defects (all reproduced as XFAIL evals)
+## Status (this branch)
 
-Run `python3 evals/run_adversarial.py`. Every row below is a live failing case.
+The deterministic script defects in §2 have been **fixed**: `run_adversarial.py`
+now reports **20 PASS, 1 XFAIL, 0 FAIL**. The one remaining XFAIL (FP-06) is the
+literal "delve into a place" case — kept open on purpose, because distinguishing
+it from the figurative "delve into a topic" is beyond a pattern scanner, and
+dropping the `delve into` pattern would cost more recall than the rare false
+positive is worth. The 18 behavioral `skill` cases in §3 remain as a standing
+suite for the agent + judge. Fixes summary:
+
+- **Fact preservation** — currency now compares absolute magnitude (`$47.3M` ≠
+  `$47.3 billion`), percentages match exact tokens (`12%` ≠ `120%`), dates require
+  the month not just the year, bare integers and phone numbers are tracked.
+- **Scanner** — removed over-broad entries (`the real`, `period.`); gated
+  context-sensitive words (`leverage`, `navigate`, `tapestry`, `boasts`) behind
+  jargon collocations; added missing tells, including stop-slop's false-agency
+  family; fixed quote masking (length cap, multi-line, single-quote over-masking).
+- **Robustness** — clean error on missing file, numeric tokens count as words,
+  punctuation-only edits register as change.
+
+## 2. Confirmed script defects (now fixed — kept as regression cases)
+
+Run `python3 evals/run_adversarial.py`. Every row below was a live failing case
+before this branch and is now a passing regression guard.
 
 | Eval | Defect | Evidence |
 |------|--------|----------|
@@ -113,10 +134,11 @@ unslop's rubric is finer but, as §3 shows, gameable. The useful import is the
 
 `adversarial-evals.json` — 38 cases:
 
-- **20 `script` cases**: deterministic, run by `run_adversarial.py`. They encode
-  the *correct* behavior and are marked `xfail` while the bug is open. The runner
-  reports PASS / FAIL (undocumented regression, breaks build) / XFAIL (known bug)
-  / XPASS (bug fixed → remove the `xfail`). Today: 20 XFAIL, 0 FAIL.
+- **21 `script` cases**: deterministic, run by `run_adversarial.py`. They encode
+  the *correct* behavior; a case stays marked `xfail` only while its bug is open.
+  The runner reports PASS / FAIL (undocumented regression, breaks build) / XFAIL
+  (known/accepted limit) / XPASS (bug fixed → remove the `xfail`). Today: 20 PASS,
+  1 XFAIL (FP-06), 0 FAIL.
 - **18 `skill` cases**: behavioral, judged against the agent's output. Cover
   do-no-harm, over-correction, fact traps, mode/preset routing, rubric gaming,
   content types, and prompt injection.
@@ -131,15 +153,14 @@ to **XPASS** is the signal to remove its `xfail` flag.
 
 ## 6. Prioritized recommendations
 
-1. **Fix fact preservation first (PRES-01..04, EXT-01).** Compare numbers
-   *with* unit/magnitude; require full date match; track bare integers; stop the
-   range regex from eating phone numbers. This is the skill's headline promise.
-2. **Add word boundaries + light context to the scanner (FP-01..05).** Match on
-   `\b…\b`, and gate the most context-sensitive single words (leverage, navigate,
-   delve, intersection, substrate) behind a collocation check or downgrade them
-   to `soft`.
-3. **Harden the scripts (ROB-01..03).** Wrap file I/O; count numeric tokens as
-   words; make `diff_check` punctuation-aware.
+1. ~~**Fix fact preservation first (PRES-01..04, EXT-01).**~~ **Done.** Currency
+   compares unit/magnitude; dates require the month; bare integers and phones are
+   tracked. This was the skill's headline promise.
+2. ~~**Gate context-sensitive words in the scanner (FP-01..05).**~~ **Done.**
+   Removed over-broad entries and gated leverage/navigate/tapestry/boasts behind
+   jargon collocations. (Literal `delve into` remains the accepted FP-06 limit.)
+3. ~~**Harden the scripts (ROB-01..03).**~~ **Done.** File I/O wrapped, numeric
+   tokens counted as words, `diff_check` is punctuation-aware.
 4. **Give the skill a "do nothing" exit and content-type guards.** A clean-text
    null case, plus carve-outs for dialogue, code, safety text, formal/legal
    register, and very short input.
@@ -147,4 +168,6 @@ to **XPASS** is the signal to remove its `xfail` flag.
    Authenticity so a voiceless rewrite can't pass on removal alone, and resolve
    the crisp-cap-vs-rhythm-band conflict.
 6. **Adopt the stop-slop families** (false agency, Wh-openers, negative listing)
-   into the catalog and scanner — see FN-04 / SKILL-NEWPAT-01.
+   into the catalog and scanner — see FN-04 / SKILL-NEWPAT-01. *False agency and
+   ordinal scaffolding are now in the scanner; Wh-openers and negative-listing
+   remain to add.*

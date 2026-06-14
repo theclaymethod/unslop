@@ -27,6 +27,18 @@ class ValidationResult(TypedDict):
     warnings: list[str]
 
 
+_MAGNITUDES = {
+    "k": 1e3, "thousand": 1e3,
+    "m": 1e6, "million": 1e6,
+    "b": 1e9, "billion": 1e9,
+}
+
+_MONTHS = [
+    "january", "february", "march", "april", "may", "june", "july",
+    "august", "september", "october", "november", "december",
+]
+
+
 def normalize_value(value: str) -> str:
     """Normalize a constraint value for comparison."""
     # Remove extra whitespace
@@ -35,9 +47,38 @@ def normalize_value(value: str) -> str:
     return normalized.lower()
 
 
+def parse_money(token: str) -> float | None:
+    """Parse a currency token into an absolute amount, honoring magnitude words.
+
+    '$47.3M' and '$47.3 million' -> 47_300_000; '$47.3 billion' -> 47_300_000_000.
+    Magnitude is part of the fact, so the two must not compare equal.
+    """
+    m = re.search(
+        r'([\d,]+\.?\d*)\s*(k|m|b|thousand|million|billion)?',
+        token.lower().replace("$", ""),
+    )
+    if not m or not m.group(1).strip(","):
+        return None
+    amount = float(m.group(1).replace(",", ""))
+    if m.group(2):
+        amount *= _MAGNITUDES[m.group(2)]
+    return amount
+
+
+def _numbers_match_exactly(value: str, text: str, pattern: str) -> bool:
+    """True iff the numeric value appears as a whole quantity in text.
+
+    Guards against the substring trap where '12' is 'found' inside '120'.
+    """
+    want = re.findall(r'\d+\.?\d*', value)
+    have = set(re.findall(pattern, text.lower()))
+    return all(num in have for num in want) and bool(want)
+
+
 def find_constraint_in_text(constraint: Constraint, text: str) -> bool:
     """Check if a constraint value exists in text."""
     value = constraint["value"]
+    ctype = constraint["type"]
     normalized_value = normalize_value(value)
     normalized_text = normalize_value(text)
 
@@ -45,23 +86,45 @@ def find_constraint_in_text(constraint: Constraint, text: str) -> bool:
     if normalized_value in normalized_text:
         return True
 
-    # For numbers, try without formatting differences
-    if constraint["type"] in ("currency", "percentage", "count", "measurement"):
-        # Extract just the number
-        numbers = re.findall(r'[\d,]+\.?\d*', value)
-        for num in numbers:
-            # Remove commas for comparison
-            clean_num = num.replace(",", "")
-            if clean_num in text.replace(",", ""):
+    # Currency: compare absolute amounts so a magnitude swap (M -> billion) fails.
+    if ctype == "currency":
+        target = parse_money(value)
+        if target is None:
+            return False
+        for token in re.findall(
+            r'\$?[\d,]+\.?\d*\s*(?:k|m|b|thousand|million|billion)?', text, re.IGNORECASE
+        ):
+            amount = parse_money(token)
+            if amount is not None and abs(amount - target) < 0.01:
                 return True
+        return False
 
-    # For dates, try flexible matching
-    if constraint["type"].startswith("date"):
-        # Try to find year at minimum
+    # Percentage: require an exact numeric match (12% != 120%).
+    if ctype == "percentage":
+        return _numbers_match_exactly(value, text, r'(\d+\.?\d*)\s*(?:%|percent)')
+
+    # Other quantities: match digits, comma-insensitive, but as whole tokens.
+    if ctype in ("count", "measurement", "number"):
+        for num in re.findall(r'[\d,]+\.?\d*', value):
+            clean_num = num.replace(",", "")
+            if re.search(r'(?<![\d.])' + re.escape(clean_num) + r'(?![\d.])',
+                         text.replace(",", "")):
+                return True
+        return False
+
+    # Dates: the year alone is not enough — a changed month is a changed fact.
+    if ctype.startswith("date"):
         year_match = re.search(r'\d{4}', value)
-        if year_match and year_match.group() in text:
-            # Year present, check for month/quarter indicators
-            return True
+        if not (year_match and year_match.group() in text):
+            return False
+        low = value.lower()
+        month = next((mo for mo in _MONTHS if mo[:3] in low), None)
+        if month and month[:3] not in text.lower():
+            return False
+        quarter = re.search(r'q[1-4]', low)
+        if quarter and quarter.group() not in text.lower():
+            return False
+        return True
 
     # For quotes, check if core content is present (without surrounding quotes)
     if constraint["type"] == "quote":
@@ -113,13 +176,15 @@ def main() -> None:
         print("Usage: validate_preservation.py <original.txt> <transformed.txt> [constraints.json]")
         sys.exit(1)
 
-    # Read original text
-    with open(sys.argv[1], 'r') as f:
-        original_text = f.read()
-
-    # Read transformed text
-    with open(sys.argv[2], 'r') as f:
-        transformed_text = f.read()
+    # Read inputs
+    try:
+        with open(sys.argv[1], 'r') as f:
+            original_text = f.read()
+        with open(sys.argv[2], 'r') as f:
+            transformed_text = f.read()
+    except OSError as e:
+        print(json.dumps({"error": f"Could not read input: {e}"}))
+        sys.exit(2)
 
     # Optionally read pre-computed constraints
     constraints = None

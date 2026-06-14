@@ -79,10 +79,11 @@ def split_sentences(text: str) -> list[str]:
 
 def split_words(text: str) -> list[str]:
     """Split text into words."""
-    # Remove punctuation except hyphens in words
+    # Remove punctuation except hyphens in words. Numeric tokens are real words
+    # (a data table is not "empty text"), so keep them.
     text = re.sub(r'[^\w\s-]', ' ', text)
     words = text.lower().split()
-    return [w for w in words if w and not w.isdigit()]
+    return [w for w in words if w]
 
 
 def calculate_metrics(text: str) -> ReadabilityMetrics:

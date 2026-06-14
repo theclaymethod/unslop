@@ -28,10 +28,12 @@ class DiffResult(TypedDict):
 
 
 def split_words(text: str) -> list[str]:
-    """Split text into words for comparison."""
-    # Normalize whitespace and split
-    text = re.sub(r'[^\w\s]', ' ', text.lower())
-    return text.split()
+    """Split text into comparison tokens.
+
+    Punctuation is tokenized separately (not stripped) so that structural edits
+    like repunctuation register as change instead of reading as identical.
+    """
+    return re.findall(r'\w+|[^\w\s]', text.lower())
 
 
 def calculate_diff(original: str, transformed: str) -> DiffResult:

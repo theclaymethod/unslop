@@ -32,12 +32,14 @@ Quoted examples are exempt by default. When you're documenting bad AI writing, s
 24. [Parenthetical Hedging](#parenthetical-hedging)
 25. [Numbered List Inflation](#numbered-list-inflation)
 26. [Knowledge-Cutoff Disclaimers](#knowledge-cutoff-disclaimers)
-27. [Generic Positive Conclusions](#generic-positive-conclusions)
-28. [False Ranges](#false-ranges)
-29. [Elegant Variation / Synonym Cycling](#elegant-variation--synonym-cycling)
-30. [AI Vocabulary (Additional)](#ai-vocabulary-additional)
-31. [Punctuation Abuse](#punctuation-abuse)
-32. [Quick Reference: Detection Regex](#quick-reference-detection-regex)
+27. [False Agency](#false-agency)
+28. [Conclusion & Sequencing Scaffolding](#conclusion--sequencing-scaffolding)
+29. [Generic Positive Conclusions](#generic-positive-conclusions)
+30. [False Ranges](#false-ranges)
+31. [Elegant Variation / Synonym Cycling](#elegant-variation--synonym-cycling)
+32. [AI Vocabulary (Additional)](#ai-vocabulary-additional)
+33. [Punctuation Abuse](#punctuation-abuse)
+34. [Quick Reference: Detection Regex](#quick-reference-detection-regex)
 
 ---
 
@@ -634,6 +636,39 @@ Phrases that betray AI-generated text by referencing training data limitations.
 | "I don't have access to real-time" | Direct AI tell |
 | "based on my training data" | Direct AI tell |
 | "as of [date]" (when used as disclaimer) | AI hedging pattern |
+
+---
+
+## False Agency
+
+AI hands rhetorical agency to inanimate things so it can assert significance
+without making the claim itself. (Signal adapted from `stop-slop`.)
+
+| Phrase | Why It's Bad |
+|--------|--------------|
+| "the numbers speak for themselves" | The writer should say what they show |
+| "the data tells a (clear) story" | Data doesn't narrate; state the finding |
+| "the results speak for themselves" | Dodges the actual interpretation |
+| "X paints a clear picture" | Inflated stand-in for "X shows" |
+
+**Fix**: State the figure and what it means. "Revenue doubled" beats "the numbers speak for themselves."
+
+---
+
+## Conclusion & Sequencing Scaffolding
+
+Visible essay scaffolding. Ordinals and wrap-up openers announce structure
+instead of just delivering it.
+
+| Phrase | Why It's Bad |
+|--------|--------------|
+| "In conclusion" | Don't announce the conclusion; state it |
+| "In summary" / "To summarize" | Filler wrapper |
+| "Firstly / Secondly / Thirdly" | Stiff scaffolding; use "first" or nothing |
+| "Ultimately," (as an opener) | Filler throat-clear before the point |
+| "underscore(s) the importance of" | Inflated stand-in for "shows" |
+
+**Fix**: Cut the scaffold word and lead with the content.
 
 ---
 
