@@ -707,13 +707,7 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "pattern": r"—[^—]*—",
         "category": "em_dash_overuse",
         "severity": "hard",
-        "suggestion": "Max one em-dash per paragraph. Use commas, periods, or parentheses instead."
-    },
-    {
-        "pattern": r"—",
-        "category": "em_dash_usage",
-        "severity": "soft",
-        "suggestion": "Prefer commas or periods over em-dashes. Em-dashes are an AI tell when overused."
+        "suggestion": "Two+ em-dashes in a stretch is the tell. Keep at most one appositive dash; use periods/commas for the rest."
     },
 
     # Staccato fragmentation (3+ consecutive short sentences)
