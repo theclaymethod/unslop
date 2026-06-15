@@ -48,24 +48,39 @@ tell — treat the script result as a backstop and the `judge` result as primary
 ## Running the behavioral layer (local, needs model credentials)
 
 The harness drives the skill through a real runner and calls a model to judge, so
-this is a local task, not a CI one.
+this is a local task, not a CI one. This is the exact flow that produced
+[`TUNE-RESULTS.md`](TUNE-RESULTS.md) (harness v0.4.2).
 
 ```bash
 # 1. Install (pin a tag), then record it in the manifest's harness.version field.
 uv tool install git+https://github.com/adewale/skill-eval-harness.git
 
-# 2. Lint the manifest (leakage + holdback + fixture checks).
+# 2. Lint the manifest (leakage + fixture checks).
 skill-benchmark validate evals/shared-benchmark.json --strict-leakage
 
-# 3. Prepare the tune split, run it through your local Claude Code runner,
-#    then grade with an LLM judge and roll up the benchmark.
-skill-benchmark prepare evals/shared-benchmark.json --split tune --out runs/tune
-#    ...run the skill for each prepared task, writing each run's output.md...
-skill-benchmark judge evals/shared-benchmark.json --runs runs/tune --judge-cmd 'claude -p'
-skill-benchmark grade evals/shared-benchmark.json --runs runs/tune --allow-scripts
-skill-benchmark benchmark evals/shared-benchmark.json --runs runs/tune
+# 3. Prepare the tune split (--out is a FILE, not a dir).
+skill-benchmark prepare evals/shared-benchmark.json --split tune --out runs/tune/tasks.jsonl
+
+# 4. Run the prepared tasks through claude -p, writing each run's output.md.
+python3 evals/run_local.py runs/tune/tasks.jsonl --jobs 5
+
+# 5. Judge the subjective assertions, then roll up the benchmark with the scripts.
+skill-benchmark judge evals/shared-benchmark.json --runs runs/tune --split tune \
+  --judge-cmd 'claude -p' --out runs/tune/judge.jsonl
+skill-benchmark benchmark evals/shared-benchmark.json --runs runs/tune --split tune \
+  --allow-scripts --judge-results runs/tune/judge.jsonl --out runs/tune/benchmark.json
 ```
 
 `--allow-scripts` is required for the `script` assertions to execute. Report the
 `holdout` number for headline results; only break the `holdback` seal to confirm a
 final figure, then reseal it.
+
+Three gotchas that bit the first run (details in `TUNE-RESULTS.md`):
+
+- **Run the skill with Bash permission for `python3 scripts/*.py`** — otherwise the
+  skill can't invoke its own scanner and degrades to manual diagnosis, so you're not
+  really benchmarking the skill-plus-tooling.
+- **`benchmark` crashes if the judge omits a numeric `score`** (it's optional). Coerce
+  null scores to the `passed` boolean before `benchmark` — snippet in `TUNE-RESULTS.md`.
+- **The base model already de-slops well**, so aggregate lift is near zero. Read the
+  per-case `case_flags` and the discriminating cases, not the headline mean.

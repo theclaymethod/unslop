@@ -5,7 +5,7 @@
   "harness": {
     "name": "skill-eval-harness",
     "url": "https://github.com/adewale/skill-eval-harness",
-    "version": "pin-a-tag-on-install"
+    "version": "0.4.2 (git 31ec7655)"
   },
   "skill_paths": [
     "SKILL.md",
@@ -50,14 +50,6 @@
           "type": "judge",
           "rubric": [
             "Skill explicitly notes the text is already clean rather than inventing AI-isms."
-          ]
-        },
-        {
-          "name": "skill-donoharm-01-skill-engaged",
-          "type": "skill_invoked",
-          "expected": true,
-          "variants": [
-            "with_skill"
           ]
         }
       ],
@@ -299,14 +291,6 @@
           "type": "judge",
           "rubric": [
             "Output includes a diagnosis/flag list of the AI patterns, not just a replacement paragraph."
-          ]
-        },
-        {
-          "name": "skill-mode-01-skill-engaged",
-          "type": "skill_invoked",
-          "expected": true,
-          "variants": [
-            "with_skill"
           ]
         }
       ],
@@ -553,14 +537,6 @@
           "type": "judge",
           "rubric": [
             "Output is 'Ship it.' unchanged (or a one-line note that it's already fine); no padding or invented edits."
-          ]
-        },
-        {
-          "name": "skill-short-01-skill-engaged",
-          "type": "skill_invoked",
-          "expected": true,
-          "variants": [
-            "with_skill"
           ]
         }
       ],

@@ -150,10 +150,13 @@ SCRIPT_ASSERTIONS = {
     "SKILL-STACCATO-01": [_banned_phrase_clean("SKILL-STACCATO-01")],
 }
 
-# Cases where confirming the skill actually engaged (rather than the base model
-# happening to behave) is itself meaningful — the right move is to recognize and
-# decline/audit, which a bare model tends not to do.
-SKILL_INVOKED = {"SKILL-DONOHARM-01", "SKILL-SHORT-01", "SKILL-MODE-01"}
+# `skill_invoked` (process) assertions need the runner to emit skill-invocation
+# telemetry. A headless `claude -p` runner doesn't, so these always read as
+# failures and produce spurious "with-skill failure" flags (confirmed on the
+# first tune pass — see evals/TUNE-RESULTS.md). The substantive behavior they
+# targeted (recognize-and-decline / audit-not-rewrite) is already covered by the
+# judge assertions, so leave this empty unless you wire up a telemetry runner.
+SKILL_INVOKED: set[str] = set()
 
 
 def build_case(src: dict) -> dict:
@@ -213,7 +216,7 @@ def build_manifest(source: dict) -> dict:
         "harness": {
             "name": "skill-eval-harness",
             "url": HARNESS_URL,
-            "version": "pin-a-tag-on-install",
+            "version": "0.4.2 (git 31ec7655)",
         },
         # skill_paths are resolved by the harness relative to the git repo root
         # (not the manifest dir, which is what `script` assertion cwd uses).

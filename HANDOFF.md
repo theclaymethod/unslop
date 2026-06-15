@@ -56,11 +56,19 @@ three ablations. Both script backstops were verified to discriminate good vs bad
 output before wiring in. CI checks the manifest stays in sync. See
 `evals/BEHAVIORAL-EVALS.md`.
 
-**Remaining** (needs local model credentials, can't run in a sandbox): install the
-harness (`uv tool install ...`, pin a tag, record it in `harness.version`), then
-`skill-benchmark validate` → `prepare --split tune` → run via a local Claude Code
-runner → `judge --judge-cmd 'claude -p'` → `grade --allow-scripts` → `benchmark`.
-Commands are in `evals/BEHAVIORAL-EVALS.md`.
+**First tune pass is done** (harness v0.4.2, `claude -p` generation + judge). Full
+write-up in `evals/TUNE-RESULTS.md`. Net: aggregate lift ≈ 0 because the base model
+already de-slops well, but two cases discriminated — the skill preserved a legal
+hedge the baseline dropped (`SKILL-LEGAL-02`, win), and over-edited already-clean
+text the baseline left alone (`SKILL-DONOHARM-01`, loss — the do-no-harm gap,
+reproduced). Top skill fix: a real "already clean → leave it" exit. Three harness
+gotchas (skill scripts need Bash permission in the runner; `benchmark` crashes on a
+null judge score; `skill_invoked` needs invocation telemetry) are documented with
+workarounds; `skill_invoked` assertions were removed from the manifest as a result.
+
+**Remaining:** run the `holdout` split for a headline number (same flow, swap
+`--split tune` → `--split holdout`), and act on the two skill fixes. Commands in
+`evals/BEHAVIORAL-EVALS.md`.
 
 ### Why it fits
 
