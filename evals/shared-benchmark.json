@@ -8,10 +8,10 @@
     "version": "pin-a-tag-on-install"
   },
   "skill_paths": [
-    "../SKILL.md",
-    "../presets",
-    "../references",
-    "../scripts"
+    "SKILL.md",
+    "presets",
+    "references",
+    "scripts"
   ],
   "variants": [
     "with_skill",

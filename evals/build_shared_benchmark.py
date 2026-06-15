@@ -215,7 +215,9 @@ def build_manifest(source: dict) -> dict:
             "url": HARNESS_URL,
             "version": "pin-a-tag-on-install",
         },
-        "skill_paths": ["../SKILL.md", "../presets", "../references", "../scripts"],
+        # skill_paths are resolved by the harness relative to the git repo root
+        # (not the manifest dir, which is what `script` assertion cwd uses).
+        "skill_paths": ["SKILL.md", "presets", "references", "scripts"],
         "variants": ["with_skill", "without_skill"],
         "split_policy": {
             "tune": "Iterate the skill against these. Includes the five highest-signal trap cases.",

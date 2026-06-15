@@ -26,3 +26,7 @@ scripts/.wiki_sync_state.json
 
 # Packaged skill
 *.skill
+
+# Behavioral eval run artifacts (prepared tasks, model outputs, judge results)
+evals/runs/
+runs/
