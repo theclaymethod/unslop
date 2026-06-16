@@ -79,10 +79,11 @@ def split_sentences(text: str) -> list[str]:
 
 def split_words(text: str) -> list[str]:
     """Split text into words."""
-    # Remove punctuation except hyphens in words
+    # Remove punctuation except hyphens in words. Numeric tokens are real words
+    # (a data table is not "empty text"), so keep them.
     text = re.sub(r'[^\w\s-]', ' ', text)
     words = text.lower().split()
-    return [w for w in words if w and not w.isdigit()]
+    return [w for w in words if w]
 
 
 def calculate_metrics(text: str) -> ReadabilityMetrics:
@@ -135,6 +136,17 @@ def calculate_metrics(text: str) -> ReadabilityMetrics:
             max_consecutive = max(max_consecutive, consecutive_similar)
         else:
             consecutive_similar = 0
+
+    # Longest run of tiny (<=5-word) sentences — the staccato "anti-slop" cadence.
+    # Tracked independently of sentence_count so short de-slopped outputs don't slip.
+    staccato_run = 0
+    max_staccato_run = 0
+    for length in sentence_lengths:
+        if length <= 5:
+            staccato_run += 1
+            max_staccato_run = max(max_staccato_run, staccato_run)
+        else:
+            staccato_run = 0
 
     # Flesch-Kincaid calculations
     avg_syllables_per_word = syllable_count / word_count if word_count else 0
@@ -199,6 +211,13 @@ def calculate_metrics(text: str) -> ReadabilityMetrics:
     if avg_sentence_length < 8 and sentence_count > 3:
         flags.append("Very short sentences (may feel choppy)")
 
+    # Staccato cadence is the loudest "anti-slop AI" signature; flag it even on
+    # short outputs (no sentence_count gate) so de-slopped text can't hide it.
+    if max_staccato_run >= 3:
+        flags.append(f"Staccato cadence: {max_staccato_run} consecutive tiny sentences (anti-slop AI tell)")
+    elif avg_sentence_length < 6 and sentence_count >= 2:
+        flags.append(f"Staccato cadence (avg {avg_sentence_length:.1f} words/sentence — anti-slop AI tell)")
+
     if max(sentence_lengths) - min(sentence_lengths) < 5 and sentence_count > 5:
         flags.append("Sentences all similar length (AI tell)")
 
@@ -223,8 +242,12 @@ def calculate_metrics(text: str) -> ReadabilityMetrics:
 def main() -> None:
     # Read input
     if len(sys.argv) > 1:
-        with open(sys.argv[1], 'r') as f:
-            text = f.read()
+        try:
+            with open(sys.argv[1], 'r') as f:
+                text = f.read()
+        except OSError as e:
+            print(json.dumps({"error": f"Could not read input: {e}"}))
+            sys.exit(2)
     else:
         text = sys.stdin.read()
 

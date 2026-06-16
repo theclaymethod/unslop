@@ -68,7 +68,7 @@ Not:
 > It's worth noting that effective communication is a skill that can be learned. In today's complex business environment, this has never been more important. Here's why that matters.
 
 ### After (Warm)
-> Good communication isn't a talent you're born with. It's a skill, and you can get better at it. Most people see results within a few weeks of deliberate practice.
+> Good communication is a skill you can build with practice, not a talent you're born with. Most people see results within a few weeks of deliberate effort.
 
 ---
 

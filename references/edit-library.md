@@ -10,13 +10,13 @@ Before/after transformation examples showing specific edit patterns.
 > Here's the thing: building products is hard. Not because the technology is complex. Because people are complex. Let that sink in.
 
 ### After
-> Building products is hard. Not the technology. The people.
+> Building products is hard, and the reason is people, not technology.
 
 ### Changes
 - Removed opener "Here's the thing:"
-- Collapsed binary contrast structure
+- Stated the real reason in one flowing sentence — not a clipped "Not X. Y." fragment pair (that's its own AI tell)
 - Deleted "Let that sink in" emphasis crutch
-- 23 words → 9 words (61% reduction)
+- 23 words → 12 words (48% reduction)
 
 ---
 
@@ -26,13 +26,14 @@ Before/after transformation examples showing specific edit patterns.
 > It turns out that most teams struggle with alignment. The uncomfortable truth is that nobody wants to admit they're confused. And that's okay.
 
 ### After
-> Teams struggle with alignment. Nobody admits confusion.
+> Teams struggle with alignment because nobody admits they're confused.
 
 ### Changes
 - Cut "It turns out that"
 - Cut "The uncomfortable truth is"
 - Removed permission-granting "And that's okay"
-- 26 words → 8 words (69% reduction)
+- Joined cause and effect into one sentence instead of two clipped fragments
+- 26 words → 9 words (65% reduction)
 
 ---
 
@@ -42,14 +43,15 @@ Before/after transformation examples showing specific edit patterns.
 > In today's fast-paced landscape, we need to lean into discomfort and navigate uncertainty with clarity while leveraging our core competencies.
 
 ### After
-> Move fast. Handle uncertainty. Use what you're good at.
+> Move fast, handle uncertainty, and use what you're actually good at.
 
 ### Changes
 - "In today's fast-paced landscape" → cut
 - "lean into discomfort" → cut (filler motivation)
-- "navigate uncertainty" → "Handle uncertainty"
-- "leveraging core competencies" → "Use what you're good at"
-- 22 words → 10 words (55% reduction)
+- "navigate uncertainty" → "handle uncertainty"
+- "leveraging core competencies" → "use what you're actually good at"
+- Kept it as one sentence — a staccato imperative triplet ("Move fast. Handle uncertainty. …") is its own AI cadence
+- 22 words → 11 words (50% reduction)
 
 ---
 
@@ -191,14 +193,14 @@ Before/after transformation examples showing specific edit patterns.
 > The decision was made by the team after the options were considered by leadership and the risks were evaluated by the analysts.
 
 ### After
-> Leadership considered options. Analysts evaluated risks. The team decided.
+> Leadership weighed the options, the analysts assessed the risks, and the team made the call.
 
 ### Changes
-- "decision was made by the team" → "The team decided"
-- "options were considered by leadership" → "Leadership considered options"
-- "risks were evaluated by analysts" → "Analysts evaluated risks"
-- Passive → active throughout
-- 23 words → 10 words (57% reduction)
+- "decision was made by the team" → "the team made the call"
+- "options were considered by leadership" → "Leadership weighed the options"
+- "risks were evaluated by analysts" → "the analysts assessed the risks"
+- Passive → active throughout, joined as one sentence (three 3-word sentences in a row is staccato)
+- 23 words → 15 words (35% reduction)
 
 ---
 
@@ -410,3 +412,4 @@ Before/after transformation examples showing specific edit patterns.
 4. **Active beats passive** - Who did what, not what was done by whom
 5. **Trust the reader** - They'll get it without "Think about it:"
 6. **Verbs do the work** - Concrete actions, not abstract processes
+7. **Vary the rhythm** - Concise is not the same as staccato. After cutting, check the result isn't a run of tiny sentences or a bare "Not X. Y." contrast — that clipped cadence is its own AI tell. Mix short sentences with a longer one.

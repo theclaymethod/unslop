@@ -49,6 +49,9 @@ PATTERNS: dict[str, str] = {
     # Measurements with units
     "measurement": r"\d+\.?\d*\s*(?:ms|s|sec|min|hr|hour|day|week|month|year|KB|MB|GB|TB|PB|kg|g|lb|oz|m|km|mi|ft|in|cm|mm|px|em|rem|%)",
 
+    # Phone numbers (capture the whole number, before "range" can grab a slice)
+    "phone": r"\b(?:\+?1[-.\s]?)?(?:\(\d{3}\)\s*|\d{3}[-.\s])\d{3}[-.\s]\d{4}\b",
+
     # Ranges (numeric)
     "range": r"\d+\.?\d*\s*[-–]\s*\d+\.?\d*(?:\s*(?:K|M|B|%|years?|months?|days?))?",
 
@@ -63,6 +66,10 @@ PATTERNS: dict[str, str] = {
 
     # Direct quotes (longer than 10 chars)
     "quote": r'"[^"]{10,}"',
+
+    # Cited references (Section 12(b), Article 5, Figure 2, Table 1, Eq. 3 …) —
+    # must-preserve per fact-preservation.md and easy to silently drop.
+    "reference": r"\b(?:Sections?|Sec\.|§|Articles?|Clauses?|Paragraphs?|Para\.|Figures?|Fig\.|Tables?|Appendix|Appendices|Schedule|Exhibit|Equations?|Eq\.|Chapters?|Rules?|Items?)\s+\d+[A-Za-z]?(?:\([a-z0-9]+\))?(?:[.\-]\d+)*",
 
     # Version numbers
     "version": r"v?\d+\.\d+(?:\.\d+)?(?:-[a-zA-Z0-9]+)?",
@@ -118,6 +125,26 @@ def extract_constraints(text: str) -> list[Constraint]:
                     "end": match.end()
                 })
 
+    # Bare quantities: comma-grouped numbers or integers of 4+ digits. These are
+    # real facts (50000 fans, 2,500 signups) that the unit/count patterns miss.
+    # Skip any that overlap a constraint already claimed (years, currency, phones)
+    # so we don't double-count or shred a captured value.
+    number_pattern = r"(?<![\d.,])(?:\d{1,3}(?:,\d{3})+|\d{4,})(?![\d.,])"
+    for match in re.finditer(number_pattern, text):
+        span = (match.start(), match.end())
+        overlaps = any(
+            not (span[1] <= existing[0] or span[0] >= existing[1])
+            for existing in seen_spans
+        )
+        if not overlaps:
+            seen_spans.add(span)
+            constraints.append({
+                "type": "number",
+                "value": match.group(),
+                "start": match.start(),
+                "end": match.end()
+            })
+
     # Sort by position
     constraints.sort(key=lambda c: c["start"])
 
@@ -127,8 +154,12 @@ def extract_constraints(text: str) -> list[Constraint]:
 def main() -> None:
     # Read input
     if len(sys.argv) > 1:
-        with open(sys.argv[1], 'r') as f:
-            text = f.read()
+        try:
+            with open(sys.argv[1], 'r') as f:
+                text = f.read()
+        except OSError as e:
+            print(json.dumps({"error": f"Could not read input: {e}", "constraints": []}))
+            sys.exit(2)
     else:
         text = sys.stdin.read()
 

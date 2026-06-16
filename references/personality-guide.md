@@ -2,6 +2,10 @@
 
 Removing AI patterns is necessary but not sufficient. Text that's clean of AI tells can still read as sterile, voiceless, and institutional. This guide covers the positive dimension: what makes writing feel like a person wrote it.
 
+> **Two guardrails before you use any of this.**
+> 1. **Don't invent a person.** The first-person voice, opinions, and anecdotes below belong to writing that *has* an author (a personal post, a founder's note, an opinion piece). For impersonal copy — technical docs, reference text, third-party announcements — do **not** fabricate an "I"/"we" or a lived experience. An invented anecdote is a louder tell than the slop you removed.
+> 2. **Don't mistake de-hedging for voice.** "Show uncertainty honestly" means drop *habitual* hedging, not load-bearing scope or certainty. In technical, legal, medical, or safety writing, "may", "preliminary", "does not establish causation", and "most (73%)" are the content — keep them.
+
 ---
 
 ## Signs of Soulless Writing
@@ -61,9 +65,9 @@ Real writing has parenthetical asides, self-corrections, and imperfect phrasing.
 ### 6. Show Uncertainty Honestly
 
 Voiceless: "Further research is needed to determine the optimal approach."
-Human: "I don't know the right answer yet. Two options look promising. We'll know more after the pilot."
+Human: "I don't know the right answer yet. Two options look promising, and we'll know more after the pilot."
 
-Admitting you don't know something is more human than hedging behind passive constructions.
+Admitting you don't know something is more human than hedging behind passive constructions. But this is for opinion and personal writing. In regulated or scientific content, "further research is needed" may be the precise, required claim — don't trade real epistemic caution for casual guesswork.
 
 ### 7. Use Concrete Sensory Language
 

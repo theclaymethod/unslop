@@ -86,12 +86,21 @@ Skip this pass in `--audit-only` mode.
 Rewrite the text. The references you read in Pass 1 are your guide — don't duplicate their rules here, just apply them.
 
 Core principles (the why behind the rules):
-- **Em-dashes are the #1 AI punctuation tell.** Default to zero. Use periods, commas, or parentheses instead. If one is absolutely necessary, max one per several paragraphs.
+- **Em-dashes are overused by AI.** Use them sparingly, not never — a single appositive dash ("the problem isn't meetings—it's the agenda") is fine and several presets use one. Two or more in a paragraph is the tell. Never trade a dash for a comma splice; if a dash is wrong, use a period.
 - **AI text delays the point.** Cut everything before the actual claim. "Here's the thing:" is throat-clearing. "Let that sink in." is an emphasis crutch. Just state the thing.
 - **AI inflates significance.** "Stands as a testament to" means "is". "Pivotal moment" is almost never pivotal. Replace inflation with the specific fact.
 - **AI avoids commitment.** "It's worth noting that" hedges. "Some experts argue" hides behind unnamed sources. Make claims directly or cite specifically.
 - **Facts are sacred.** Every number, name, date, and URL from the original must appear in your output unchanged. Style is negotiable; accuracy is not.
-- **Shorter is almost always better.** If cutting a sentence doesn't change the meaning, cut it. AI pads; humans compress.
+- **Shorter is almost always better.** If cutting a sentence doesn't change the meaning, cut it. AI pads; humans compress. But meaning includes scope and certainty — see the guards below.
+
+### Register & genre guards (do no harm)
+
+Removing AI tells must not damage correct writing. Before applying the rules above, check the register:
+
+- **Don't de-hedge regulated or technical content.** In legal, medical, scientific, and security text, hedges and absolutes are the content, not filler. "may cause", "studies suggest", "preliminary", "does not establish causation", "never store secrets", "Most users (73%)" — keep them. Directness applies to corporate puffery, not to load-bearing qualifiers, negations, scope words, or conditionals.
+- **Don't invent a first-person voice.** The personality guide adds voice to writing that has a person behind it. For impersonal copy (technical docs, reference text, third-party announcements), do not fabricate "I"/"we" lived experience to manufacture authenticity. Adding a fake anecdote is a worse tell than the slop you removed.
+- **Avoid your own house style becoming a tell.** Bare fragment contrasts ("Not the technology. The people."), staccato runs of two- and three-word sentences, and forced punch-endings are a recognizable "anti-slop" register of their own. Vary sentence length (mix 8–25 words). The `banned_phrase_scan.py` `anti_slop_register` category and `readability_metrics.py` staccato flag will catch these in your output — heed them.
+- **Match register, don't flatten it.** A warm email should stay warm (keep a softener or a contraction-led reassurance); cutting it to telegraphic fragments is colder than the original, not more human.
 
 Follow the preset voice characteristics for sentence length, paragraph structure, and tone. Refer to `references/edit-library.md` for 24 before/after transformation examples if you need guidance on specific pattern types.
 
@@ -112,11 +121,16 @@ After rewriting, verify your work:
    ```bash
    python3 scripts/banned_phrase_scan.py <<< "$OUTPUT"
    ```
+   **Blocking, even though they're "soft":** an `anti_slop_register` hit means you
+   replaced slop with your own tell (a bare "Not X. Y." contrast or a staccato
+   run). Do not ship it — rewrite that span with varied sentence length before
+   returning.
 
 3. **Readability metrics** — check rhythm and variance:
    ```bash
    python3 scripts/readability_metrics.py <<< "$OUTPUT"
    ```
+   A `Staccato cadence` flag is also blocking: vary the rhythm and re-check.
 
 4. **Change percentage** — flag if >40% changed (may indicate over-editing):
    ```bash
@@ -124,6 +138,8 @@ After rewriting, verify your work:
    ```
 
 5. **Score against rubric** — 8 criteria x 5 points = 40 max. Passing: 32/40 (80%). See `references/rubric.md` for detailed scoring.
+
+> **What validation does and doesn't cover.** The scripts check *surface* facts — numbers, names, dates, currencies, cited references — and now warn on dropped negations, scope words, and conditionals. They do **not** verify meaning. A `passed: true` result with `warnings` present is **not** a green light: re-read every flagged negation/scope/conditional yourself and confirm no claim was inverted, strengthened, or stripped of its scope. Validation catches a deleted `$47.3M`; only you catch "does not support" turned into "supports".
 
 ## Output Format
 
@@ -236,4 +252,5 @@ Only add phrases that are genuine AI writing tells for general prose. Skip Wikip
 3. **Presets guide, don't constrain** — adapt to content type
 4. **When in doubt, cut** — shorter is almost always better
 5. **Quoted examples are exempt by default** — don't flag illustrative bad writing unless the user explicitly wants that
-6. **Validation is mandatory** — run the scripts, especially fact preservation
+6. **Validation is mandatory but not sufficient** — run the scripts, especially fact preservation, then manually re-check meaning (negations, scope, certainty). The scripts catch surface facts; you catch inverted claims.
+7. **Do no harm to good writing** — don't de-hedge regulated/technical text, don't invent first-person voice, and don't replace slop with your own staccato/fragment-contrast tell (see Register & genre guards)

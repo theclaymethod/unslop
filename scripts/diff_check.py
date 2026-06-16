@@ -28,10 +28,12 @@ class DiffResult(TypedDict):
 
 
 def split_words(text: str) -> list[str]:
-    """Split text into words for comparison."""
-    # Normalize whitespace and split
-    text = re.sub(r'[^\w\s]', ' ', text.lower())
-    return text.split()
+    """Split text into comparison tokens.
+
+    Punctuation is tokenized separately (not stripped) so that structural edits
+    like repunctuation register as change instead of reading as identical.
+    """
+    return re.findall(r'\w+|[^\w\s]', text.lower())
 
 
 def calculate_diff(original: str, transformed: str) -> DiffResult:
@@ -103,13 +105,15 @@ def main() -> None:
         print("Usage: diff_check.py <original.txt> <transformed.txt>")
         sys.exit(1)
 
-    # Read original
-    with open(sys.argv[1], 'r') as f:
-        original = f.read()
-
-    # Read transformed
-    with open(sys.argv[2], 'r') as f:
-        transformed = f.read()
+    # Read inputs
+    try:
+        with open(sys.argv[1], 'r') as f:
+            original = f.read()
+        with open(sys.argv[2], 'r') as f:
+            transformed = f.read()
+    except OSError as e:
+        print(json.dumps({"error": f"Could not read input: {e}"}))
+        sys.exit(2)
 
     result = calculate_diff(original, transformed)
     print(json.dumps(result, indent=2))

@@ -48,11 +48,12 @@ def mask_ignored_spans(text: str, include_quoted: bool = False) -> str:
     # Markdown blockquotes are almost always cited examples rather than prose to edit.
     masked = re.sub(r"(?m)^>.*$", lambda m: _mask_non_newlines(m.group(0)), masked)
 
+    # Double quotes only, any length, across line breaks. Single quotes are NOT
+    # masked: they collide with apostrophes/emphasis and would silently hide real
+    # slop inside ordinary single-quoted prose.
     quote_patterns = [
-        r'"[^"\n]{1,500}"',
-        r"“[^”\n]{1,500}”",
-        r"(?<!\w)'[^'\n]{2,500}'(?!\w)",
-        r"(?<!\w)‘[^’\n]{2,500}’(?!\w)",
+        r'"[^"]*"',
+        r"“[^”]*”",
     ]
     for pattern in quote_patterns:
         masked = re.sub(pattern, lambda m: _mask_non_newlines(m.group(0)), masked)
@@ -67,7 +68,6 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
     "here's the thing:": {"category": "throat_clearing", "severity": "hard", "suggestion": None},
     "the uncomfortable truth is": {"category": "throat_clearing", "severity": "hard", "suggestion": None},
     "it turns out": {"category": "throat_clearing", "severity": "hard", "suggestion": None},
-    "the real": {"category": "throat_clearing", "severity": "hard", "suggestion": None},
     "let me be clear": {"category": "throat_clearing", "severity": "hard", "suggestion": None},
     "the truth is": {"category": "throat_clearing", "severity": "hard", "suggestion": None},
     "i'll say it again": {"category": "throat_clearing", "severity": "hard", "suggestion": None},
@@ -80,8 +80,8 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
     "here's what nobody tells you": {"category": "throat_clearing", "severity": "hard", "suggestion": None},
 
     # Emphasis crutches
-    "full stop.": {"category": "emphasis_crutch", "severity": "hard", "suggestion": None},
-    "period.": {"category": "emphasis_crutch", "severity": "hard", "suggestion": None},
+    # ("Full stop." / "Period." as standalone emphasis are handled as structural
+    # patterns so an ordinary sentence ending in the word "period" isn't flagged.)
     "let that sink in": {"category": "emphasis_crutch", "severity": "hard", "suggestion": None},
     "this matters because": {"category": "emphasis_crutch", "severity": "hard", "suggestion": None},
     "make no mistake": {"category": "emphasis_crutch", "severity": "hard", "suggestion": None},
@@ -90,8 +90,93 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
     "this is important": {"category": "emphasis_crutch", "severity": "hard", "suggestion": None},
     "this cannot be overstated": {"category": "emphasis_crutch", "severity": "hard", "suggestion": None},
 
+    # Conclusion / sequencing scaffolding
+    "in conclusion": {"category": "conclusion_scaffold", "severity": "hard", "suggestion": "Cut. State the conclusion directly."},
+    "in summary": {"category": "conclusion_scaffold", "severity": "soft", "suggestion": "Cut. State the point directly."},
+    "to summarize": {"category": "conclusion_scaffold", "severity": "soft", "suggestion": "Cut."},
+    "firstly": {"category": "conclusion_scaffold", "severity": "soft", "suggestion": "first (or just start)"},
+    "secondly": {"category": "conclusion_scaffold", "severity": "soft", "suggestion": "second (or just continue)"},
+    "thirdly": {"category": "conclusion_scaffold", "severity": "soft", "suggestion": "third"},
+    "ultimately,": {"category": "conclusion_scaffold", "severity": "soft", "suggestion": "Cut the filler opener."},
+
+    # Significance inflation / cliche metaphors
+    "underscore the importance": {"category": "significance_inflation", "severity": "hard", "suggestion": "show, demonstrate"},
+    "underscores the importance": {"category": "significance_inflation", "severity": "hard", "suggestion": "shows, demonstrates"},
+    "underscoring the importance": {"category": "significance_inflation", "severity": "hard", "suggestion": "showing"},
+    "highlights the importance": {"category": "significance_inflation", "severity": "soft", "suggestion": "shows"},
+    "treasure trove": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "collection, source"},
+    "ever-evolving": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "changing"},
+    "ever-changing": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "changing"},
+    "rich mosaic": {"category": "significance_inflation", "severity": "hard", "suggestion": None},
+    "mosaic of": {"category": "significance_inflation", "severity": "soft", "suggestion": None},
+
+    # False agency (inanimate subjects doing rhetorical work)
+    "speak for themselves": {"category": "false_agency", "severity": "hard", "suggestion": "State the numbers and what they show."},
+    "speaks for itself": {"category": "false_agency", "severity": "hard", "suggestion": "State the point directly."},
+    "tells a clear story": {"category": "false_agency", "severity": "hard", "suggestion": "Say what the data shows."},
+    "paints a clear picture": {"category": "false_agency", "severity": "hard", "suggestion": "Describe it directly."},
+
+    # Significance / legacy puffery (Wikipedia: Signs of AI writing)
+    "leaves a lasting impact": {"category": "significance_inflation", "severity": "hard", "suggestion": "State the specific effect."},
+    "lasting impact": {"category": "significance_inflation", "severity": "soft", "suggestion": "Name the actual effect."},
+    "enduring legacy": {"category": "significance_inflation", "severity": "hard", "suggestion": "State what actually persisted."},
+    "lasting legacy": {"category": "significance_inflation", "severity": "hard", "suggestion": "State what actually persisted."},
+    "watershed moment": {"category": "significance_inflation", "severity": "soft", "suggestion": "turning point (if sourced)"},
+    "in the realm of": {"category": "significance_inflation", "severity": "hard", "suggestion": "in"},
+
+    # Travel-brochure promotional language
+    "rich cultural heritage": {"category": "promotional", "severity": "hard", "suggestion": None},
+    "stunning natural beauty": {"category": "promotional", "severity": "soft", "suggestion": None},
+
+    # Vague attribution / weasel wording
+    "has been described as": {"category": "vague_attribution", "severity": "soft", "suggestion": "Name and cite who described it."},
+    "is widely regarded as": {"category": "vague_attribution", "severity": "soft", "suggestion": "Attribute to a named source."},
+    "some critics argue": {"category": "vague_attribution", "severity": "soft", "suggestion": "Name the critics."},
+    "observers have noted": {"category": "vague_attribution", "severity": "soft", "suggestion": "Name the observers."},
+
+    # Editorializing
+    "would be complete without": {"category": "editorializing", "severity": "hard", "suggestion": "Drop the editorial framing."},
+
+    # Future-outlook boilerplate
+    "future prospects": {"category": "conclusion_scaffold", "severity": "soft", "suggestion": "State a specific, sourced forecast."},
+    "future outlook": {"category": "conclusion_scaffold", "severity": "soft", "suggestion": None},
+
+    # Assistant / chatbot artifacts pasted into prose
+    "as an ai language model": {"category": "assistant_artifact", "severity": "hard", "suggestion": "Delete — this is chatbot boilerplate."},
+    "as an ai assistant": {"category": "assistant_artifact", "severity": "hard", "suggestion": "Delete — this is chatbot boilerplate."},
+    "as of my last knowledge update": {"category": "assistant_artifact", "severity": "hard", "suggestion": "Delete the training-cutoff disclaimer."},
+
+    # Academic/scientific excess vocabulary (Berens & Kobak, Science Advances 2024).
+    # Mostly soft: each is legitimate but over-represented in LLM prose; flag for
+    # judgment, especially when clustered.
+    "elucidate": {"category": "academic_excess", "severity": "soft", "suggestion": "explain, clarify"},
+    "delineate": {"category": "academic_excess", "severity": "soft", "suggestion": "describe, outline"},
+    "underpin": {"category": "academic_excess", "severity": "soft", "suggestion": "support, underlie"},
+    "unveil": {"category": "academic_excess", "severity": "soft", "suggestion": "show, present"},
+    "seamless": {"category": "academic_excess", "severity": "soft", "suggestion": "smooth"},
+    "invaluable": {"category": "academic_excess", "severity": "soft", "suggestion": "useful, important"},
+    "noteworthy": {"category": "academic_excess", "severity": "soft", "suggestion": "Cut or be specific."},
+    "revolutionize": {"category": "academic_excess", "severity": "soft", "suggestion": "change, improve"},
+    "revolutionizing": {"category": "academic_excess", "severity": "soft", "suggestion": "changing"},
+
+    # Formulaic academic phrases
+    "it should be noted that": {"category": "throat_clearing", "severity": "hard", "suggestion": "Cut — state it directly."},
+    "warrants further": {"category": "conclusion_scaffold", "severity": "hard", "suggestion": "Say what specifically to do next."},
+    "holds great promise": {"category": "significance_inflation", "severity": "hard", "suggestion": "State the concrete potential."},
+    "holds promise": {"category": "significance_inflation", "severity": "soft", "suggestion": "State the concrete potential."},
+    "new avenues": {"category": "significance_inflation", "severity": "soft", "suggestion": "Name the specific next steps."},
+    "shed new light": {"category": "significance_inflation", "severity": "soft", "suggestion": "State what was learned."},
+    "to the best of our knowledge": {"category": "vague_attribution", "severity": "soft", "suggestion": "Cut unless the novelty claim is load-bearing."},
+    "a growing body of": {"category": "vague_attribution", "severity": "soft", "suggestion": "Cite the specific evidence."},
+    "in recent years": {"category": "filler_opener", "severity": "soft", "suggestion": "Cut the time-filler opener."},
+    "with the advent of": {"category": "filler_opener", "severity": "soft", "suggestion": "when X arrived"},
+    "garnered significant attention": {"category": "significance_inflation", "severity": "soft", "suggestion": "State who paid attention and why."},
+    "garnered considerable attention": {"category": "significance_inflation", "severity": "soft", "suggestion": "State who paid attention and why."},
+    "taken together,": {"category": "conclusion_scaffold", "severity": "soft", "suggestion": "Cut the summarizer opener."},
+
     # Business jargon
-    "navigate": {"category": "jargon", "severity": "hard", "suggestion": "handle, address, manage"},
+    # ("navigate" and "leverage" alone have legitimate literal/financial senses;
+    # they're matched as jargon collocations in STRUCTURAL_PATTERNS instead.)
     "unpack": {"category": "jargon", "severity": "hard", "suggestion": "explain, examine"},
     "lean into": {"category": "jargon", "severity": "hard", "suggestion": "accept, embrace"},
     "landscape": {"category": "jargon", "severity": "soft", "suggestion": "situation, field, market"},
@@ -109,7 +194,6 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
     "low-hanging fruit": {"category": "jargon", "severity": "hard", "suggestion": "easy wins"},
     "pivot": {"category": "jargon", "severity": "soft", "suggestion": "change, shift"},
     "disrupt": {"category": "jargon", "severity": "soft", "suggestion": "change, challenge"},
-    "leverage": {"category": "jargon", "severity": "hard", "suggestion": "use, apply"},
     "scalable": {"category": "jargon", "severity": "soft", "suggestion": "expandable, growable"},
     "actionable": {"category": "jargon", "severity": "hard", "suggestion": "practical, usable"},
     "ecosystem": {"category": "jargon", "severity": "soft", "suggestion": "environment, system"},
@@ -119,7 +203,8 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
     "thought leader": {"category": "jargon", "severity": "hard", "suggestion": "expert"},
     "best-in-class": {"category": "jargon", "severity": "hard", "suggestion": "leading, top-tier"},
     "cutting-edge": {"category": "jargon", "severity": "hard", "suggestion": "modern, advanced"},
-    "delve": {"category": "jargon", "severity": "hard", "suggestion": "explore, examine, look at"},
+    "delve into": {"category": "jargon", "severity": "hard", "suggestion": "explore, examine, look at"},
+    "delve deeper": {"category": "jargon", "severity": "hard", "suggestion": "explore, examine, look at"},
     "garner": {"category": "jargon", "severity": "hard", "suggestion": "get, earn, attract"},
     "robust": {"category": "jargon", "severity": "soft", "suggestion": "strong, solid, thorough"},
     "comprehensive": {"category": "jargon", "severity": "soft", "suggestion": "full, complete, thorough"},
@@ -128,10 +213,9 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
     "spearhead": {"category": "jargon", "severity": "hard", "suggestion": "lead, start, run"},
     "bolster": {"category": "jargon", "severity": "hard", "suggestion": "support, strengthen"},
     "streamline": {"category": "jargon", "severity": "soft", "suggestion": "simplify, speed up"},
-    "harness": {"category": "jargon", "severity": "hard", "suggestion": "use, tap, apply"},
-    "wedge": {"category": "jargon", "severity": "hard", "suggestion": "entry point, angle, differentiator"},
     "multifaceted": {"category": "jargon", "severity": "hard", "suggestion": "complex, varied"},
-    "foster": {"category": "jargon", "severity": "hard", "suggestion": "build, encourage, create"},
+    # ("harness" and "foster" have literal senses (a horse harness, a foster
+    # family); their jargon use is matched as a collocation in STRUCTURAL_PATTERNS.)
     "enhance": {"category": "jargon", "severity": "soft", "suggestion": "improve, strengthen"},
     "showcase": {"category": "jargon", "severity": "hard", "suggestion": "show, demonstrate"},
     "align with": {"category": "jargon", "severity": "hard", "suggestion": "match, fit, support"},
@@ -200,7 +284,7 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
 
     # Promotional language
     "nestled": {"category": "promotional", "severity": "hard", "suggestion": "located, situated"},
-    "boasts a": {"category": "promotional", "severity": "hard", "suggestion": "has a"},
+    # ("boasts" is promotional only with a boastful complement; see STRUCTURAL_PATTERNS.)
     "breathtaking": {"category": "promotional", "severity": "hard", "suggestion": None},
     "must-visit": {"category": "promotional", "severity": "hard", "suggestion": None},
     "in the heart of": {"category": "promotional", "severity": "hard", "suggestion": "in central, in downtown"},
@@ -224,8 +308,8 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
     "research suggests": {"category": "vague_attribution", "severity": "hard", "suggestion": "cite the research"},
 
     # Copula avoidance
-    "serves as a": {"category": "copula_avoidance", "severity": "hard", "suggestion": "is a"},
-    "stands as a": {"category": "copula_avoidance", "severity": "hard", "suggestion": "is a"},
+    # ("serves as a" / "stands as a" have literal-function senses (a room serves
+    # as a kitchen); the inflated significance use is matched in STRUCTURAL_PATTERNS.)
     "represents a": {"category": "copula_avoidance", "severity": "soft", "suggestion": "is a"},
     "constitutes a": {"category": "copula_avoidance", "severity": "hard", "suggestion": "is a"},
     "functions as a": {"category": "copula_avoidance", "severity": "hard", "suggestion": "is a"},
@@ -268,7 +352,7 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
     # AI vocabulary (individual words)
     "interplay": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "interaction, connection"},
     "intricate": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "complex, detailed"},
-    "tapestry": {"category": "ai_vocabulary", "severity": "hard", "suggestion": None},
+    "tapestry of": {"category": "ai_vocabulary", "severity": "hard", "suggestion": None},
     "paramount": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "important, critical"},
     "pertaining to": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "about, regarding"},
     "aforementioned": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "this, that, the"},
@@ -380,6 +464,117 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
 
 # Structural patterns (regex)
 STRUCTURAL_PATTERNS: list[dict[str, str]] = [
+    # Standalone "Period." / "Full stop." for emphasis — only when it stands as
+    # its own sentence, not when a clause merely ends in the word "period".
+    {
+        "pattern": r"(?:^|[.!?]\s+)(?:full stop|period)\.",
+        "category": "emphasis_crutch",
+        "severity": "hard",
+        "suggestion": "Cut the one-word emphasis sentence."
+    },
+    # "The real <noun> is ..." throat-clearing (not "the real estate market").
+    {
+        "pattern": r"\bthe real \w+ (?:is|isn't|was|wasn't|remains)\b",
+        "category": "throat_clearing",
+        "severity": "hard",
+        "suggestion": "State it directly."
+    },
+    # Jargon collocations: flag the business sense, spare the literal/financial one.
+    {
+        "pattern": r"\bleverag(?:e|es|ed|ing)\s+(?:our\s+|your\s+|their\s+|its\s+|the\s+)?(?:synerg|core\s+compet|strength|expertise|capabilit|technolog|resource|data\b|ai\b|platform|ecosystem|network|power\s+of)",
+        "category": "jargon",
+        "severity": "hard",
+        "suggestion": "use, apply"
+    },
+    {
+        "pattern": r"\bnavigat(?:e|es|ed|ing)\s+(?:the\s+|this\s+|these\s+)?(?:complex|challeng|landscape|nuance|intricac|water|terrain|maze|minefield|uncertaint|world\s+of|ever-)",
+        "category": "jargon",
+        "severity": "hard",
+        "suggestion": "handle, address, manage"
+    },
+    {
+        "pattern": r"\bharness(?:es|ed|ing)?\s+(?:the\s+|its\s+|their\s+|our\s+)?(?:power|potential|strength|capabilit|energy|momentum|force|full\s+)",
+        "category": "jargon",
+        "severity": "hard",
+        "suggestion": "use, tap, apply"
+    },
+    {
+        "pattern": r"\bfoster(?:s|ed|ing)?\s+(?:a\s+|an\s+|greater\s+|deeper\s+|stronger\s+)?(?:culture|collaboration|innovation|sense\s+of|community|environment|growth|engagement|inclusion|creativity|dialogue|connection|belonging)",
+        "category": "jargon",
+        "severity": "hard",
+        "suggestion": "build, encourage, create"
+    },
+    {
+        "pattern": r"\bload-bearing\s+(?:part|piece|point|claim|idea|insight|assumption|detail|context|constraint|requirement|decision|argument|premise|section|paragraph|sentence|word|term|concept)\b",
+        "category": "jargon",
+        "severity": "hard",
+        "suggestion": "essential, important, necessary"
+    },
+    {
+        "pattern": r"\bwedge\s+(?:into|for|against|between|to)\b|\bas\s+a\s+wedge\b",
+        "category": "jargon",
+        "severity": "hard",
+        "suggestion": "opening, angle, advantage, entry point"
+    },
+    # Promotional "boasts <boastful complement>" (not "boasts a capacity of 50,000").
+    {
+        "pattern": r"\bboasts?\s+(?:a\s+|an\s+)?(?:world-class|state-of-the-art|cutting-edge|impressive|stunning|robust|comprehensive|unparalleled|rich|vibrant|array of|host of|range of|wealth of|plethora)",
+        "category": "promotional",
+        "severity": "hard",
+        "suggestion": "has"
+    },
+    # "plays a crucial role / pivotal part" — the canonical AI academic frame.
+    {
+        "pattern": r"\bplays?\s+an?\s+(?:crucial|key|vital|pivotal|significant|central|important|critical|defining|major)\s+(?:role|part)\b",
+        "category": "significance_inflation",
+        "severity": "soft",
+        "suggestion": "State the specific effect, not that something 'plays a role'."
+    },
+    # "a deeper/more nuanced understanding of" — inflated stand-in for "understanding".
+    {
+        "pattern": r"\ba\s+(?:deeper|better|more\s+nuanced|comprehensive|fuller|richer)\s+understanding\s+of\b",
+        "category": "significance_inflation",
+        "severity": "soft",
+        "suggestion": "Just 'understanding of', or state what is understood."
+    },
+    # "highlights/emphasizes the need/importance of" — boilerplate significance closer.
+    {
+        "pattern": r"\b(?:highlight|emphasiz|reflect)\w*\s+the\s+(?:need|importance)\s+(?:for|of)\b",
+        "category": "significance_inflation",
+        "severity": "soft",
+        "suggestion": "State the takeaway directly."
+    },
+    # Reader-addressing essay frame ("In this article, we will explore …").
+    {
+        "pattern": r"(?i)\bin this (?:article|section|post|guide|chapter|paper),?\s+(?:we|i)\s+(?:will|'ll|are going to|shall)\b",
+        "category": "reader_addressing",
+        "severity": "soft",
+        "suggestion": "Drop the meta-framing; just deliver the content."
+    },
+    # Inflated "serves/stands as a <significance noun>" (not "serves as a kitchen").
+    {
+        "pattern": r"\b(?:serves|stands|stood)\s+as\s+(?:a|an|the)\s+(?:testament|reminder|symbol|beacon|foundation|cornerstone|gateway|catalyst|bridge|hub|springboard|window|monument|hallmark|blueprint|cautionary|stark|powerful|shining|prime example|case study|model for)\b",
+        "category": "copula_avoidance",
+        "severity": "hard",
+        "suggestion": "Use 'is', and state the specific fact."
+    },
+    # Anti-slop register tells: the skill's OWN house style. De-slopped text often
+    # over-relies on bare fragment contrasts ("Not the technology. The people.") and
+    # staccato runs of tiny sentences. These read as "LinkedIn-influencer / AI-
+    # humanizer voice" — a tell in their own right — but the binary_contrast regex
+    # only caught the full-clause form. Soft: judgment call, but it must be visible.
+    {
+        "pattern": r"(?im)(?:^|[.!?]\s+)(?:not|no)\b[^.!?]{0,28}[.!?]\s+(?:the\s+|it'?s?\s+|that'?s?\s+)?[a-z][^.!?]{0,28}[.!?]",
+        "category": "anti_slop_register",
+        "severity": "soft",
+        "suggestion": "Bare fragment contrast ('Not X. Y.') is its own AI tell. Use one varied sentence."
+    },
+    {
+        "pattern": r"(?:\b[\w'’]+(?:\s+[\w'’]+){0,4}[.!?]\s+){2,}[\w'’]+(?:\s+[\w'’]+){0,4}[.!?]",
+        "category": "anti_slop_register",
+        "severity": "soft",
+        "suggestion": "Three+ consecutive tiny sentences is staccato AI cadence. Vary sentence length."
+    },
     {
         "pattern": r"not because .+?\. because",
         "category": "binary_contrast",
@@ -524,13 +719,7 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "pattern": r"—[^—]*—",
         "category": "em_dash_overuse",
         "severity": "hard",
-        "suggestion": "Max one em-dash per paragraph. Use commas, periods, or parentheses instead."
-    },
-    {
-        "pattern": r"—",
-        "category": "em_dash_usage",
-        "severity": "soft",
-        "suggestion": "Prefer commas or periods over em-dashes. Em-dashes are an AI tell when overused."
+        "suggestion": "Two+ em-dashes in a stretch is the tell. Keep at most one appositive dash; use periods/commas for the rest."
     },
 
     # Staccato fragmentation (3+ consecutive short sentences)
@@ -679,8 +868,12 @@ def main() -> None:
 
     # Read input
     if args.input_file:
-        with open(args.input_file, 'r') as f:
-            text = f.read()
+        try:
+            with open(args.input_file, 'r') as f:
+                text = f.read()
+        except OSError as e:
+            print(json.dumps({"error": f"Could not read input: {e}", "violations": []}))
+            sys.exit(2)
     else:
         text = sys.stdin.read()
 
