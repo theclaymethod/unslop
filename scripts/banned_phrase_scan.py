@@ -504,6 +504,18 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "severity": "hard",
         "suggestion": "build, encourage, create"
     },
+    {
+        "pattern": r"\bload-bearing\s+(?:part|piece|point|claim|idea|insight|assumption|detail|context|constraint|requirement|decision|argument|premise|section|paragraph|sentence|word|term|concept)\b",
+        "category": "jargon",
+        "severity": "hard",
+        "suggestion": "essential, important, necessary"
+    },
+    {
+        "pattern": r"\bwedge\s+(?:into|for|against|between|to)\b|\bas\s+a\s+wedge\b",
+        "category": "jargon",
+        "severity": "hard",
+        "suggestion": "opening, angle, advantage, entry point"
+    },
     # Promotional "boasts <boastful complement>" (not "boasts a capacity of 50,000").
     {
         "pattern": r"\bboasts?\s+(?:a\s+|an\s+)?(?:world-class|state-of-the-art|cutting-edge|impressive|stunning|robust|comprehensive|unparalleled|rich|vibrant|array of|host of|range of|wealth of|plethora)",

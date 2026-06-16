@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Generate evals/shared-benchmark.json (the skill-eval-harness manifest) from the
-26 behavioral `skill` cases in evals/adversarial-evals.json.
+behavioral `skill` cases in evals/adversarial-evals.json.
 
 Why a generator instead of a hand-written manifest: the two eval layers must not
 drift. `run_adversarial.py` grades the Python tooling deterministically; the
@@ -33,9 +33,9 @@ OUTPUT = HERE / "shared-benchmark.json"
 
 HARNESS_URL = "https://github.com/adewale/skill-eval-harness"
 
-# Split assignment. The five "port first" cases from the handoff (highest signal
-# for iterating the skill) live in `tune`. `holdout` is graded but never used to
-# tune. `holdback` is the sealed set — only run to confirm a final number.
+# Split assignment. New product-shaping cases usually start in `tune`.
+# `holdout` is graded but not tuned against. `holdback` is sealed and should only
+# be run to confirm a final number.
 SPLITS: dict[str, str] = {
     # tune — iterate against these
     "SKILL-FRAGMENT-01": "tune",
@@ -50,6 +50,7 @@ SPLITS: dict[str, str] = {
     "SKILL-RUBRIC-01": "tune",
     "SKILL-INJECT-01": "tune",
     "SKILL-NEWPAT-01": "tune",
+    "SKILL-WEDGE-01": "tune",
     "SKILL-DONOHARM-01": "tune",
     "SKILL-WARMTH-01": "tune",
     # holdout — measure, do not tune
@@ -87,6 +88,7 @@ DOMAIN: dict[str, str] = {
     "SKILL-SHORT-01": "misc",
     "SKILL-INJECT-01": "security",
     "SKILL-NEWPAT-01": "business",
+    "SKILL-WEDGE-01": "product",
     "SKILL-FRAGMENT-01": "business",
     "SKILL-HEDGE-03": "scientific",
     "SKILL-LEGAL-02": "legal",
@@ -223,7 +225,7 @@ def build_manifest(source: dict) -> dict:
         "skill_paths": ["SKILL.md", "presets", "references", "scripts"],
         "variants": ["with_skill", "without_skill"],
         "split_policy": {
-            "tune": "Iterate the skill against these. Includes the five highest-signal trap cases.",
+            "tune": "Iterate the skill against these cases.",
             "holdout": "Graded for the headline number; never used to tune the skill.",
             "holdback": "Sealed. Run only to confirm a final result, then reseal.",
         },

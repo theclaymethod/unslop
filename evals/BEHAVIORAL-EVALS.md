@@ -1,86 +1,97 @@
-# Behavioral evals (skill-eval-harness)
+# Behavioral Evals
 
-Two complementary layers grade this skill:
+The repo has two eval layers:
 
-| Layer | Graded by | What it answers |
-|-------|-----------|-----------------|
-| **Tooling** — `run_adversarial.py` | deterministic Python | Does the scanner flag X? Does validation fail on a dropped fact? |
-| **Behavioral** — `shared-benchmark.json` | [skill-eval-harness](https://github.com/adewale/skill-eval-harness) + LLM judge | Does the *skill's prose* do the right thing, and does the skill **cause** the improvement? |
+| Layer | Command | Measures |
+|-------|---------|----------|
+| Tooling | `python3 evals/run_adversarial.py` | Scanner and preservation scripts |
+| Behavioral | `skill-benchmark ... evals/shared-benchmark.json` | Skill output quality and with-skill/without-skill lift |
 
-The tooling layer can't see prose quality; the behavioral layer can. Keep both.
-
-## The manifest is generated, not hand-edited
-
-`shared-benchmark.json` is built from the 26 `target: skill` cases in
-`adversarial-evals.json` so the two layers never drift:
+`evals/shared-benchmark.json` is generated from the `target: skill` cases in
+`evals/adversarial-evals.json`:
 
 ```bash
-python3 evals/build_shared_benchmark.py          # regenerate after editing a case
-python3 evals/build_shared_benchmark.py --check   # CI: fail if stale
+python3 evals/build_shared_benchmark.py
+python3 evals/build_shared_benchmark.py --check
 ```
 
-Edit a behavioral case in `adversarial-evals.json` (or its split / script-assertion
-mapping in `build_shared_benchmark.py`), then regenerate. CI enforces sync.
+The generated manifest adds:
 
-### What the generator adds
+- `with_skill` and `without_skill` variants.
+- `tune`, `holdout`, and `holdback` splits.
+- LLM judge assertions for prose quality.
+- Script backstops for fact preservation and anti-slop-register regressions.
+- Ablations that name the skill component each case cluster protects.
 
-- **`variants: [with_skill, without_skill]`** — every case runs both ways so the
-  harness reports **lift** (paired delta), not just an absolute pass rate. Lift is
-  the signal the deterministic suite can't produce: it proves the skill caused the
-  result instead of the base model happening to behave.
-- **`split` (tune / holdout / holdback)** — guards against overfitting the skill to
-  its own evals. Iterate on `tune`; report `holdout`; keep `holdback` sealed.
-- **`script` assertions** — deterministic backstops that reuse our hardened tooling
-  over each run's `output.md`:
-  - fact cases (`SKILL-LEGAL-02`, `-APPROX-01`, `-DISAMBIG-01`) →
-    `validate_preservation.py` against a fixture of the original prose.
-  - anti-slop-register cases (`SKILL-FRAGMENT-01`, `-STACCATO-01`) →
-    `banned_phrase_scan.py` must find zero violations.
-- **`ablations`** — document which skill component each case cluster protects.
+Script assertions run from `evals/` and read each run's `{output_dir}/output.md`.
+Use them as regression backstops; the judge assertions carry the behavioral signal.
 
-### The `output.md` contract
+## Add a Case
 
-`script` assertions run with cwd set to `evals/` and read `{output_dir}/output.md`,
-which the harness fills with the skill's output for that run. `banned_phrase_scan.py`
-masks quoted/code spans, so a rewrite the runner wraps in quotes can hide a real
-tell — treat the script result as a backstop and the `judge` result as primary.
+When you find a new AIism or failure mode, add it to `evals/adversarial-evals.json`
+first.
 
-## Running the behavioral layer (local, needs model credentials)
+Use the smallest useful pair:
 
-The harness drives the skill through a real runner and calls a model to judge, so
-this is a local task, not a CI one. This is the exact flow that produced
-[`TUNE-RESULTS.md`](TUNE-RESULTS.md) (harness v0.4.2).
+- A `script` false-negative case when the scanner should catch the pattern.
+- A `script` false-positive case when the same words have a legitimate literal or
+  domain-specific use.
+- A `skill` case when the product behavior matters: the skill should rewrite,
+  preserve, decline, or route differently.
+
+Then update the scanner/skill until the new case passes without breaking the old
+suite:
 
 ```bash
-# 1. Install (pin a tag), then record it in the manifest's harness.version field.
+python3 evals/run_adversarial.py
+python3 evals/build_shared_benchmark.py
+python3 evals/build_shared_benchmark.py --check
+skill-benchmark validate evals/shared-benchmark.json --strict-leakage
+```
+
+For behavioral changes, run the relevant split with the local harness. Keep new
+tuning cases in `tune`; reserve `holdout` for reporting and `holdback` for final
+confirmation.
+
+## Run Locally
+
+The behavioral layer needs local model credentials for `claude -p`.
+
+```bash
 uv tool install git+https://github.com/adewale/skill-eval-harness.git
 
-# 2. Lint the manifest (leakage + fixture checks).
 skill-benchmark validate evals/shared-benchmark.json --strict-leakage
 
-# 3. Prepare the tune split (--out is a FILE, not a dir).
 skill-benchmark prepare evals/shared-benchmark.json --split tune --out runs/tune/tasks.jsonl
-
-# 4. Run the prepared tasks through claude -p, writing each run's output.md.
 python3 evals/run_local.py runs/tune/tasks.jsonl --jobs 5
 
-# 5. Judge the subjective assertions, then roll up the benchmark with the scripts.
 skill-benchmark judge evals/shared-benchmark.json --runs runs/tune --split tune \
   --judge-cmd 'claude -p' --out runs/tune/judge.jsonl
+
+# Harness v0.4.2 can emit null judge scores; coerce them before benchmark.
+python3 - <<'PY'
+import json
+rows = [json.loads(line) for line in open("runs/tune/judge.jsonl") if line.strip()]
+for row in rows:
+    if row.get("score") is None:
+        row["score"] = 1.0 if row.get("passed") else 0.0
+    row.setdefault("threshold", 1)
+open("runs/tune/judge.fixed.jsonl", "w").write(
+    "\n".join(json.dumps(row) for row in rows) + "\n"
+)
+PY
+
 skill-benchmark benchmark evals/shared-benchmark.json --runs runs/tune --split tune \
-  --allow-scripts --judge-results runs/tune/judge.jsonl --out runs/tune/benchmark.json
+  --allow-scripts --judge-results runs/tune/judge.fixed.jsonl --out runs/tune/benchmark.json
 ```
 
-`--allow-scripts` is required for the `script` assertions to execute. Report the
-`holdout` number for headline results; only break the `holdback` seal to confirm a
-final figure, then reseal it.
+Notes:
 
-Three gotchas that bit the first run (details in `TUNE-RESULTS.md`):
-
-- **Run the skill with Bash permission for `python3 scripts/*.py`** — otherwise the
-  skill can't invoke its own scanner and degrades to manual diagnosis, so you're not
-  really benchmarking the skill-plus-tooling.
-- **`benchmark` crashes if the judge omits a numeric `score`** (it's optional). Coerce
-  null scores to the `passed` boolean before `benchmark` — snippet in `TUNE-RESULTS.md`.
-- **The base model already de-slops well**, so aggregate lift is near zero. Read the
-  per-case `case_flags` and the discriminating cases, not the headline mean.
+- `prepare --out` takes a file path, not a directory.
+- `benchmark --allow-scripts` is required for script assertions.
+- Run the skill with permission to execute `python3 scripts/*.py`; otherwise the
+  run measures the prose instructions without the skill's helper scripts.
+- Use `tune` while changing the skill, report `holdout`, and keep `holdback` sealed
+  until a final confirmation run.
+- The base model already de-slops well, so per-case deltas matter more than the
+  aggregate mean.

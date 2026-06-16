@@ -149,12 +149,12 @@ unslop's rubric is finer but, as §3 shows, gameable. The useful import is the
   added conservatively: academic single-words are `soft` (flag when clustered),
   and the ambiguous ones (`serves as a`, `harness`, `foster`) are gated behind
   their inflated collocations so literal usage stays clean.
-- **26 `skill` cases**: behavioral, judged against the agent's output. Cover
+- **27 `skill` cases**: behavioral, judged against the agent's output. Cover
   do-no-harm, over-correction, fact traps, mode/preset routing, rubric gaming,
   content types, prompt injection, and the writing-quality failures from the
   adversarial writing audit (anti-slop register, de-hedging, manufactured voice).
 
-Current totals: **77 cases — 51 script (50 PASS / 1 XFAIL / 0 FAIL), 26 behavioral.**
+Current totals: **80 cases — 53 script (52 PASS / 1 XFAIL / 0 FAIL), 27 behavioral.**
 
 A separate red-team of the *writing the skill produces* (not just detection) is in
 [`ADVERSARIAL-WRITING-ANALYSIS.md`](ADVERSARIAL-WRITING-ANALYSIS.md): it found the
