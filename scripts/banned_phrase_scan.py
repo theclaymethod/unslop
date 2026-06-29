@@ -479,6 +479,17 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "severity": "hard",
         "suggestion": "State it directly."
     },
+    # "<abstract noun> is/are real" — the meme-derived emphasis closer ("the
+    # struggle is real", "the stakes are real", "the mechanic is real"). It
+    # asserts significance instead of showing it. Restricted to abstract-emphasis
+    # subjects so the literal authentication sense ("the painting is real, not a
+    # forgery", "is this offer real?") is spared. Soft: it's a judgment call.
+    {
+        "pattern": r"(?i)\b(?:the\s+|that\s+|this\s+)?(?:struggle|stakes|pain|threat|risk|danger|fear|hype|magic|hustle|grind|stress|pressure|burnout|concern|consequences|impact|tension|anxiety|disconnect|divide|need|demand|love|chemistry|connection|mechanic|feels?)\s+(?:is|are|was|were)\s+(?:very\s+|so\s+|all\s+too\s+)?real\b",
+        "category": "emphasis_crutch",
+        "severity": "soft",
+        "suggestion": "Cut the meme emphasis; state what is actually at stake."
+    },
     # Jargon collocations: flag the business sense, spare the literal/financial one.
     {
         "pattern": r"\bleverag(?:e|es|ed|ing)\s+(?:our\s+|your\s+|their\s+|its\s+|the\s+)?(?:synerg|core\s+compet|strength|expertise|capabilit|technolog|resource|data\b|ai\b|platform|ecosystem|network|power\s+of)",

@@ -166,6 +166,54 @@
       ]
     },
     {
+      "id": "FN-06",
+      "category": "scanner_false_negative",
+      "title": "Catches the '<abstract noun> is/are real' emphasis closer",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Negative balance bites every session. The stakes are real, and the struggle is real.",
+      "failure_mode": "The meme-derived 'X is real' punch line asserts significance instead of showing it, but was uncatalogued.",
+      "correct_behavior": "At least 2 emphasis_crutch violations: 'the stakes are real' and 'the struggle is real'.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 2
+        },
+        {
+          "type": "stdout_contains",
+          "value": "the stakes are real"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "the struggle is real"
+        }
+      ]
+    },
+    {
+      "id": "FP-14",
+      "category": "scanner_false_positive",
+      "title": "Literal 'is it genuine?' sense is not the 'X is real' tell",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "We checked it under UV light. The painting is real, not a forgery, and the signature is real too.",
+      "failure_mode": "An overbroad 'X is real' ban would flag the literal authentication sense (genuine vs fake).",
+      "correct_behavior": "No violations: 'real' here means genuine, not the emphasis-crutch meme.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
       "id": "FN-02",
       "category": "scanner_false_negative",
       "title": "Misses 'treasure trove' / 'ever-evolving' / 'rich mosaic'",

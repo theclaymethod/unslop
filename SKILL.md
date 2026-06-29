@@ -4,7 +4,7 @@ description: Remove AI writing patterns from prose using either audit-only detec
 license: MIT
 metadata:
   author: claytonkim
-  version: "2.1.0"
+  version: "2.2.0"
 ---
 
 # Unslop

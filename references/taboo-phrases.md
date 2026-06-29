@@ -89,6 +89,9 @@ These phrases try to manufacture importance. The content should speak for itself
 | "This cannot be overstated." | Overstating the overstating |
 | "Why this is load-bearing" | Pre-announces importance instead of showing it |
 | "Why this matters" | Same — just make the point |
+| "The struggle is real." | Meme-derived punch line; asserts stakes instead of showing them |
+| "The stakes are real." | Same — name the concrete consequence |
+| "The X is real." | "<abstract noun> is/are real" inflates significance; spare the literal "is it genuine?" sense |
 
 ---
 
@@ -892,6 +895,9 @@ Patterns added from external sources. Most academic single-words are `soft`
 
 # Emphasis crutches
 (?i)(full stop\.|period\.|let that sink in|make no mistake|read that again)
+
+# "<abstract noun> is/are real" emphasis closer (spare literal "is it genuine?")
+(?i)\b(?:the |that |this )?(?:struggle|stakes|pain|threat|risk|danger|fear|hype|magic|hustle|grind|stress|pressure|burnout|tension|mechanic)\s+(?:is|are|was|were)\s+(?:very |so |all too )?real\b
 
 # Binary contrast pattern
 (?i)(not because .+\. because|isn't the problem\.|feels like .+\. it's actually|\b\w+\s+(?:isn'?t|aren'?t|is not|are not)\s+[^.\n]+?\.\s+it'?s\b)
