@@ -2710,6 +2710,25 @@
       ]
     },
     {
+      "id": "DOC-02",
+      "category": "documented_examples",
+      "title": "SKILL.md quick example outputs pass validation gates",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_skill_examples.py"
+      ],
+      "stdin": "",
+      "failure_mode": "Documented examples can teach outputs that the skill's own validation gates reject.",
+      "correct_behavior": "Each documented output example passes banned_phrase_scan.py and readability_metrics.py with exit 0.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
       "id": "SKILL-DONOHARM-01",
       "category": "do_no_harm",
       "title": "Already-human text: do (almost) nothing",
@@ -3923,6 +3942,28 @@
           "type": "json",
           "path": "missing_count",
           "gte": 1
+        }
+      ]
+    },
+    {
+      "id": "DOC-03",
+      "category": "scanner_detection",
+      "title": "CHECKS.md gate matrix matches --list-gates output",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_gates_doc.py"
+      ],
+      "failure_mode": "CHECKS.md embeds a hand-copied mirror of the runner's gate matrix; editing list_gates() without updating the doc silently desynchronizes the machine-readable check protocol.",
+      "correct_behavior": "The JSON block in evals/CHECKS.md parses and is structurally equal to run_adversarial.py --list-gates output.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
         }
       ]
     }

@@ -187,7 +187,7 @@ Adapt output to the context. For a quick fix, just return the cleaned text. For 
 > Here's the thing: building products is hard. Not because the technology is complex. Because people are complex. Let that sink in.
 
 **Output (crisp):**
-> Building products is hard. Not the technology. The people.
+> Building products is hard, and not because the technology is complex. People are complex, and they are the part you cannot refactor.
 
 **Input:**
 > In today's fast-paced business environment, it's becoming increasingly important for organizations to leverage their core competencies while navigating the complex landscape of digital transformation.
@@ -226,11 +226,36 @@ All scripts accept stdin or file path arguments and output JSON. Run from the sk
 
 | Command | Action |
 |---------|--------|
-| `/unslop --add-phrase "phrase"` | Add banned phrase |
-| `/unslop --add-structure "pattern\|fix"` | Add structural pattern |
-| `/unslop --list-phrases` | List all banned phrases |
-| `/unslop --list-structures` | List structural patterns |
+| `/unslop --add-phrase "phrase"` | Add a scanner phrase through the eval-first procedure below |
+| `/unslop --add-structure "pattern\|fix"` | Add a structural pattern through the eval-first procedure below |
+| `/unslop --list-phrases` | List scanner phrase keys |
+| `/unslop --list-structures` | List documented structural pattern families |
 | `/unslop --wiki-sync` | Sync with Wikipedia for new AI patterns |
+
+### Add Phrase or Structure (`/unslop --add-phrase`, `/unslop --add-structure`)
+
+1. Add the smallest useful coverage to `evals/adversarial-evals.json` first: one
+   `script` false-negative row for the tell and one `script` false-positive row
+   for a legitimate literal or domain-specific use. If you are gating an existing
+   word behind collocations, add a REC row proving the jargon use still flags.
+2. Add the phrase or pattern to `scripts/banned_phrase_scan.py` and document it in
+   `references/taboo-phrases.md`.
+3. Run `python3 evals/run_adversarial.py` and require exit 0 before treating the
+   addition as done.
+
+### List Phrase or Structure Rules
+
+```bash
+python3 - <<'PY'
+from scripts.banned_phrase_scan import BANNED_PHRASES
+for key in sorted(BANNED_PHRASES):
+    print(key)
+PY
+```
+
+```bash
+rg -n "^(##|###) " references/taboo-phrases.md
+```
 
 ### Wiki Sync (`/unslop --wiki-sync`)
 

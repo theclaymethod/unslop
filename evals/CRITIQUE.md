@@ -34,13 +34,14 @@ blind spots:
 
 ## Status (this branch)
 
-The deterministic script defects in §2 have been **fixed**: `run_adversarial.py`
-now reports **20 PASS, 1 XFAIL, 0 FAIL**. The one remaining XFAIL (FP-06) is the
-literal "delve into a place" case — kept open on purpose, because distinguishing
-it from the figurative "delve into a topic" is beyond a pattern scanner, and
-dropping the `delve into` pattern would cost more recall than the rare false
-positive is worth. The 18 behavioral `skill` cases in §3 remain as a standing
-suite for the agent + judge. Fixes summary:
+The deterministic script defects in §2 have been **fixed**. Use
+`python3 evals/run_adversarial.py` for live PASS/XFAIL/FAIL counts. The one
+remaining expected XFAIL (FP-06) is the literal "delve into a place" case — kept
+open on purpose, because distinguishing it from the figurative "delve into a
+topic" is beyond a pattern scanner, and dropping the `delve into` pattern would
+cost more recall than the rare false positive is worth. Use
+`python3 evals/run_adversarial.py --list-skill` for the live behavioral case
+list. Fixes summary:
 
 - **Fact preservation** — currency now compares absolute magnitude (`$47.3M` ≠
   `$47.3 billion`), percentages match exact tokens (`12%` ≠ `120%`), dates require
@@ -132,13 +133,13 @@ unslop's rubric is finer but, as §3 shows, gameable. The useful import is the
 
 ## 5. The adversarial suite
 
-`adversarial-evals.json` — 38 cases:
+`adversarial-evals.json` is the live adversarial suite:
 
-- **44 `script` cases**: deterministic, run by `run_adversarial.py` with a
+- **`script` cases**: deterministic, run by `run_adversarial.py` with a
   per-case timeout. They encode the *correct* behavior; a case stays marked
   `xfail` only while its bug is open. The runner reports PASS / FAIL (undocumented
   regression, breaks build) / XFAIL (known/accepted limit) / XPASS (bug fixed →
-  remove the `xfail`). Today: 43 PASS, 1 XFAIL (FP-06), 0 FAIL. Includes
+  remove the `xfail`). Includes
   false-positive gates (FP-*), recall guards (REC-*) that prove the gating didn't
   gut detection, detection cases (DET-*) for research-sourced patterns,
   magnitude/format fact cases, and missing-file/empty-input robustness for every
@@ -149,12 +150,13 @@ unslop's rubric is finer but, as §3 shows, gameable. The useful import is the
   added conservatively: academic single-words are `soft` (flag when clustered),
   and the ambiguous ones (`serves as a`, `harness`, `foster`) are gated behind
   their inflated collocations so literal usage stays clean.
-- **27 `skill` cases**: behavioral, judged against the agent's output. Cover
+- **`skill` cases**: behavioral, judged against the agent's output. Cover
   do-no-harm, over-correction, fact traps, mode/preset routing, rubric gaming,
   content types, prompt injection, and the writing-quality failures from the
   adversarial writing audit (anti-slop register, de-hedging, manufactured voice).
 
-Current totals: **80 cases — 53 script (52 PASS / 1 XFAIL / 0 FAIL), 27 behavioral.**
+Use the runner output for current totals rather than copying counts into this
+historical critique.
 
 A separate red-team of the *writing the skill produces* (not just detection) is in
 [`ADVERSARIAL-WRITING-ANALYSIS.md`](ADVERSARIAL-WRITING-ANALYSIS.md): it found the

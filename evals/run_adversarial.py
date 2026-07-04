@@ -137,6 +137,20 @@ def list_gates():
             "needs": ["skill-benchmark"],
         },
         {
+            "id": "taboo-catalog-parity",
+            "command": "python3 evals/check_taboo_parity.py",
+            "pass_criterion": "exit 0",
+            "blocking": True,
+            "needs": [],
+        },
+        {
+            "id": "behavioral-tune",
+            "command": "evals/run_behavioral.sh tune",
+            "pass_criterion": "exit 0",
+            "blocking": False,
+            "needs": ["skill-benchmark", "claude -p"],
+        },
+        {
             "id": "banned-phrase-scan",
             "command": "python3 scripts/banned_phrase_scan.py < transformed.txt",
             "pass_criterion": "exit 0",
@@ -217,7 +231,7 @@ def main(argv):
         return 0
 
     if args.list_skill:
-        print(f"\n{BLUE}Behavioral (skill) cases — run against the agent, judge manually:{RESET}")
+        print(f"\n{BLUE}Behavioral (skill) cases — run with evals/run_behavioral.sh SPLIT:{RESET}")
         for e in skill_cases:
             print(f"  {e['id']:24} [{e['category']}] {e['title']}")
         return 0

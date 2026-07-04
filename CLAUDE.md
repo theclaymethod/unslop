@@ -9,10 +9,12 @@ start with evals, then update the skill or scripts until the suite passes.
 
 1. Edit `evals/adversarial-evals.json` first.
 2. Add the smallest useful coverage:
-   - `script` false-negative row when the scanner should catch the pattern.
-   - `script` false-positive row when the same words have a legitimate literal or
-     domain-specific use.
-   - `skill` row when the behavior is agent-level: rewrite, preserve, decline, or route.
+   - New scanner pattern: exactly one `script` false-negative row and one `script`
+     false-positive domain-protection row.
+   - Existing word gated behind collocations: add the FN/FP pair plus one REC row
+     proving the jargon use still flags.
+   - Agent behavior change: add a `skill` row only when the behavior is rewrite,
+     preserve, decline, or route.
 3. If a `skill` row is added, update `evals/build_shared_benchmark.py` with its split
    and domain, then regenerate `evals/shared-benchmark.json`.
 4. Update `scripts/banned_phrase_scan.py`, `SKILL.md`, `presets/`, or `references/`
@@ -24,17 +26,25 @@ or other domain-specific prose.
 
 ## Required Checks
 
+Use `python3 evals/run_adversarial.py --list-gates` to inspect the live gate
+matrix. If `skill-benchmark` is missing, install it with
+`uv tool install git+https://github.com/adewale/skill-eval-harness.git`.
+
 Run these before handing work back:
 
 ```bash
 python3 evals/run_adversarial.py
 python3 evals/build_shared_benchmark.py
 python3 evals/build_shared_benchmark.py --check
+python3 evals/check_taboo_parity.py
 skill-benchmark validate evals/shared-benchmark.json --strict-leakage
 ```
 
-When behavior depends on the full skill output, also run the relevant behavioral
-split from `evals/BEHAVIORAL-EVALS.md`.
+If you touched `SKILL.md`, `presets/`, or `references/`, also run
+`evals/run_behavioral.sh tune`.
+
+`evals/evals.json` is the legacy happy-path suite; never edit it. Use
+`evals/adversarial-evals.json` as the source of truth.
 
 ## Interpreting Results
 

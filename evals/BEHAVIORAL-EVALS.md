@@ -46,12 +46,13 @@ suite:
 python3 evals/run_adversarial.py
 python3 evals/build_shared_benchmark.py
 python3 evals/build_shared_benchmark.py --check
+python3 evals/check_taboo_parity.py
 skill-benchmark validate evals/shared-benchmark.json --strict-leakage
 ```
 
-For behavioral changes, run the relevant split with the local harness. Keep new
-tuning cases in `tune`; reserve `holdout` for reporting and `holdback` for final
-confirmation.
+If you touched `SKILL.md`, `presets/`, or `references/`, run
+`evals/run_behavioral.sh tune`. Keep new tuning cases in `tune`; reserve
+`holdout` for reporting and `holdback` for final confirmation.
 
 ## Run Locally
 
@@ -62,27 +63,7 @@ uv tool install git+https://github.com/adewale/skill-eval-harness.git
 
 skill-benchmark validate evals/shared-benchmark.json --strict-leakage
 
-skill-benchmark prepare evals/shared-benchmark.json --split tune --out runs/tune/tasks.jsonl
-python3 evals/run_local.py runs/tune/tasks.jsonl --jobs 5
-
-skill-benchmark judge evals/shared-benchmark.json --runs runs/tune --split tune \
-  --judge-cmd 'claude -p' --out runs/tune/judge.jsonl
-
-# Harness v0.4.2 can emit null judge scores; coerce them before benchmark.
-python3 - <<'PY'
-import json
-rows = [json.loads(line) for line in open("runs/tune/judge.jsonl") if line.strip()]
-for row in rows:
-    if row.get("score") is None:
-        row["score"] = 1.0 if row.get("passed") else 0.0
-    row.setdefault("threshold", 1)
-open("runs/tune/judge.fixed.jsonl", "w").write(
-    "\n".join(json.dumps(row) for row in rows) + "\n"
-)
-PY
-
-skill-benchmark benchmark evals/shared-benchmark.json --runs runs/tune --split tune \
-  --allow-scripts --judge-results runs/tune/judge.fixed.jsonl --out runs/tune/benchmark.json
+evals/run_behavioral.sh tune
 ```
 
 Notes:

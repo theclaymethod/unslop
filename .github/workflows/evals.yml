@@ -14,8 +14,14 @@ jobs:
         with:
           python-version: "3.11"
       - name: Compile all scripts
-        run: python -m py_compile scripts/*.py evals/build_shared_benchmark.py
+        run: python -m py_compile scripts/*.py evals/*.py
       - name: Run adversarial regression harness
         run: python3 evals/run_adversarial.py
       - name: Behavioral manifest is in sync with the source cases
         run: python3 evals/build_shared_benchmark.py --check
+      - name: Scanner catalog matches taboo docs
+        run: python3 evals/check_taboo_parity.py
+      - name: Install skill benchmark harness
+        run: pipx install git+https://github.com/adewale/skill-eval-harness.git
+      - name: Behavioral manifest passes strict leakage validation
+        run: skill-benchmark validate evals/shared-benchmark.json --strict-leakage
