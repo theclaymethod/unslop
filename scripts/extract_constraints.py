@@ -46,8 +46,11 @@ PATTERNS: dict[str, str] = {
     # Times
     "time": r"\d{1,2}:\d{2}(?::\d{2})?\s*(?:AM|PM|am|pm|UTC|PST|EST|CST|MST|GMT)?",
 
+    # Numeric quantities with magnitude words
+    "magnitude_number": r"\b\d[\d,]*\.?\d*\s+(?:thousand|million|billion|trillion)\b",
+
     # Measurements with units
-    "measurement": r"\d+\.?\d*\s*(?:ms|s|sec|min|hr|hour|day|week|month|year|KB|MB|GB|TB|PB|kg|g|lb|oz|m|km|mi|ft|in|cm|mm|px|em|rem|%)",
+    "measurement": r"\d+\.?\d*\s*(?:°C|°F|degrees?\s*(?:C|F|Celsius|Fahrenheit)?|ms|s|sec|min|hr|hour|day|week|month|year|KB|MB|GB|TB|PB|kg|g|lb|oz|m|km|mi|ft|in|cm|mm|px|em|rem|%)\b",
 
     # Phone numbers (capture the whole number, before "range" can grab a slice)
     "phone": r"\b(?:\+?1[-.\s]?)?(?:\(\d{3}\)\s*|\d{3}[-.\s])\d{3}[-.\s]\d{4}\b",
@@ -65,7 +68,7 @@ PATTERNS: dict[str, str] = {
     "code": r"`[^`]+`",
 
     # Direct quotes (longer than 10 chars)
-    "quote": r'"[^"]{10,}"',
+    "quote": r'["“][^"“”]{10,}["”]',
 
     # Cited references (Section 12(b), Article 5, Figure 2, Table 1, Eq. 3 …) —
     # must-preserve per fact-preservation.md and easy to silently drop.
@@ -75,7 +78,7 @@ PATTERNS: dict[str, str] = {
     "version": r"v?\d+\.\d+(?:\.\d+)?(?:-[a-zA-Z0-9]+)?",
 
     # API endpoints
-    "api_endpoint": r"/(?:api/)?v?\d*/?\w+(?:/\w+)*",
+    "api_endpoint": r"(?<![\w])/(?:api|v\d+)(?:/[\w-]+)+|(?<![\w])/[\w-]+(?:/[\w-]+){2,}",
 
     # Numeric counts with context
     "count": r"\b\d+(?:,\d{3})*\s+(?:users?|customers?|employees?|companies?|teams?|people|engineers?|developers?|items?|products?|orders?|transactions?|requests?|queries?|rows?|records?)\b",
