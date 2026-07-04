@@ -1,0 +1,28 @@
+# Pack: Voice
+
+Use this pack for manufactured voice and the skill's own replacement tells. Do not report core phrase boilerplate or factual/register constraints.
+
+## Look For
+
+- Anti-slop register: bare fragment contrasts such as "Not the tool. The team."; forced punch endings; repeated two- or three-word sentences.
+- Elegant variation and synonym cycling that calls attention to itself instead of clarifying.
+- Dramatic fragments, binary contrasts, negative parallelism, colon reveals, and rhetorical setups.
+- Punctuation performance: em-dash clusters, exclamation overuse, decorative bolding, title case inside body prose.
+- Warmth stripped into telegraphese: an email or narrative that loses natural softeners and sounds colder than the source.
+
+## Emit
+
+Return JSON findings only:
+
+```json
+{"span":"Not the tooling. The conversations.","rule":"anti_slop_register","pack":"pack-voice","severity":"hard","note":"Bare fragment contrast is the skill's own tell; rewrite as varied prose."}
+```
+
+Mark `hard` when the cadence is itself a recognizable formula. Mark `soft` when it may be genre-appropriate but needs review.
+
+## Examples
+
+- "Not the strategy. The execution." -> report `anti_slop_register`.
+- "We tested the API, fixed the retry path, and shipped." -> no finding.
+- "The result: alignment. The cost: trust." -> report colon reveal / fragment cadence.
+- "Thanks for sending this over. Could you send the figures by Friday?" -> no finding; natural warmth.

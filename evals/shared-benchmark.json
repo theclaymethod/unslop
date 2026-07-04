@@ -1638,6 +1638,60 @@
         "adversarial",
         "failure_mode:A business update can pass banned-phrase checks while still "
       ]
+    },
+    {
+      "id": "SKILL-TIER-01",
+      "split": "tune",
+      "kind": "skill_behavior",
+      "domain": "legal",
+      "difficulty": "hard",
+      "trigger_type": "explicit",
+      "success_goals": [
+        "Register-guards pack stays scoped to preservation findings"
+      ],
+      "prompt": "Audit this text using only the register-guards rules. Do not rewrite and do not apply phrase-cleanup rules.\n\nThe incident arguably does not rise to gross negligence under Section 12(b), but the memo also says the workflow will unlock seamless synergy across teams.",
+      "expected_behavior": [
+        "Report only register-guard findings: the legal hedge/negation/scope around 'arguably does not rise to gross negligence' and Section 12(b). Do not flag or rewrite 'unlock seamless synergy' because phrase cleanup is outside this pack's scope."
+      ],
+      "assertions": [
+        {
+          "name": "skill-tier-01-judge-1",
+          "type": "judge",
+          "rubric": [
+            "The answer contains the legal hedge or negation that must survive, stays audit-only, and does not rewrite the sentence or suggest a replacement for 'unlock seamless synergy'."
+          ]
+        },
+        {
+          "name": "skill-tier-01-answer-full-contains-any",
+          "type": "script",
+          "command": [
+            "python3",
+            "-c",
+            "import sys; text=open(sys.argv[1]).read().lower(); vals=[v.lower() for v in sys.argv[2:]]; sys.exit(0 if any(v in text for v in vals) else 1)",
+            "{output_dir}/answer_full.md",
+            "arguably"
+          ],
+          "pass_exit_code": 0,
+          "timeout_s": 30
+        },
+        {
+          "name": "skill-tier-01-no-slop-rewrite",
+          "type": "script",
+          "command": [
+            "python3",
+            "-c",
+            "import sys; text=open(sys.argv[1]).read().lower(); sys.exit(1 if any(v in text for v in ['replace \"unlock seamless synergy\"', 'instead of \"unlock', 'suggested rewrite', 'rewritten text:']) else 0)",
+            "{output_dir}/answer_full.md"
+          ],
+          "pass_exit_code": 0,
+          "timeout_s": 30
+        }
+      ],
+      "tags": [
+        "skill_behavior",
+        "adversarial",
+        "failure_mode:Small detector agents can import the whole monolithic skill,"
+      ]
     }
   ],
   "ablations": [

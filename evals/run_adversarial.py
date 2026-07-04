@@ -144,6 +144,13 @@ def list_gates():
             "needs": [],
         },
         {
+            "id": "pack-structure",
+            "command": "python3 scripts/check_packs.py",
+            "pass_criterion": "exit 0",
+            "blocking": True,
+            "needs": [],
+        },
+        {
             "id": "behavioral-tune",
             "command": "evals/run_behavioral.sh tune",
             "pass_criterion": "exit 0",

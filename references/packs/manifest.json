@@ -1,0 +1,64 @@
+{
+  "packs": {
+    "pack-phrases-core": [
+      "academic_excess",
+      "acknowledgment_loop",
+      "ai_vocabulary",
+      "assistant_artifact",
+      "communication_artifact",
+      "conclusion_scaffold",
+      "copula_avoidance",
+      "editorializing",
+      "emphasis_crutch",
+      "false_agency",
+      "false_concession",
+      "false_range",
+      "filler",
+      "filler_opener",
+      "formulaic_challenges",
+      "generic_conclusion",
+      "jargon",
+      "knowledge_cutoff",
+      "meta",
+      "novelty_inflation",
+      "numbered_list_inflation",
+      "performative",
+      "promotional",
+      "reader_addressing",
+      "reader_steering",
+      "reasoning_chain",
+      "rhetorical_question",
+      "rhetorical_setup",
+      "significance_inflation",
+      "superficial_ing",
+      "throat_clearing",
+      "unnecessary_permission",
+      "vague_attribution",
+      "vague_endorsement"
+    ],
+    "pack-structure": [
+      "macro_both_sidesism",
+      "macro_redemption_arc",
+      "macro_preview_recap",
+      "macro_over_determination",
+      "macro_emotional_flatness"
+    ],
+    "pack-register-guards": [
+      "hedge",
+      "parenthetical_hedging"
+    ],
+    "pack-voice": [
+      "anti_slop_register",
+      "binary_contrast",
+      "colon_reveal",
+      "dramatic_fragment",
+      "em_dash_overuse",
+      "exclamation_overuse",
+      "formatting",
+      "negative_listing",
+      "negative_parallelism",
+      "staccato_fragmentation"
+    ],
+    "pack-facts": []
+  }
+}

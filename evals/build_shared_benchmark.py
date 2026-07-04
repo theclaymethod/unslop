@@ -54,6 +54,7 @@ SPLITS: dict[str, str] = {
     "SKILL-DONOHARM-01": "tune",
     "SKILL-WARMTH-01": "tune",
     "SKILL-MACRO-01": "tune",
+    "SKILL-TIER-01": "tune",
     # holdout — measure, do not tune
     "SKILL-DEHEDGE-02": "holdout",
     "SKILL-LIST-01": "holdout",
@@ -107,6 +108,7 @@ DOMAIN: dict[str, str] = {
     "SKILL-INJECT-02": "security",
     "SKILL-MACRO-01": "essay",
     "SKILL-MACRO-02": "report",
+    "SKILL-TIER-01": "legal",
 }
 
 # Difficulty is a coarse hint for reporting, not a gate.
@@ -242,6 +244,20 @@ SCRIPT_ASSERTIONS = {
     # branch names the audit option instead. Only a silent rewrite has neither.
     "SKILL-MODE-01": [_answer_full_contains_any(
         "SKILL-MODE-01", ["game-changer", "revolutionize", "audit"])],
+    # A scoped register-guards audit must surface the legal hedge; proposing a
+    # replacement for the out-of-scope slop phrase is the failure mode.
+    "SKILL-TIER-01": [
+        _answer_full_contains_any("SKILL-TIER-01", ["arguably"]),
+        _script(
+            "skill-tier-01-no-slop-rewrite",
+            ["python3", "-c",
+             "import sys; text=open(sys.argv[1]).read().lower(); "
+             "sys.exit(1 if any(v in text for v in "
+             "['replace \"unlock seamless synergy\"', 'instead of \"unlock', "
+             "'suggested rewrite', 'rewritten text:']) else 0)",
+             "{output_dir}/answer_full.md"],
+        ),
+    ],
     "SKILL-FRAGMENT-02": [_banned_phrase_clean("SKILL-FRAGMENT-02")],
     "SKILL-DONOHARM-02": [_difflib_ratio("SKILL-DONOHARM-02", "donoharm02_original.txt", 0.55)],
     "SKILL-WEDGE-01": [_contains_all_script("SKILL-WEDGE-01", "keeps-claim", ["onboarding", "enterprise"])],

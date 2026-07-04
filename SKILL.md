@@ -1,24 +1,21 @@
 ---
 name: unslop
-description: Remove AI writing patterns from prose using either audit-only detection or a two-pass rewrite flow (diagnosis then reconstruction). Use this skill when editing, reviewing, or rewriting AI-generated content to make it sound human. Triggers on requests to "humanize", "de-slop", "fix AI text", "make it sound human", "remove AI patterns", or when reviewing text that contains obvious AI tells like "Here's the thing:", "Let that sink in", or "In today's fast-paced landscape". Also use when the user pastes text and says it "sounds like ChatGPT", "sounds robotic", "needs to sound more natural", or asks you to "clean up" drafted content before publishing. Even if they don't use the word "slop", if the text has visible AI patterns, this skill applies.
+description: Remove AI writing patterns from prose using either audit-only detection or a two-pass rewrite flow (diagnosis then reconstruction). Use this skill when editing, reviewing, or rewriting AI-generated content to make it sound human. Triggers on requests to "humanize", "de-slop", "fix AI text", "make it sound human", "remove AI patterns", or when reviewing text that contains obvious AI tells like "Here's the thing:", "Let that sink in", or "In today's fast-paced landscape". Also use when the user pastes text and says it "sounds like ChatGPT", "sounds robotic", "needs to sound more natural", or asks you to "clean up" drafted content before publishing.
 license: MIT
 metadata:
   author: claytonkim
-  version: "2.2.0"
+  version: "2.3.0"
 ---
 
 # Unslop
 
-Humanize AI-generated prose. Audit it first. Rewrite only when the user wants a rewrite.
+Humanize AI-generated prose. Audit first. Rewrite only when the user asks for a rewrite.
 
 ## When to Use
 
-- User asks to "humanize", "de-slop", or "make it sound human"
-- Editing AI-generated drafts, emails, articles, social posts
-- Text contains AI patterns (throat-clearing, binary contrasts, em-dash abuse, emphasis crutches)
-- User says text "sounds like AI" or "sounds robotic"
-- Reviewing content before publishing
-- User pastes text and asks to "clean it up" or "make it natural"
+- User asks to humanize, de-slop, clean up, or make text sound natural.
+- Drafts contain obvious AI tells: throat-clearing, scaffolded conclusions, inflated significance, em-dash abuse, or staccato fragment drama.
+- User asks for an audit, scan, or review of prose before publishing.
 
 ## Arguments
 
@@ -31,14 +28,14 @@ Humanize AI-generated prose. Audit it first. Rewrite only when the user wants a 
 
 ## Modes
 
-This skill has two modes:
+- `rewrite` (default): diagnose, rewrite, then validate.
+- `audit-only`: diagnose and assess without rewriting.
 
-- `rewrite` (default) — diagnose, rewrite, then validate the rewrite
-- `audit-only` — diagnose and assess the text without rewriting it
-
-Trigger audit-only mode when the user says "audit only," "flag only," "scan this," "just detect," "don't rewrite," or passes `--audit-only`.
+Use audit-only when the user says "audit only," "flag only," "scan this," "just detect," "don't rewrite," or passes `--audit-only`.
 
 ## Voice Presets
+
+Read one preset from `presets/` before writing.
 
 | Preset | Style | Best For |
 |--------|-------|----------|
@@ -47,122 +44,84 @@ Trigger audit-only mode when the user says "audit only," "flag only," "scan this
 | `expert` | Authoritative, confident | Thought leadership, articles |
 | `story` | Narrative flow, show don't tell | Case studies, personal posts |
 
-Read the selected preset file from `presets/` (e.g., `presets/crisp-human.md`) before writing. Each preset has specific voice rules, structural patterns, and a quality checklist.
+## Execution Paths
 
-## Workflow
+### Single-Agent Path
 
-### Pass 1: Diagnosis
+Use this when you are the only executor. Follow the same tiers sequentially:
 
-Before rewriting anything, understand what's wrong. This prevents blind rewriting that loses meaning.
-
-1. **Read the relevant references** based on what you see in the input:
-   - `references/taboo-phrases.md` — the complete catalog of banned phrases and newer structural families, with regex patterns for detection. This is the authoritative list; read it on first use and refer back for edge cases.
-   - `references/rubric.md` — 8 scoring criteria (directness, rhythm, verbs, trust, authenticity, density, fact preservation, template avoidance), 5 points each.
-   - `references/fact-preservation.md` — rules for what must survive transformation unchanged (numbers, names, dates, URLs, quotes, technical terms).
-
-2. **Extract constraints** from the input — facts that must survive if you rewrite:
+1. Extract facts and constraints:
    ```bash
    python3 scripts/extract_constraints.py <<< "$INPUT"
    ```
-   This outputs JSON with every number, date, name, URL, and quote that must appear in your output.
-
-3. **Scan for AI patterns**:
+2. Scan the source:
    ```bash
    python3 scripts/banned_phrase_scan.py <<< "$INPUT"
-   ```
-   This returns violations grouped by category and severity (hard = always an AI tell, soft = context-dependent). Quoted examples, markdown blockquotes, and code snippets are ignored by default so you don't flag illustrative bad writing in docs. If you explicitly need to audit quoted examples too, run:
-   ```bash
-   python3 scripts/banned_phrase_scan.py --include-quoted <<< "$INPUT"
-   ```
-   Also scan for document-level structure tells:
-   ```bash
    python3 scripts/structure_scan.py <<< "$INPUT"
+   python3 scripts/readability_metrics.py <<< "$INPUT"
    ```
-   Use `--genre docs` for reference docs and `--genre social` for deliberate social cadence.
+   Use `--genre docs` or `--genre social` only when the input truly belongs to that genre. Use `banned_phrase_scan.py --include-quoted` only when the user wants quoted examples audited too.
+3. Read the selected preset. Read `references/taboo-phrases.md` for phrase edge cases, `references/fact-preservation.md` for dense facts, `references/rubric.md` for strict scoring, and `references/personality-guide.md` only when clean output still feels anonymous.
+4. If auditing, report issues by span, category, severity, and reason. Do not rewrite.
+5. If rewriting, preserve every fact and register guard, remove the real AI tells, and match the chosen preset.
+6. Validate the output with the gates below before returning it.
 
-4. **Read the selected preset** from `presets/` and note its voice rules.
+### Orchestrated Path
 
-5. **Identify**: audience, content type, tone target. A LinkedIn post needs different treatment than a technical doc.
+For multi-agent harnesses, use `references/pipeline.md`: Tier 0 deterministic scripts, Tier 1 small detector agents over `references/packs/`, Tier 2 one rewriter, then Tier 0 validation again. The skill must still work without that file; the pipeline is an efficiency architecture, not a dependency.
 
-### Pass 2: Reconstruction
+## Rewrite Principles
 
-Skip this pass in `--audit-only` mode.
+- Cut throat-clearing and scaffolding. Start with the claim.
+- Replace inflated importance with the concrete fact.
+- Prefer short, direct sentences, but avoid telegraphic staccato.
+- Use em-dashes sparingly. A single appositive dash can be fine; clusters are a tell. Never trade a dash for a comma splice — if a dash is wrong, use a period.
+- Facts are sacred: numbers, names, dates, URLs, quotes, code identifiers, units, and scope words must survive.
+- Do not invent first-person experience, anecdotes, or certainty the source does not support.
+- Do not replace AI slop with anti-slop register: "Not X. Y.", forced punch endings, or runs of tiny fragments.
 
-Rewrite the text. The references you read in Pass 1 are your guide — don't duplicate their rules here, just apply them.
+## Register Guards
 
-Core principles (the why behind the rules):
-- **Em-dashes are overused by AI.** Use them sparingly, not never — a single appositive dash ("the problem isn't meetings—it's the agenda") is fine and several presets use one. Two or more in a paragraph is the tell. Never trade a dash for a comma splice; if a dash is wrong, use a period.
-- **AI text delays the point.** Cut everything before the actual claim. "Here's the thing:" is throat-clearing. "Let that sink in." is an emphasis crutch. Just state the thing.
-- **AI inflates significance.** "Stands as a testament to" means "is". "Pivotal moment" is almost never pivotal. Replace inflation with the specific fact.
-- **AI avoids commitment.** "It's worth noting that" hedges. "Some experts argue" hides behind unnamed sources. Make claims directly or cite specifically.
-- **Facts are sacred.** Every number, name, date, and URL from the original must appear in your output unchanged. Style is negotiable; accuracy is not.
-- **Shorter is almost always better.** If cutting a sentence doesn't change the meaning, cut it. AI pads; humans compress. But meaning includes scope and certainty — see the guards below.
+Before removing a hedge or strengthening a sentence, check whether the register requires it:
 
-### Register & genre guards (do no harm)
+- Legal: keep hedges, negations, exceptions, section references, liability terms, and scope words.
+- Medical/scientific: keep uncertainty, study limits, cohort limits, causation limits, and adverse-effect qualifiers.
+- Security/safety: keep forceful absolutes such as "never", "must", "all input", and "do not" when they define a rule.
+- Technical docs: keep precise terms, flags, API names, version numbers, file paths, and code semantics.
 
-Removing AI tells must not damage correct writing. Before applying the rules above, check the register:
+If a gate fails twice after rewrite, escalate model tier rather than adding more prompt rules. The failure is execution quality.
 
-- **Don't de-hedge regulated or technical content.** In legal, medical, scientific, and security text, hedges and absolutes are the content, not filler. "may cause", "studies suggest", "preliminary", "does not establish causation", "never store secrets", "Most users (73%)" — keep them. Directness applies to corporate puffery, not to load-bearing qualifiers, negations, scope words, or conditionals.
-- **Don't invent a first-person voice.** The personality guide adds voice to writing that has a person behind it. For impersonal copy (technical docs, reference text, third-party announcements), do not fabricate "I"/"we" lived experience to manufacture authenticity. Adding a fake anecdote is a worse tell than the slop you removed.
-- **Avoid your own house style becoming a tell.** Bare fragment contrasts ("Not the technology. The people."), staccato runs of two- and three-word sentences, and forced punch-endings are a recognizable "anti-slop" register of their own. Vary sentence length (mix 8–25 words). The `banned_phrase_scan.py` `anti_slop_register` category and `readability_metrics.py` staccato flag will catch these in your output — heed them.
-- **Match register, don't flatten it.** A warm email should stay warm (keep a softener or a contraction-led reassurance); cutting it to telegraphic fragments is colder than the original, not more human.
+## Validation
 
-Follow the preset voice characteristics for sentence length, paragraph structure, and tone. Refer to `references/edit-library.md` for 24 before/after transformation examples if you need guidance on specific pattern types.
+Run after every rewrite:
 
-For guidance on adding genuine human voice (not just removing AI tells), read `references/personality-guide.md`. Clean text that's still anonymous and voiceless scores a 3/5 on authenticity — aim for 4+.
+```bash
+python3 scripts/validate_preservation.py original.txt transformed.txt
+python3 scripts/banned_phrase_scan.py <<< "$OUTPUT"
+python3 scripts/structure_scan.py <<< "$OUTPUT"
+python3 scripts/readability_metrics.py <<< "$OUTPUT"
+python3 scripts/diff_check.py original.txt transformed.txt
+```
 
-### Validation
+Blocking output failures:
 
-Only run this section when you rewrote the text.
+- Any hard banned-phrase hit.
+- Any `anti_slop_register` hit, even if soft.
+- Any `structure_scan.py` flag unless the actual genre justifies `--genre docs` or `--genre social`.
+- Preservation warnings that show a dropped or changed negation, hedge, scope word, number, date, name, quote, URL, unit, or code identifier.
+- Staccato cadence in readability metrics.
+- Rubric score below 32/40 in strict mode.
 
-After rewriting, verify your work:
-
-1. **Fact preservation** — confirm all constraints survived:
-   ```bash
-   python3 scripts/validate_preservation.py original.txt transformed.txt
-   ```
-
-2. **Remaining AI patterns** — check your output is clean:
-   ```bash
-   python3 scripts/banned_phrase_scan.py <<< "$OUTPUT"
-   ```
-   **Blocking, even though they're "soft":** an `anti_slop_register` hit means you
-   replaced slop with your own tell (a bare "Not X. Y." contrast or a staccato
-   run). Do not ship it — rewrite that span with varied sentence length before
-   returning.
-
-2b. **Macro-structure flags** — check document-level rhythm and scaffolding:
-   ```bash
-   python3 scripts/structure_scan.py <<< "$OUTPUT"
-   ```
-   Structure flags are blocking on output, even when severity is `soft`. Rerun
-   with `--genre docs` or `--genre social` only when the output's actual genre
-   justifies that carve-out.
-
-3. **Readability metrics** — check rhythm and variance:
-   ```bash
-   python3 scripts/readability_metrics.py <<< "$OUTPUT"
-   ```
-   A `Staccato cadence` flag is also blocking: vary the rhythm and re-check.
-
-4. **Change percentage** — flag if >40% changed (may indicate over-editing):
-   ```bash
-   python3 scripts/diff_check.py original.txt transformed.txt
-   ```
-
-5. **Score against rubric** — 8 criteria x 5 points = 40 max. Passing: 32/40 (80%). See `references/rubric.md` for detailed scoring.
-
-> **What validation does and doesn't cover.** The scripts check *surface* facts — numbers, names, dates, currencies, cited references — and now warn on dropped negations, scope words, and conditionals. They do **not** verify meaning. A `passed: true` result with `warnings` present is **not** a green light: re-read every flagged negation/scope/conditional yourself and confirm no claim was inverted, strengthened, or stripped of its scope. Validation catches a deleted `$47.3M`; only you catch "does not support" turned into "supports".
+Validation scripts are necessary but not enough. Re-read negations, conditionals, scope, certainty, and party relationships yourself.
 
 ## Output Format
 
-Adapt output to the context. For a quick fix, just return the cleaned text. For a thorough review, include validation:
+For a quick rewrite, return the cleaned text only. For audit-only:
 
-**Audit Only** (`--audit-only` or user asks for flag-only scan):
 ```markdown
 ## Issues Found
 
-- [Quoted issue, category, why it reads as AI]
+- [Quoted issue, category, severity, why it reads as AI]
 
 ## Assessment
 
@@ -170,12 +129,8 @@ Adapt output to the context. For a quick fix, just return the cleaned text. For 
 - [Which issues are judgment calls or context-dependent]
 ```
 
-**Minimal** (default for short text / quick fixes):
-```
-[The humanized text]
-```
+For strict or requested analysis:
 
-**Detailed** (for `--strict` mode or when user asks for analysis):
 ```markdown
 ## Transformed Text
 
@@ -185,13 +140,10 @@ Adapt output to the context. For a quick fix, just return the cleaned text. For 
 
 - Constraints: [X]/[Y] preserved
 - AI patterns: [N] remaining (was [M])
+- Structure: [pass/fail]
 - Readability: Grade [X], sentence variance [Y]
 - Change: [X]% from original
 - Score: [X]/40
-
-## Changes Made
-
-- [List of major transformations applied]
 ```
 
 ## Quick Examples
@@ -210,86 +162,19 @@ Adapt output to the context. For a quick fix, just return the cleaned text. For 
 
 ## Reference Files
 
-Located in this skill's directory. Read them as needed — don't front-load everything into context.
-
 | File | When to Read |
 |------|-------------|
-| `references/taboo-phrases.md` | First use, then for edge cases. Expanded pattern catalog with detection regex, newer structural families, and quote-exemption rules. |
-| `references/rubric.md` | When scoring output or in `--strict` mode. 8 criteria, detailed rubrics. |
-| `references/edit-library.md` | When unsure how to transform a specific pattern. 24 before/after examples. |
-| `references/fact-preservation.md` | When input has lots of data, names, or quotes. Constraint rules. |
-| `references/personality-guide.md` | When output is clean but soulless. How to add genuine voice. |
-| `presets/*.md` | After preset selection. Voice-specific rules, patterns, checklists. |
-| `assets/examples/*.md` | For extended before/after examples by content type (article, LinkedIn, sales). |
+| `references/pipeline.md` | Orchestrated tiered execution. |
+| `references/packs/*.md` | Small detector-agent rule packs. |
+| `references/taboo-phrases.md` | Authoritative phrase catalog and scanner categories. |
+| `references/fact-preservation.md` | Constraint preservation rules. |
+| `references/rubric.md` | Strict scoring. |
+| `references/edit-library.md` | Transformation examples when a pattern is unclear. |
+| `references/personality-guide.md` | Adding genuine voice without fake personality. |
+| `references/maintenance.md` | Pattern add/list procedures and Wikipedia sync. |
+| `presets/*.md` | Voice-specific deltas. |
+| `assets/examples/*.md` | Extended before/after examples by content type (article, LinkedIn, sales). |
 
-## Scripts
+## Maintenance
 
-All scripts accept stdin or file path arguments and output JSON. Run from the skill directory.
-
-| Script | Purpose | When to Run |
-|--------|---------|-------------|
-| `scripts/extract_constraints.py` | Extract must-preserve facts | Before rewriting |
-| `scripts/banned_phrase_scan.py` | Detect AI patterns with severity | Before and after rewriting |
-| `scripts/structure_scan.py` | Detect macro-structure AI tells | Before and after rewriting |
-| `scripts/validate_preservation.py` | Verify facts survived | After rewriting |
-| `scripts/readability_metrics.py` | Sentence variance, grade level | After rewriting |
-| `scripts/diff_check.py` | Change percentage | After rewriting |
-| `scripts/wiki_sync.py` | Sync with Wikipedia AI patterns | On `/unslop --wiki-sync` |
-
-## Maintenance Commands
-
-| Command | Action |
-|---------|--------|
-| `/unslop --add-phrase "phrase"` | Add a scanner phrase through the eval-first procedure below |
-| `/unslop --add-structure "pattern\|fix"` | Add a structural pattern through the eval-first procedure below |
-| `/unslop --list-phrases` | List scanner phrase keys |
-| `/unslop --list-structures` | List documented structural pattern families |
-| `/unslop --wiki-sync` | Sync with Wikipedia for new AI patterns |
-
-### Add Phrase or Structure (`/unslop --add-phrase`, `/unslop --add-structure`)
-
-1. Add the smallest useful coverage to `evals/adversarial-evals.json` first: one
-   `script` false-negative row for the tell and one `script` false-positive row
-   for a legitimate literal or domain-specific use. If you are gating an existing
-   word behind collocations, add a REC row proving the jargon use still flags.
-2. Add the phrase or pattern to `scripts/banned_phrase_scan.py` and document it in
-   `references/taboo-phrases.md`.
-3. Run `python3 evals/run_adversarial.py` and require exit 0 before treating the
-   addition as done.
-
-### List Phrase or Structure Rules
-
-```bash
-python3 - <<'PY'
-from scripts.banned_phrase_scan import BANNED_PHRASES
-for key in sorted(BANNED_PHRASES):
-    print(key)
-PY
-```
-
-```bash
-rg -n "^(##|###) " references/taboo-phrases.md
-```
-
-### Wiki Sync (`/unslop --wiki-sync`)
-
-Syncs pattern rules with Wikipedia's [Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing) page. Run periodically to pick up new patterns.
-
-**Steps:**
-
-1. Check for updates: `python3 scripts/wiki_sync.py check` (exit 0 = no updates)
-2. Get structured diff: `python3 scripts/wiki_sync.py diff` (JSON output with change type, section, words)
-3. For each new word/phrase: add to `references/taboo-phrases.md` in the matching section, and add to `scripts/banned_phrase_scan.py` BANNED_PHRASES dict with category, severity, and suggestion.
-4. Verify: `python3 scripts/banned_phrase_scan.py < /dev/null` (confirm no syntax errors)
-
-Only add phrases that are genuine AI writing tells for general prose. Skip Wikipedia-specific patterns (broken wikitext, DOI issues, etc.).
-
-## Key Principles
-
-1. **Diagnosis before writing** — understand what's wrong before fixing
-2. **Facts are sacred** — never sacrifice accuracy for style
-3. **Presets guide, don't constrain** — adapt to content type
-4. **When in doubt, cut** — shorter is almost always better
-5. **Quoted examples are exempt by default** — don't flag illustrative bad writing unless the user explicitly wants that
-6. **Validation is mandatory but not sufficient** — run the scripts, especially fact preservation, then manually re-check meaning (negations, scope, certainty). The scripts catch surface facts; you catch inverted claims.
-7. **Do no harm to good writing** — don't de-hedge regulated/technical text, don't invent first-person voice, and don't replace slop with your own staccato/fragment-contrast tell (see Register & genre guards)
+The eval suite defines the product. Add or change patterns eval-first in `evals/adversarial-evals.json`; do not edit `evals/evals.json`. New scanner patterns need one false-negative row and one false-positive protection row. Agent behavior changes need a `skill` row and a regenerated shared benchmark. For the concrete procedures (add a phrase or structure, list current patterns, sync with Wikipedia's signs-of-AI-writing page), read `references/maintenance.md`.

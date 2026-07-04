@@ -39,6 +39,13 @@ Current gates:
     "needs": []
   },
   {
+    "id": "pack-structure",
+    "command": "python3 scripts/check_packs.py",
+    "pass_criterion": "exit 0",
+    "blocking": true,
+    "needs": []
+  },
+  {
     "id": "behavioral-tune",
     "command": "evals/run_behavioral.sh tune",
     "pass_criterion": "exit 0",
