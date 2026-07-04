@@ -9,7 +9,8 @@
     "stdout_not_contains": "stdout does not include the literal substring",
     "stderr_not_contains": "stderr does not include the literal substring",
     "json": "parse stdout as JSON, then `path` (dot path) `equals`/`gte`/`lte` a value",
-    "judge": "qualitative check on the agent's output, evaluated by a human or LLM judge"
+    "judge": "qualitative check on the agent's output, evaluated by a human or LLM judge",
+    "violation_phrase_contains": "parse stdout as JSON; at least one violations[].phrase contains the literal substring"
   },
   "evals": [
     {
@@ -156,11 +157,11 @@
           "gte": 2
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_phrase_contains",
           "value": "underscore the importance"
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_phrase_contains",
           "value": "in conclusion"
         }
       ]
@@ -184,11 +185,11 @@
           "gte": 2
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_phrase_contains",
           "value": "the stakes are real"
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_phrase_contains",
           "value": "the struggle is real"
         }
       ]
@@ -232,15 +233,15 @@
           "gte": 3
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_phrase_contains",
           "value": "treasure trove"
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_phrase_contains",
           "value": "ever-evolving"
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_phrase_contains",
           "value": "rich mosaic"
         }
       ]
@@ -264,15 +265,15 @@
           "gte": 3
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_phrase_contains",
           "value": "firstly"
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_phrase_contains",
           "value": "secondly"
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_phrase_contains",
           "value": "ultimately"
         }
       ]
@@ -296,11 +297,11 @@
           "gte": 2
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_phrase_contains",
           "value": "speak for themselves"
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_phrase_contains",
           "value": "tells a clear story"
         }
       ]
@@ -364,7 +365,7 @@
           "gte": 1
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_phrase_contains",
           "value": "leverage synerg"
         }
       ]
@@ -487,8 +488,16 @@
       "correct_behavior": "Exit non-zero with a clean error message, no Python traceback.",
       "assertions": [
         {
+          "type": "exit_code",
+          "equals": 2
+        },
+        {
           "type": "stderr_not_contains",
           "value": "Traceback"
+        },
+        {
+          "type": "stdout_not_contains",
+          "value": "\"passed\": true"
         }
       ]
     },
@@ -612,7 +621,7 @@
           "gte": 1
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_phrase_contains",
           "value": "foster a culture"
         }
       ]
@@ -636,7 +645,7 @@
           "gte": 1
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_phrase_contains",
           "value": "harness the power"
         }
       ]
@@ -660,15 +669,15 @@
           "gte": 3
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_phrase_contains",
           "value": "here's the thing"
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_phrase_contains",
           "value": "leverage our synerg"
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_phrase_contains",
           "value": "navigate the landscape"
         }
       ]
@@ -875,7 +884,7 @@
           "gte": 1
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_phrase_contains",
           "value": "plays a crucial role"
         }
       ]
@@ -899,11 +908,11 @@
           "gte": 2
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_phrase_contains",
           "value": "rich cultural heritage"
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_phrase_contains",
           "value": "stunning natural beauty"
         }
       ]
@@ -927,11 +936,11 @@
           "gte": 2
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_phrase_contains",
           "value": "has been described as"
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_phrase_contains",
           "value": "some critics"
         }
       ]
@@ -955,7 +964,7 @@
           "gte": 1
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_phrase_contains",
           "value": "as an ai language model"
         }
       ]
@@ -979,7 +988,7 @@
           "gte": 1
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_phrase_contains",
           "value": "in this article, we will"
         }
       ]
@@ -1003,11 +1012,11 @@
           "gte": 2
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_phrase_contains",
           "value": "warrants further"
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_phrase_contains",
           "value": "holds great promise"
         }
       ]
@@ -1031,7 +1040,7 @@
           "gte": 1
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_phrase_contains",
           "value": "serves as a testament"
         }
       ]
@@ -1095,7 +1104,7 @@
           "gte": 1
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_category_equals",
           "value": "anti_slop_register"
         }
       ]
@@ -1119,7 +1128,7 @@
           "gte": 1
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_category_equals",
           "value": "anti_slop_register"
         }
       ]
@@ -1244,11 +1253,11 @@
           "gte": 2
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_phrase_contains",
           "value": "load-bearing insight"
         },
         {
-          "type": "stdout_contains",
+          "type": "violation_phrase_contains",
           "value": "wedge into"
         }
       ]
@@ -1270,6 +1279,174 @@
           "type": "json",
           "path": "total_violations",
           "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "REC-04",
+      "category": "scanner_recall",
+      "title": "Delve recall must not rely on FP-06",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Let us delve into the topic of quarterly retention.",
+      "failure_mode": "Deleting the high-value 'delve into' tell would otherwise turn the literal-use xfail into XPASS.",
+      "correct_behavior": "At least 1 violation for the AI-tell use of 'delve into'.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "delve into"
+        }
+      ]
+    },
+    {
+      "id": "SEM-02",
+      "category": "fact_preservation",
+      "title": "Preserved negation does not emit a negation-drop warning",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/validate_preservation.py",
+        "evals/fixtures/ref_kept_original.txt",
+        "evals/fixtures/ref_kept_transformed.txt"
+      ],
+      "stdin": "",
+      "failure_mode": "A negation warning that fires unconditionally becomes noise and hides true semantic inversions.",
+      "correct_behavior": "No negation-drop warning when negation count is unchanged.",
+      "assertions": [
+        {
+          "type": "stdout_not_contains",
+          "value": "Negation count dropped"
+        }
+      ]
+    },
+    {
+      "id": "AS-04",
+      "category": "anti_slop_register",
+      "title": "Readability spares normal varied prose from staccato warning",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/readability_metrics.py"
+      ],
+      "stdin": "I missed the train by ten seconds and walked home in the rain, thinking about nothing in particular.",
+      "failure_mode": "A staccato warning that fires unconditionally becomes noise and hides real cadence problems.",
+      "correct_behavior": "No staccato warning and exit 0 for ordinary varied prose.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_not_contains",
+          "value": "Staccato"
+        }
+      ]
+    },
+    {
+      "id": "QE-04",
+      "category": "quote_exemption",
+      "title": "Slop after a closed quote still flags",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "He said \"fine.\" In today's fast-paced landscape we must foster a culture of synergy.",
+      "failure_mode": "Overbroad quote masking can hide everything after the first quote.",
+      "correct_behavior": "Slop outside the closed quote is still scanned and flagged.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 2
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "in today's"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "foster a culture"
+        }
+      ]
+    },
+    {
+      "id": "REC-05",
+      "category": "scanner_recall",
+      "title": "Boasts collocation still catches promotional slop",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The hotel boasts an impressive array of features.",
+      "failure_mode": "Deleting the boasts-collocation pattern would make FP-03 pass by removing detection entirely.",
+      "correct_behavior": "At least 1 violation for the promotional boasts construction.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "boasts"
+        }
+      ]
+    },
+    {
+      "id": "REC-06",
+      "category": "scanner_recall",
+      "title": "Standalone Period emphasis still flags",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "This changes everything. Period.",
+      "failure_mode": "Deleting the standalone emphasis-crutch pattern would make FP-05 pass by removing detection entirely.",
+      "correct_behavior": "At least 1 emphasis_crutch violation for the emphatic Period closer.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "emphasis_crutch"
+        }
+      ]
+    },
+    {
+      "id": "REC-07",
+      "category": "scanner_recall",
+      "title": "'The real <noun> is' throat-clearing still flags",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The real problem is churn.",
+      "failure_mode": "Deleting the throat-clearing pattern would make FP-04 pass by removing detection entirely.",
+      "correct_behavior": "At least 1 throat_clearing violation for the opener.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "throat_clearing"
         }
       ]
     },

@@ -10,20 +10,21 @@ fact-preservation holes, crashes). The runner is a regression harness:
   - XFAIL        assertion broken as expected (documented bug, still open)
   - XPASS        assertion holds but was marked xfail (bug fixed -> drop xfail!)
 
-Exit code is non-zero only on a real FAIL (an undocumented regression) so this
-can gate CI without the known-bug backlog turning the build red. Run from the
+Exit code is non-zero on FAIL, XPASS, or an unexpected XFAIL set. Run from the
 skill root:  python3 evals/run_adversarial.py
 
 Behavioral (target=="skill") cases are skipped here; they require an agent/LLM
 judge. List them with --list-skill.
 """
 import json
+import argparse
 import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SUITE = Path(__file__).resolve().parent / "adversarial-evals.json"
+EXPECTED_XFAIL = {"FP-06"}
 
 if sys.stdout.isatty():
     GREEN, RED, YELLOW, BLUE, DIM, RESET = (
@@ -53,6 +54,20 @@ def check_assertion(a, proc):
         return a["value"] not in proc.stdout, "stdout"
     if t == "stderr_not_contains":
         return a["value"] not in proc.stderr, "stderr"
+    if t == "violation_phrase_contains":
+        try:
+            data = json.loads(proc.stdout)
+            phrases = [v.get("phrase", "") for v in data.get("violations", [])]
+        except Exception as e:  # noqa: BLE001
+            return False, f"json error: {e}"
+        return any(a["value"] in phrase for phrase in phrases), f"phrases={phrases}"
+    if t == "violation_category_equals":
+        try:
+            data = json.loads(proc.stdout)
+            categories = [v.get("category", "") for v in data.get("violations", [])]
+        except Exception as e:  # noqa: BLE001
+            return False, f"json error: {e}"
+        return a["value"] in categories, f"categories={categories}"
     if t == "json":
         try:
             data = json.loads(proc.stdout)
@@ -98,19 +113,125 @@ def run_case(ev, timeout=30):
     return ok, details
 
 
+def list_gates():
+    return [
+        {
+            "id": "adversarial-suite",
+            "command": "python3 evals/run_adversarial.py",
+            "pass_criterion": "exit 0",
+            "blocking": True,
+            "needs": [],
+        },
+        {
+            "id": "shared-benchmark-check",
+            "command": "python3 evals/build_shared_benchmark.py --check",
+            "pass_criterion": "exit 0",
+            "blocking": True,
+            "needs": [],
+        },
+        {
+            "id": "strict-leakage-validate",
+            "command": "skill-benchmark validate evals/shared-benchmark.json --strict-leakage",
+            "pass_criterion": "exit 0",
+            "blocking": True,
+            "needs": ["skill-benchmark"],
+        },
+        {
+            "id": "banned-phrase-scan",
+            "command": "python3 scripts/banned_phrase_scan.py < transformed.txt",
+            "pass_criterion": "exit 0",
+            "blocking": True,
+            "needs": [],
+        },
+        {
+            "id": "validate-preservation",
+            "command": "python3 scripts/validate_preservation.py original.txt transformed.txt",
+            "pass_criterion": "exit 0",
+            "blocking": True,
+            "needs": [],
+        },
+        {
+            "id": "readability-metrics",
+            "command": "python3 scripts/readability_metrics.py < transformed.txt",
+            "pass_criterion": "exit 0",
+            "blocking": True,
+            "needs": [],
+        },
+        {
+            "id": "diff-check",
+            "command": "python3 scripts/diff_check.py original.txt transformed.txt",
+            "pass_criterion": "exit 0",
+            "blocking": True,
+            "needs": [],
+        },
+        {
+            "id": "rubric-judge",
+            "command": "Judge transformed output against the skill rubric",
+            "pass_criterion": "non-deterministic rubric pass",
+            "blocking": False,
+            "needs": ["rubric judge"],
+        },
+    ]
+
+
+def parse_args(argv):
+    parser = argparse.ArgumentParser(
+        description="Run deterministic unslop adversarial eval cases."
+    )
+    parser.add_argument(
+        "--list-skill",
+        action="store_true",
+        help="list behavioral skill cases and exit",
+    )
+    parser.add_argument(
+        "--list-gates",
+        action="store_true",
+        help="emit the deterministic gate matrix as JSON and exit",
+    )
+    parser.add_argument(
+        "--only",
+        action="append",
+        default=[],
+        metavar="PREFIX",
+        help="run only case IDs with this prefix; repeatable",
+    )
+    parser.add_argument(
+        "--case",
+        action="append",
+        default=[],
+        metavar="ID",
+        help="run only this exact case ID; repeatable",
+    )
+    return parser.parse_args(argv)
+
+
 def main(argv):
+    args = parse_args(argv)
     suite = json.loads(SUITE.read_text())
     evals = suite["evals"]
     script_cases = [e for e in evals if e.get("target") == "script"]
     skill_cases = [e for e in evals if e.get("target") == "skill"]
 
-    if "--list-skill" in argv:
+    if args.list_gates:
+        print(json.dumps(list_gates(), indent=2))
+        return 0
+
+    if args.list_skill:
         print(f"\n{BLUE}Behavioral (skill) cases — run against the agent, judge manually:{RESET}")
         for e in skill_cases:
             print(f"  {e['id']:24} [{e['category']}] {e['title']}")
         return 0
 
+    if args.only:
+        prefixes = tuple(args.only)
+        script_cases = [e for e in script_cases if e["id"].startswith(prefixes)]
+    if args.case:
+        wanted = set(args.case)
+        script_cases = [e for e in script_cases if e["id"] in wanted]
+
     counts = {"PASS": 0, "FAIL": 0, "XFAIL": 0, "XPASS": 0}
+    observed_xfail = set()
+    observed_xpass = set()
     print(f"\n{BLUE}unslop adversarial suite — {len(script_cases)} script cases "
           f"({len(skill_cases)} skill cases skipped; --list-skill to see them){RESET}\n")
 
@@ -125,6 +246,10 @@ def main(argv):
             status, color = "XFAIL", DIM
         else:
             status, color = "FAIL", RED
+        if status == "XFAIL":
+            observed_xfail.add(ev["id"])
+        if status == "XPASS":
+            observed_xpass.add(ev["id"])
         counts[status] += 1
         print(f"  {color}{status:6}{RESET} {ev['id']:14} {ev['title']}")
         if status in ("FAIL", "XPASS"):
@@ -135,8 +260,22 @@ def main(argv):
           f"{YELLOW}XPASS {counts['XPASS']} (fixed — remove xfail){RESET}  "
           f"{RED}FAIL {counts['FAIL']} (regressions){RESET}\n")
 
-    # Only undocumented regressions break the build.
-    return 1 if counts["FAIL"] else 0
+    strict_xfail = not args.only and not args.case
+    xfail_ok = True
+    if strict_xfail and observed_xfail != EXPECTED_XFAIL:
+        xfail_ok = False
+        print(
+            f"{RED}Unexpected XFAIL set: observed {sorted(observed_xfail)}, "
+            f"expected {sorted(EXPECTED_XFAIL)}. New xfail requires updating "
+            f"EXPECTED_XFAIL and CRITIQUE.md.{RESET}"
+        )
+    if observed_xpass:
+        print(
+            f"{RED}Unexpected XPASS: {sorted(observed_xpass)}. "
+            f"Remove the xfail flag.{RESET}"
+        )
+
+    return 1 if counts["FAIL"] or observed_xpass or not xfail_ok else 0
 
 
 if __name__ == "__main__":
