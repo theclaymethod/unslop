@@ -370,7 +370,6 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
     "nuanced": {"category": "ai_vocabulary", "severity": "soft", "suggestion": "subtle, complex"},
     "meticulous": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "careful, thorough"},
     "meticulously": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "carefully, thoroughly"},
-    "bolstered": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "supported, boosted"},
     "emphasizing": {"category": "ai_vocabulary", "severity": "soft", "suggestion": "stressing, focusing on"},
     "enduring": {"category": "ai_vocabulary", "severity": "soft", "suggestion": "lasting, long-standing"},
     "vibrant": {"category": "ai_vocabulary", "severity": "soft", "suggestion": "lively, busy, colorful"},
@@ -525,7 +524,7 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "suggestion": "accept, use, emphasize"
     },
     {
-        "pattern": r"\bdouble\s+down\s+on\s+(?:the\s+|this\s+|that\s+|our\s+|your\s+)?(?:strategy|approach|investment|bet|commitment|vision|message|plan|position)\b",
+        "pattern": r"\bdoubl(?:e|es|ed|ing)\s+down\s+on\s+(?:the\s+|this\s+|that\s+|our\s+|your\s+|its\s+|their\s+|a\s+|an\s+)?(?:strategy|approach|investment|bet|commitment|vision|message|plan|position)\b",
         "category": "jargon",
         "severity": "hard",
         "suggestion": "commit, increase"
@@ -888,7 +887,7 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "suggestion": "Drop the redundant hedge."
     },
     {
-        "pattern": r"(?m)^\s*whether you'?re (?:a |an |just )?.{1,40}\bor (?:a |an |just )?",
+        "pattern": r"(?im)(?:^|[.!?]\s+)whether you'?re (?=[^.!?\n]{0,60}\b(?:a|an|just starting)\s)[^.!?\n]{1,60}\bor\b",
         "category": "reader_addressing",
         "severity": "soft",
         "suggestion": "Cut the audience-flattering opener."

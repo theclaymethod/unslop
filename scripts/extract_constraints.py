@@ -80,6 +80,9 @@ PATTERNS: dict[str, str] = {
     # API endpoints
     "api_endpoint": r"(?<![\w])/(?:api|v\d+)(?:/[\w-]+)+|(?<![\w])/[\w-]+(?:/[\w-]+){2,}",
 
+    # Inclusive disjunction — collapsing and/or to a plain conjunction changes scope
+    "and_or": r"\band/or\b",
+
     # Numeric counts with context
     "count": r"\b\d+(?:,\d{3})*\s+(?:users?|customers?|employees?|companies?|teams?|people|engineers?|developers?|items?|products?|orders?|transactions?|requests?|queries?|rows?|records?)\b",
 }

@@ -108,7 +108,7 @@ Blocking output failures:
 - Any hard banned-phrase hit.
 - Any `anti_slop_register` hit, even if soft.
 - Any `structure_scan.py` flag unless the actual genre justifies `--genre docs` or `--genre social`.
-- Preservation warnings that show a dropped or changed negation, hedge, scope word, number, date, name, quote, URL, unit, or code identifier.
+- Preservation warnings that show a dropped or changed negation, hedge, scope word, number, date, name, quote, URL, unit, or code identifier. The default gate warns without failing; run `validate_preservation.py --strict` for legal, medical, security, or scientific text so these exit non-zero.
 - Staccato cadence in readability metrics.
 - Rubric score below 32/40 in strict mode.
 

@@ -62,6 +62,9 @@ def run_one(task: dict, runs_dir: Path, model: str | None, timeout: int) -> tupl
     answer = proc.stdout.strip()
     if not answer:
         return label, False, (proc.stderr.strip()[:120] or "empty output")
+    cli_errors = ("Not logged in", "Please run /login", "Credit balance is too low")
+    if proc.returncode != 0 or any(marker in answer[:200] for marker in cli_errors):
+        return label, False, f"runner error, not a model answer: {answer[:120]}"
     final = extract_final(answer)
     (out_dir / "answer_full.md").write_text(answer + "\n", encoding="utf-8")
     (out_dir / "output.md").write_text(final + "\n", encoding="utf-8")

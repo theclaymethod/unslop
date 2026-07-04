@@ -791,7 +791,7 @@ Single words that appear at disproportionately high rates in AI text.
 | paints a picture | AI metaphor cliche | hard |
 | meticulous | AI-formal for "careful" or "thorough" | hard |
 | meticulously | AI-formal adverb (companion to "meticulous") | hard |
-| bolstered | AI-formal past tense for "supported" or "boosted" | hard |
+| bolster the argument/case/claim (any tense) | AI-formal rhetorical support; literal reinforcement (a wall, a cushion) is fine | hard (collocation-gated) |
 | emphasizing | Common AI participial padding | soft |
 | enduring | AI-formal for "lasting" — significance inflation adjacent | soft |
 | vibrant | Tourism/promotional default — frequent AI tell | soft |

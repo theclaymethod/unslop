@@ -167,6 +167,11 @@ def find_constraint_in_text(constraint: Constraint, text: str) -> bool:
     if normalized_value in normalized_text:
         return True
 
+    # and/or: the disjunction must survive; "or" (or "or both") is faithful,
+    # a bare conjunction is not.
+    if ctype == "and_or":
+        return bool(re.search(r"\band/or\b|\bor\b", text, re.IGNORECASE))
+
     # Currency: compare absolute amounts so a magnitude swap (M -> billion) fails.
     if ctype == "currency":
         target = parse_money(value)

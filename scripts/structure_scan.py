@@ -221,7 +221,9 @@ def scan(text: str, genre: str = "prose") -> dict:
             if not ws:
                 continue
             openers.append(ws[0])
-        counted = [o for o in openers if o not in {"the", "a", "an"}]
+        enumeration = {"the", "a", "an", "section", "chapter", "figure", "table",
+                       "step", "part", "appendix"}
+        counted = [o for o in openers if o not in enumeration]
         top_count = 0
         if counted:
             counts = Counter(counted)
@@ -230,7 +232,7 @@ def scan(text: str, genre: str = "prose") -> dict:
             metrics["top_opener_share"] = round(top_count / len(counted), 3)
         run = max_run = 0
         prev = None
-        for opener in openers:
+        for opener in counted:
             run = run + 1 if opener == prev else 1
             prev = opener
             max_run = max(max_run, run)
