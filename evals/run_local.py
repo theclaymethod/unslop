@@ -9,9 +9,8 @@ runner. This drives the prepared tasks through `claude -p` instead.
   with_skill   -> the task instruction (read SKILL.md ...) + the prompt
   without_skill-> the bare prompt only (the no-skill baseline)
 
-The full assistant answer is captured as runs/<case>/<variant>/output.md, so
-audit-mode cases (which must return a diagnosis, not just a rewrite) are graded
-on what the skill actually produced.
+The final rewrite is captured as runs/<case>/<variant>/output.md, and the full
+assistant answer is captured as runs/<case>/<variant>/answer_full.md.
 
 Caveat: if the unslop skill is globally installed in the runner, the
 without_skill baseline can still behave skill-like, which deflates measured
@@ -32,9 +31,21 @@ from pathlib import Path
 
 
 def build_prompt(task: dict) -> str:
+    suffix = (
+        "\n\nPut the final text between <final> and </final> markers; put any "
+        "diagnosis after it, quoting phrase names in double quotes."
+    )
     if task["variant"] == "with_skill":
-        return f"{task['instruction']}\n\n{task['prompt']}"
-    return task["prompt"]
+        return f"{task['instruction']}\n\n{task['prompt']}{suffix}"
+    return f"{task['prompt']}{suffix}"
+
+
+def extract_final(answer: str) -> str:
+    start = answer.find("<final>")
+    end = answer.find("</final>", start + len("<final>")) if start != -1 else -1
+    if start == -1 or end == -1:
+        return answer
+    return answer[start + len("<final>"):end].strip()
 
 
 def run_one(task: dict, runs_dir: Path, model: str | None, timeout: int) -> tuple[str, bool, str]:
@@ -51,8 +62,10 @@ def run_one(task: dict, runs_dir: Path, model: str | None, timeout: int) -> tupl
     answer = proc.stdout.strip()
     if not answer:
         return label, False, (proc.stderr.strip()[:120] or "empty output")
-    (out_dir / "output.md").write_text(answer + "\n", encoding="utf-8")
-    return label, True, f"{len(answer)} chars"
+    final = extract_final(answer)
+    (out_dir / "answer_full.md").write_text(answer + "\n", encoding="utf-8")
+    (out_dir / "output.md").write_text(final + "\n", encoding="utf-8")
+    return label, True, f"{len(final)} final chars / {len(answer)} full chars"
 
 
 def main() -> None:
