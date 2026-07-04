@@ -1530,6 +1530,114 @@
         "adversarial",
         "failure_mode:An embedded instruction inside the text to rewrite can be mi"
       ]
+    },
+    {
+      "id": "SKILL-MACRO-01",
+      "split": "tune",
+      "kind": "rewrite_quality",
+      "domain": "essay",
+      "difficulty": "hard",
+      "trigger_type": "explicit",
+      "success_goals": [
+        "Rewrite phrase-clean essay with macro-structure AI tells"
+      ],
+      "prompt": "Use the unslop skill to rewrite this essay. Preserve every fact, but remove macro-structure AI tells.\n\nThe after-school robotics club began with twelve students and two borrowed kits in the spring term. The teacher opened the lab every Tuesday and Thursday after the final bell rang for dismissal.\n\nHowever, the group quickly became a place where students practiced planning, testing, and explaining their ideas. The club soon learned that small habits mattered far more than dramatic breakthroughs during any given season.\n\nIn addition, the students divided work into building, coding, and documentation so each meeting had a clear path. The first robot missed three turns during the district practice round in front of the visiting judges.\n\nConsequently, the team used that mistake to create a checklist for batteries, sensors, and wheel alignment. First, they tested the drivetrain before adding any new code to the competition robot each week. Next, they recorded every change in a shared notebook so the whole team could review each decision. As mentioned earlier, twelve students and two borrowed kits were enough to start the entire program from nothing.\n\nIn the end, the robotics club reminds us that steady practice, shared responsibility, and patient reflection can turn a small school activity into lasting confidence.",
+      "expected_behavior": [
+        "Rewrite with varied rhythm, no moralizing coda, no connective scaffold, and all facts preserved; structure_scan.py on the output exits 0."
+      ],
+      "assertions": [
+        {
+          "name": "skill-macro-01-judge-1",
+          "type": "judge",
+          "rubric": [
+            "The rewrite preserves these facts: after-school robotics club, twelve students, two borrowed kits, Tuesday and Thursday lab access, district practice round, missed three turns, checklist for batteries/sensors/wheel alignment, shared notebook."
+          ]
+        },
+        {
+          "name": "skill-macro-01-judge-2",
+          "type": "judge",
+          "rubric": [
+            "The rewrite varies sentence rhythm instead of keeping uniform 15-18 word sentences."
+          ]
+        },
+        {
+          "name": "skill-macro-01-judge-3",
+          "type": "judge",
+          "rubric": [
+            "The rewrite removes the connective paragraph scaffold (However,/In addition,/Consequently, openers) and the final moralizing coda paragraph."
+          ]
+        },
+        {
+          "name": "skill-macro-01-structure-clean",
+          "type": "script",
+          "command": [
+            "python3",
+            "../scripts/structure_scan.py",
+            "{output_dir}/output.md"
+          ],
+          "pass_exit_code": 0,
+          "timeout_s": 30
+        }
+      ],
+      "tags": [
+        "rewrite_quality",
+        "adversarial",
+        "failure_mode:Phrase-clean prose can still be structurally AI-shaped throu"
+      ]
+    },
+    {
+      "id": "SKILL-MACRO-02",
+      "split": "holdout",
+      "kind": "rewrite_quality",
+      "domain": "report",
+      "difficulty": "hard",
+      "trigger_type": "explicit",
+      "success_goals": [
+        "Rewrite quarterly update with macro-structure AI tells"
+      ],
+      "prompt": "Use the unslop skill to rewrite this quarterly business update for employees. Preserve every fact, but remove macro-structure AI tells.\n\nThe support organization closed Q2 with 18,400 tickets and a median first response time of 42 minutes. The Denver queue moved to a new triage schedule on May 6 after a staffing review.\n\nHowever, the quarter also showed how process discipline can improve customer trust across every support team. Managers added a daily review for refund requests above $500 so approval decisions stayed consistent between regions.\n\nIn addition, the product group fixed the billing export bug on June 18 after 73 accounts reported duplicate rows. Enablement published three short videos for agents handling renewal questions during the same reporting window this quarter.\n\nConsequently, the team will keep the new triage schedule in place through August across all regional queues. First, managers will confirm weekly staffing so the schedule holds during the busy renewal period each month. Next, finance will audit refund notes every Friday to keep the daily review process honest and current. Having established these habits, the group can enter Q3 with greater alignment across every support function.\n\nIn the end, this quarter reminds us that operational consistency, cross-functional focus, and a steady commitment to customers create momentum for the road ahead.",
+      "expected_behavior": [
+        "Rewrite with varied rhythm, no generic coda, no connective scaffold, and all facts preserved; structure_scan.py on the output exits 0."
+      ],
+      "assertions": [
+        {
+          "name": "skill-macro-02-judge-1",
+          "type": "judge",
+          "rubric": [
+            "The rewrite preserves Q2, 18,400 tickets, 42 minutes, Denver queue, May 6, refund requests above $500, June 18, 73 accounts, three videos, August, and Friday audit cadence."
+          ]
+        },
+        {
+          "name": "skill-macro-02-judge-2",
+          "type": "judge",
+          "rubric": [
+            "The rewrite removes the connective paragraph scaffold (However,/In addition,/Consequently, openers) and the generic road-ahead coda paragraph."
+          ]
+        },
+        {
+          "name": "skill-macro-02-judge-3",
+          "type": "judge",
+          "rubric": [
+            "The rewrite reads like a concrete employee update, not a motivational essay."
+          ]
+        },
+        {
+          "name": "skill-macro-02-structure-clean",
+          "type": "script",
+          "command": [
+            "python3",
+            "../scripts/structure_scan.py",
+            "{output_dir}/output.md"
+          ],
+          "pass_exit_code": 0,
+          "timeout_s": 30
+        }
+      ],
+      "tags": [
+        "rewrite_quality",
+        "adversarial",
+        "failure_mode:A business update can pass banned-phrase checks while still "
+      ]
     }
   ],
   "ablations": [

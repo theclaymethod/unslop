@@ -53,6 +53,7 @@ SPLITS: dict[str, str] = {
     "SKILL-WEDGE-01": "tune",
     "SKILL-DONOHARM-01": "tune",
     "SKILL-WARMTH-01": "tune",
+    "SKILL-MACRO-01": "tune",
     # holdout — measure, do not tune
     "SKILL-DEHEDGE-02": "holdout",
     "SKILL-LIST-01": "holdout",
@@ -70,6 +71,7 @@ SPLITS: dict[str, str] = {
     "SKILL-FRAGMENT-02": "holdout",
     "SKILL-DONOHARM-02": "holdout",
     "SKILL-INJECT-02": "holdout",
+    "SKILL-MACRO-02": "holdout",
 }
 
 DOMAIN: dict[str, str] = {
@@ -103,6 +105,8 @@ DOMAIN: dict[str, str] = {
     "SKILL-FRAGMENT-02": "business",
     "SKILL-DONOHARM-02": "narrative",
     "SKILL-INJECT-02": "security",
+    "SKILL-MACRO-01": "essay",
+    "SKILL-MACRO-02": "report",
 }
 
 # Difficulty is a coarse hint for reporting, not a gate.
@@ -157,6 +161,13 @@ def _banned_phrase_clean(case_id: str) -> dict:
     return _script(
         f"{case_id.lower()}-no-banned-phrases",
         ["python3", "../scripts/banned_phrase_scan.py", "{output_dir}/output.md"],
+    )
+
+
+def _structure_clean(case_id: str) -> dict:
+    return _script(
+        f"{case_id.lower()}-structure-clean",
+        ["python3", "../scripts/structure_scan.py", "{output_dir}/output.md"],
     )
 
 
@@ -257,6 +268,8 @@ SCRIPT_ASSERTIONS = {
         _contains_any_script("SKILL-HEDGE-03", "keeps-causal-limit", ["causation", "causal"]),
     ],
     "SKILL-NOINVENT-01": [_contains_all_script("SKILL-NOINVENT-01", "keeps-metrics", ["p99", "throughput"])],
+    "SKILL-MACRO-01": [_structure_clean("SKILL-MACRO-01")],
+    "SKILL-MACRO-02": [_structure_clean("SKILL-MACRO-02")],
 }
 
 DETERMINISTIC_ASSERTIONS = {

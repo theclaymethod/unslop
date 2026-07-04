@@ -27,7 +27,9 @@ Current gates:
     "command": "skill-benchmark validate evals/shared-benchmark.json --strict-leakage",
     "pass_criterion": "exit 0",
     "blocking": true,
-    "needs": ["skill-benchmark"]
+    "needs": [
+      "skill-benchmark"
+    ]
   },
   {
     "id": "taboo-catalog-parity",
@@ -41,11 +43,21 @@ Current gates:
     "command": "evals/run_behavioral.sh tune",
     "pass_criterion": "exit 0",
     "blocking": false,
-    "needs": ["skill-benchmark", "claude -p"]
+    "needs": [
+      "skill-benchmark",
+      "claude -p"
+    ]
   },
   {
     "id": "banned-phrase-scan",
     "command": "python3 scripts/banned_phrase_scan.py < transformed.txt",
+    "pass_criterion": "exit 0",
+    "blocking": true,
+    "needs": []
+  },
+  {
+    "id": "structure-scan",
+    "command": "python3 scripts/structure_scan.py < transformed.txt",
     "pass_criterion": "exit 0",
     "blocking": true,
     "needs": []
@@ -76,7 +88,9 @@ Current gates:
     "command": "Judge transformed output against the skill rubric",
     "pass_criterion": "non-deterministic rubric pass",
     "blocking": false,
-    "needs": ["rubric judge"]
+    "needs": [
+      "rubric judge"
+    ]
   }
 ]
 ```

@@ -74,6 +74,11 @@ Before rewriting anything, understand what's wrong. This prevents blind rewritin
    ```bash
    python3 scripts/banned_phrase_scan.py --include-quoted <<< "$INPUT"
    ```
+   Also scan for document-level structure tells:
+   ```bash
+   python3 scripts/structure_scan.py <<< "$INPUT"
+   ```
+   Use `--genre docs` for reference docs and `--genre social` for deliberate social cadence.
 
 4. **Read the selected preset** from `presets/` and note its voice rules.
 
@@ -125,6 +130,14 @@ After rewriting, verify your work:
    replaced slop with your own tell (a bare "Not X. Y." contrast or a staccato
    run). Do not ship it — rewrite that span with varied sentence length before
    returning.
+
+2b. **Macro-structure flags** — check document-level rhythm and scaffolding:
+   ```bash
+   python3 scripts/structure_scan.py <<< "$OUTPUT"
+   ```
+   Structure flags are blocking on output, even when severity is `soft`. Rerun
+   with `--genre docs` or `--genre social` only when the output's actual genre
+   justifies that carve-out.
 
 3. **Readability metrics** — check rhythm and variance:
    ```bash
@@ -217,6 +230,7 @@ All scripts accept stdin or file path arguments and output JSON. Run from the sk
 |--------|---------|-------------|
 | `scripts/extract_constraints.py` | Extract must-preserve facts | Before rewriting |
 | `scripts/banned_phrase_scan.py` | Detect AI patterns with severity | Before and after rewriting |
+| `scripts/structure_scan.py` | Detect macro-structure AI tells | Before and after rewriting |
 | `scripts/validate_preservation.py` | Verify facts survived | After rewriting |
 | `scripts/readability_metrics.py` | Sentence variance, grade level | After rewriting |
 | `scripts/diff_check.py` | Change percentage | After rewriting |

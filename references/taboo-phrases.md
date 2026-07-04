@@ -40,7 +40,8 @@ Quoted examples are exempt by default. When you're documenting bad AI writing, s
 32. [AI Vocabulary (Additional)](#ai-vocabulary-additional)
 33. [Punctuation Abuse](#punctuation-abuse)
 34. [Research-Sourced Additions](#research-sourced-additions)
-35. [Quick Reference: Detection Regex](#quick-reference-detection-regex)
+35. [Macro Structure](#macro-structure)
+36. [Quick Reference: Detection Regex](#quick-reference-detection-regex)
 
 ---
 
@@ -916,6 +917,27 @@ Patterns added from external sources. Most academic single-words are `soft`
 | "treasure trove", "ever-evolving", "ever-changing" | Cliche AI vocabulary |
 
 **Sources:** Wikipedia [Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing); Berens & Kobak, "Delving into ChatGPT usage in academic writing," *Science Advances* (2024), [llm-excess-vocab](https://github.com/berenslab/llm-excess-vocab); [hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop).
+
+---
+
+## Macro Structure
+
+These are document-level tells. Some are deterministic and cross-referenced to
+`scripts/structure_scan.py`; others require agent judgment and are not
+scanner-enforced.
+
+| Tell | Enforcement | Genre caveat |
+|------|-------------|--------------|
+| Both-sidesism | Agent judgment — not scanner-enforced. Watch for "on one hand/on the other hand" that refuses to choose when the piece owes the reader a conclusion. | Balanced journalism, judicial analysis, and literature reviews may need genuine opposing views. |
+| Templated redemption arc | Agent judgment — not scanner-enforced. Watch for a too-clean fall, lesson, transformation, uplift sequence. | Memoir, sermons, and some case studies may intentionally use an arc. |
+| Preview/recap symmetry | Cross-check `conclusion_coda` and `summary_sandwich`; agent judgment decides whether the ending adds anything. | Abstracts, executive summaries, and TL;DRs can legitimately restate the main point. |
+| Over-determination | Agent judgment — not scanner-enforced. Watch for explicit theme-stating that explains what the reader should infer. | Explainers, tutorials, and accessibility-minded docs may need explicitness. |
+| Elegant variation pointer | Agent judgment — not scanner-enforced. Watch for one referent cycling through many labels to avoid repetition. | Literary prose and journalism may vary references for rhythm, as long as clarity survives. |
+| Uniform emotional register | Agent judgment — not scanner-enforced. Watch for every paragraph landing at the same polished confidence level. | Formal reports and reference docs may intentionally keep emotional texture low. |
+
+Related deterministic metrics: `sentence_burstiness`, `bold_colon_listicle`,
+`one_line_staccato`, `connective_paragraph_openers`, `signpost_density`,
+`opener_repetition`, and `participial_closer_share`.
 
 ---
 

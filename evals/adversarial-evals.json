@@ -3946,6 +3946,528 @@
       ]
     },
     {
+      "id": "SKILL-MACRO-01",
+      "category": "rewrite_quality",
+      "title": "Rewrite phrase-clean essay with macro-structure AI tells",
+      "target": "skill",
+      "prompt": "Use the unslop skill to rewrite this essay. Preserve every fact, but remove macro-structure AI tells.\n\nThe after-school robotics club began with twelve students and two borrowed kits in the spring term. The teacher opened the lab every Tuesday and Thursday after the final bell rang for dismissal.\n\nHowever, the group quickly became a place where students practiced planning, testing, and explaining their ideas. The club soon learned that small habits mattered far more than dramatic breakthroughs during any given season.\n\nIn addition, the students divided work into building, coding, and documentation so each meeting had a clear path. The first robot missed three turns during the district practice round in front of the visiting judges.\n\nConsequently, the team used that mistake to create a checklist for batteries, sensors, and wheel alignment. First, they tested the drivetrain before adding any new code to the competition robot each week. Next, they recorded every change in a shared notebook so the whole team could review each decision. As mentioned earlier, twelve students and two borrowed kits were enough to start the entire program from nothing.\n\nIn the end, the robotics club reminds us that steady practice, shared responsibility, and patient reflection can turn a small school activity into lasting confidence.",
+      "failure_mode": "Phrase-clean prose can still be structurally AI-shaped through uniform rhythm, connective paragraph openers, signposting, and a moralizing recap coda.",
+      "correct_behavior": "Rewrite with varied rhythm, no moralizing coda, no connective scaffold, and all facts preserved; structure_scan.py on the output exits 0.",
+      "assertions": [
+        {
+          "type": "judge",
+          "check": "The rewrite preserves these facts: after-school robotics club, twelve students, two borrowed kits, Tuesday and Thursday lab access, district practice round, missed three turns, checklist for batteries/sensors/wheel alignment, shared notebook."
+        },
+        {
+          "type": "judge",
+          "check": "The rewrite varies sentence rhythm instead of keeping uniform 15-18 word sentences."
+        },
+        {
+          "type": "judge",
+          "check": "The rewrite removes the connective paragraph scaffold (However,/In addition,/Consequently, openers) and the final moralizing coda paragraph."
+        }
+      ]
+    },
+    {
+      "id": "SKILL-MACRO-02",
+      "category": "rewrite_quality",
+      "title": "Rewrite quarterly update with macro-structure AI tells",
+      "target": "skill",
+      "prompt": "Use the unslop skill to rewrite this quarterly business update for employees. Preserve every fact, but remove macro-structure AI tells.\n\nThe support organization closed Q2 with 18,400 tickets and a median first response time of 42 minutes. The Denver queue moved to a new triage schedule on May 6 after a staffing review.\n\nHowever, the quarter also showed how process discipline can improve customer trust across every support team. Managers added a daily review for refund requests above $500 so approval decisions stayed consistent between regions.\n\nIn addition, the product group fixed the billing export bug on June 18 after 73 accounts reported duplicate rows. Enablement published three short videos for agents handling renewal questions during the same reporting window this quarter.\n\nConsequently, the team will keep the new triage schedule in place through August across all regional queues. First, managers will confirm weekly staffing so the schedule holds during the busy renewal period each month. Next, finance will audit refund notes every Friday to keep the daily review process honest and current. Having established these habits, the group can enter Q3 with greater alignment across every support function.\n\nIn the end, this quarter reminds us that operational consistency, cross-functional focus, and a steady commitment to customers create momentum for the road ahead.",
+      "failure_mode": "A business update can pass banned-phrase checks while still relying on uniform rhythm, transition scaffolding, signposting, and a generic coda.",
+      "correct_behavior": "Rewrite with varied rhythm, no generic coda, no connective scaffold, and all facts preserved; structure_scan.py on the output exits 0.",
+      "assertions": [
+        {
+          "type": "judge",
+          "check": "The rewrite preserves Q2, 18,400 tickets, 42 minutes, Denver queue, May 6, refund requests above $500, June 18, 73 accounts, three videos, August, and Friday audit cadence."
+        },
+        {
+          "type": "judge",
+          "check": "The rewrite removes the connective paragraph scaffold (However,/In addition,/Consequently, openers) and the generic road-ahead coda paragraph."
+        },
+        {
+          "type": "judge",
+          "check": "The rewrite reads like a concrete employee update, not a motivational essay."
+        }
+      ]
+    },
+    {
+      "id": "STRUCT-01",
+      "category": "scanner_detection",
+      "title": "structure_scan flags low sentence burstiness",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py",
+        "evals/fixtures/structure/struct01_uniform_essay.md"
+      ],
+      "failure_mode": "Uniform sentence lengths can pass phrase scans while still reading machine-shaped.",
+      "correct_behavior": "Exit 1 and report sentence_burstiness.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 1
+        },
+        {
+          "type": "json",
+          "path": "flagged.sentence_burstiness",
+          "equals": true
+        }
+      ]
+    },
+    {
+      "id": "STRUCT-02",
+      "category": "scanner_detection",
+      "title": "structure_scan allows bursty human-shaped narrative",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py",
+        "evals/fixtures/structure/struct02_bursty_narrative.md"
+      ],
+      "failure_mode": "A broad low-burstiness rule must not punish varied human narrative rhythm.",
+      "correct_behavior": "Exit 0 with no structure flags.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        },
+        {
+          "type": "json",
+          "path": "flags",
+          "equals": []
+        }
+      ]
+    },
+    {
+      "id": "STRUCT-03",
+      "category": "scanner_detection",
+      "title": "structure_scan flags moralizing conclusion coda",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py",
+        "evals/fixtures/structure/struct03_coda_essay.md"
+      ],
+      "failure_mode": "Stock final-paragraph moral codas are macro-level AI tells even without banned lexical phrases.",
+      "correct_behavior": "Exit 1 and report conclusion_coda.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 1
+        },
+        {
+          "type": "json",
+          "path": "flagged.conclusion_coda",
+          "equals": true
+        }
+      ]
+    },
+    {
+      "id": "STRUCT-04",
+      "category": "scanner_detection",
+      "title": "structure_scan allows concrete ending without coda",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py",
+        "evals/fixtures/structure/struct04_concrete_end.md"
+      ],
+      "failure_mode": "A final factual paragraph should not be treated as a summary sandwich or moral coda.",
+      "correct_behavior": "Exit 0 with no conclusion coda flag.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        },
+        {
+          "type": "json",
+          "path": "flags",
+          "equals": []
+        }
+      ]
+    },
+    {
+      "id": "STRUCT-05",
+      "category": "scanner_detection",
+      "title": "structure_scan flags bold-colon listicle formatting",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py",
+        "evals/fixtures/structure/struct05_bold_listicle.md"
+      ],
+      "failure_mode": "Repeated bold-label colon lines are a chat-native formatting signature in prose contexts.",
+      "correct_behavior": "Exit 1 and report bold_colon_listicle.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 1
+        },
+        {
+          "type": "json",
+          "path": "flagged.bold_colon_listicle",
+          "equals": true
+        }
+      ]
+    },
+    {
+      "id": "STRUCT-06",
+      "category": "scanner_detection",
+      "title": "structure_scan docs genre suppresses bold-colon listicle",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py",
+        "--genre",
+        "docs",
+        "evals/fixtures/structure/struct05_bold_listicle.md"
+      ],
+      "failure_mode": "Reference docs and option lists legitimately use bold-label colon formatting.",
+      "correct_behavior": "Exit 0 under --genre docs.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        },
+        {
+          "type": "json",
+          "path": "flags",
+          "equals": []
+        }
+      ]
+    },
+    {
+      "id": "STRUCT-07",
+      "category": "scanner_detection",
+      "title": "structure_scan flags one-line staccato paragraphs",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py",
+        "evals/fixtures/structure/struct07_staccato.md"
+      ],
+      "failure_mode": "LinkedIn-style one-line beats are a macro cadence tell in prose contexts.",
+      "correct_behavior": "Exit 1 and report one_line_staccato.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 1
+        },
+        {
+          "type": "json",
+          "path": "flagged.one_line_staccato",
+          "equals": true
+        }
+      ]
+    },
+    {
+      "id": "STRUCT-08",
+      "category": "scanner_detection",
+      "title": "structure_scan social genre suppresses staccato cadence",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py",
+        "--genre",
+        "social",
+        "evals/fixtures/structure/struct07_staccato.md"
+      ],
+      "failure_mode": "Social copy often deliberately uses one-line cadence.",
+      "correct_behavior": "Exit 0 under --genre social.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        },
+        {
+          "type": "json",
+          "path": "flags",
+          "equals": []
+        }
+      ]
+    },
+    {
+      "id": "STRUCT-09",
+      "category": "scanner_detection",
+      "title": "structure_scan flags repeated connective paragraph openers",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py",
+        "evals/fixtures/structure/struct09_connectives.md"
+      ],
+      "failure_mode": "Repeated However/Moreover/Furthermore openings create visible scaffold prose.",
+      "correct_behavior": "Exit 1 and report connective_paragraph_openers.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 1
+        },
+        {
+          "type": "json",
+          "path": "flagged.connective_paragraph_openers",
+          "equals": true
+        }
+      ]
+    },
+    {
+      "id": "STRUCT-10",
+      "category": "scanner_detection",
+      "title": "structure_scan allows varied paragraph openings",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py",
+        "evals/fixtures/structure/struct10_varied_openers.md"
+      ],
+      "failure_mode": "Human-shaped paragraphs can still be organized without repeated connective openers.",
+      "correct_behavior": "Exit 0 with no opener scaffold flag.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        },
+        {
+          "type": "json",
+          "path": "flags",
+          "equals": []
+        }
+      ]
+    },
+    {
+      "id": "STRUCT-11",
+      "category": "scanner_detection",
+      "title": "structure_scan flags signpost-dense guide",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py",
+        "evals/fixtures/structure/struct11_signpost.md"
+      ],
+      "failure_mode": "Dense roadmap language is a macro tell in short prose.",
+      "correct_behavior": "Exit 1 and report signpost_density.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 1
+        },
+        {
+          "type": "json",
+          "path": "flagged.signpost_density",
+          "equals": true
+        }
+      ]
+    },
+    {
+      "id": "STRUCT-12",
+      "category": "scanner_detection",
+      "title": "structure_scan allows moderate textbook signposting",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py",
+        "evals/fixtures/structure/struct12_moderate_signpost.md"
+      ],
+      "failure_mode": "Long-form instructional prose needs some signposts without being treated as AI-shaped.",
+      "correct_behavior": "Exit 0 with signpost density under threshold.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        },
+        {
+          "type": "json",
+          "path": "flags",
+          "equals": []
+        }
+      ]
+    },
+    {
+      "id": "STRUCT-13",
+      "category": "scanner_detection",
+      "title": "structure_scan flags repeated sentence openers",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py",
+        "evals/fixtures/structure/struct13_opener_repetition.md"
+      ],
+      "failure_mode": "Repeated first words across sentences are a deterministic template rhythm.",
+      "correct_behavior": "Exit 1 and report opener_repetition.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 1
+        },
+        {
+          "type": "json",
+          "path": "flagged.opener_repetition",
+          "equals": true
+        }
+      ]
+    },
+    {
+      "id": "STRUCT-14",
+      "category": "scanner_detection",
+      "title": "structure_scan flags participial closer density",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py",
+        "evals/fixtures/structure/struct14_participial.md"
+      ],
+      "failure_mode": "Editorial -ing tails become an AI tell when they cluster.",
+      "correct_behavior": "Exit 1 and report participial_closer_share.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 1
+        },
+        {
+          "type": "json",
+          "path": "flagged.participial_closer_share",
+          "equals": true
+        }
+      ]
+    },
+    {
+      "id": "STRUCT-15",
+      "category": "scanner_detection",
+      "title": "structure_scan allows one legitimate participial closer",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py",
+        "evals/fixtures/structure/struct15_one_closer.md"
+      ],
+      "failure_mode": "Analytical prose can use an occasional -ing consequence tail without becoming formulaic.",
+      "correct_behavior": "Exit 0 with no participial closer flag.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        },
+        {
+          "type": "json",
+          "path": "flags",
+          "equals": []
+        }
+      ]
+    },
+    {
+      "id": "ROB-12",
+      "category": "scanner_detection",
+      "title": "structure_scan missing file exits 2",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py",
+        "evals/fixtures/structure/nope.md"
+      ],
+      "failure_mode": "The new scanner should match existing script error conventions.",
+      "correct_behavior": "Exit 2 and no traceback for missing input files.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 2
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        }
+      ]
+    },
+    {
+      "id": "ROB-13",
+      "category": "scanner_detection",
+      "title": "structure_scan empty stdin returns zeroed metrics",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py"
+      ],
+      "failure_mode": "Empty stdin should not crash or produce spurious flags.",
+      "correct_behavior": "Exit 0 with zeroed counts and metrics.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "prose_sentences",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "metrics.sentence_burstiness",
+          "equals": 0.0
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        }
+      ]
+    },
+    {
+      "id": "ROB-14",
+      "category": "scanner_detection",
+      "title": "structure_scan short uniform input stays below minimums",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py"
+      ],
+      "failure_mode": "Low-burstiness and opener rules need minimum document length gates.",
+      "correct_behavior": "Exit 0 because three sentences are below metric minimums.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "flags",
+          "equals": []
+        },
+        {
+          "type": "json",
+          "path": "prose_sentences",
+          "equals": 3
+        }
+      ],
+      "stdin": "This line has six words exactly. This line has six words exactly. This line has six words exactly."
+    },
+    {
       "id": "DOC-03",
       "category": "scanner_detection",
       "title": "CHECKS.md gate matrix matches --list-gates output",
@@ -3964,6 +4486,30 @@
         {
           "type": "stderr_not_contains",
           "value": "Traceback"
+        }
+      ]
+    },
+    {
+      "id": "STRUCT-16",
+      "category": "scanner_false_positive",
+      "title": "A three-item parallel enumeration (In Rails / In Django / In raw SQL) is human, not template",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py",
+        "evals/fixtures/structure/struct16_parallel_enumeration.md"
+      ],
+      "failure_mode": "The consecutive-opener trigger fired on any 3-in-a-row identical openers, flagging deliberate human parallel enumeration in technical comparisons (the exact FP the opener-repetition research warns about).",
+      "correct_behavior": "Exit 0: a 3-run of parallel openers with otherwise varied, bursty prose is legitimate; only 4+ runs or genuinely low opener diversity flag.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "metrics.max_consecutive_opener",
+          "equals": 3
         }
       ]
     }

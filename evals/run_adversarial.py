@@ -158,6 +158,13 @@ def list_gates():
             "needs": [],
         },
         {
+            "id": "structure-scan",
+            "command": "python3 scripts/structure_scan.py < transformed.txt",
+            "pass_criterion": "exit 0",
+            "blocking": True,
+            "needs": [],
+        },
+        {
             "id": "validate-preservation",
             "command": "python3 scripts/validate_preservation.py original.txt transformed.txt",
             "pass_criterion": "exit 0",
