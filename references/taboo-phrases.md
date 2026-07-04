@@ -68,6 +68,10 @@ These phrases delay getting to the point. Cut them entirely.
 | "Here's why" | Delays content |
 | "Let's dive in" | Workshop filler |
 | "Let's unpack" | Workshop filler |
+| "Let's explore" | Workshop filler |
+| "Let's examine" | Workshop filler |
+| "Let's break this down" | Workshop filler |
+| "Let's take a look" | Workshop filler |
 | "This is where it gets interesting" | Performative delay |
 
 ---
@@ -106,6 +110,10 @@ Replace with direct alternatives.
 | Lean into | Accept, embrace, commit to |
 | Landscape (context) | Situation, field, market |
 | Game-changer | Significant, important, major |
+| Game changer | Significant, important, major |
+| Navigating the complexities | Handling the specifics |
+| Delve into | Examine, explain |
+| Delve deeper | Examine further |
 | Double down | Commit, increase, reinforce |
 | Deep dive | Analysis, examination, study |
 | Take a step back | Reconsider, pause, review |
@@ -195,6 +203,9 @@ These add words without adding meaning.
 | "The vast majority of" | Replace with "Most" |
 | "In terms of" | Cut or use "for" |
 | "It is important to note that" | Cut |
+| "It is important to note" | Cut |
+| "It's important to note" | Cut |
+| "It is worth noting" | Cut |
 | "The fact that" | Cut and restructure |
 
 ---
@@ -237,6 +248,7 @@ These try too hard to sound genuine.
 | "This is what X actually looks like" | Implies deception elsewhere |
 | "Trust me" | Undermines trust |
 | "Believe me" | Same |
+| "the million-dollar question" | Manufactured drama; just ask the question |
 | "Honestly" | Implies prior dishonesty |
 | "The elephant in the room" | Over-dramatic framing |
 | "It begs the question" | Usually misused, always performative |
@@ -345,9 +357,17 @@ These phrases manufacture gravitas. If something is truly significant, the facts
 | "stands as a testament to" | Double inflation |
 | "testament to" | Let evidence speak for itself |
 | "pivotal moment" | Almost never actually pivotal |
+| "enduring legacy" | Manufactured gravitas; state what actually persisted |
+| "underscore the importance" | Manufactured importance; state the evidence |
+| "underscores the importance" | Manufactured importance; state the evidence |
+| "underscoring the importance" | Manufactured importance; state the evidence |
+| "highlights the importance" | Manufactured importance; state the evidence |
 | "indelible mark" | Cliché gravitas |
 | "rich history" | Vague filler |
 | "rich tapestry" | AI favorite — never use |
+| "tapestry of" | AI metaphor cliché |
+| "rich mosaic" | AI metaphor cliché |
+| "mosaic of" | AI metaphor cliché |
 | "a legacy of" | Unearned weight |
 | "iconic" | Overused to meaninglessness |
 | "seminal" | Usually hyperbolic |
@@ -356,10 +376,16 @@ These phrases manufacture gravitas. If something is truly significant, the facts
 | "transformative" | Rarely earned |
 | "cornerstone of" | Inflated significance |
 | "speaks volumes" | Cliche inflation |
+| "speaks for itself" | False agency; state what proves the point |
+| "speaks for themselves" | False agency; state what proves the point |
 | "sends a clear message" | Cliche inflation |
+| "sheds light on" | AI-formal for explains or shows |
 | "raises the bar" | Cliche inflation |
 | "the fabric of" | Vague inflation |
 | "a testament to" | Let evidence speak for itself |
+| "a deep understanding" | Inflated substitute for understanding |
+| "holds promise" | Empty significance claim without specifics |
+| "holds great promise" | Empty significance claim without specifics |
 
 ---
 
@@ -482,6 +508,7 @@ Phrases left over from chatbot interaction that don't belong in published text.
 | Phrase | Why It's Bad |
 |--------|--------------|
 | "I hope this helps" | Chatbot sign-off |
+| "as an AI assistant" | Pasted chatbot boilerplate |
 | "Certainly!" | Chatbot compliance marker |
 | "Great question!" | Chatbot flattery |
 | "That's a great point" | Chatbot agreement |
@@ -683,11 +710,13 @@ AI defaults to optimistic, empty endings.
 | Phrase | Why It's Bad |
 |--------|--------------|
 | "The future looks bright" | Empty optimism |
+| "What remains clear is" | Generic conclusion scaffold |
 | "Exciting times lie ahead" | Content-free conclusion |
 | "Only time will tell" | Cliché non-conclusion |
 | "One thing is certain" | False certainty wrapper |
 | "What remains clear is" | Filler conclusion opener |
 | "continues to shape" | Vague ongoing-ness |
+| "future prospects" | Generic forecast label |
 | "continues to evolve" | Says nothing |
 | "poised for growth" | Promotional conclusion |
 | "remains to be seen" | Non-conclusion |
@@ -740,6 +769,7 @@ Single words that appear at disproportionately high rates in AI text.
 | myriad | AI-formal for "many" | soft |
 | plethora | AI-formal for "many" | soft |
 | paramount | AI-formal for "important" | hard |
+| resonate with | AI-favorite for "matters to" | hard |
 | encompass | AI-formal for "include" | soft |
 | pertaining to | AI-formal for "about" | hard |
 | aforementioned | AI-formal for "this" or "that" | hard |
@@ -765,9 +795,9 @@ Single words that appear at disproportionately high rates in AI text.
 | enduring | AI-formal for "lasting" — significance inflation adjacent | soft |
 | vibrant | Tourism/promotional default — frequent AI tell | soft |
 | valuable | Empty positive descriptor when used without object | soft |
-| substrate | AI-formal for "foundation," "base," or "layer" — overused metaphor | hard |
-| load-bearing | AI-favorite metaphor for "essential" or "critical" | hard |
-| wedge | AI-favorite metaphor for "angle," "lever," "differentiator," or "entry point" | hard |
+| substrate | Soft when used metaphorically for "foundation," "base," or "layer"; exempt literal lab, construction, and electronics uses | soft |
+| load-bearing | AI-favorite metaphor for "essential" or "critical"; exempt literal construction and mechanics | hard |
+| wedge | AI-favorite metaphor for "angle," "lever," "differentiator," or "entry point"; exempt literal construction uses | hard |
 
 **Hard severity**: Always an AI tell regardless of context.
 **Soft severity**: Context-dependent — may be appropriate in academic or formal writing.
@@ -855,6 +885,7 @@ Patterns added from external sources. Most academic single-words are `soft`
 |--------|------|
 | "rich cultural heritage" | Travel-brochure cliché |
 | "stunning natural beauty" | Soft — acceptable in overt travel writing |
+| "picturesque" | Soft — promotional default |
 
 **Vague attribution / weasel wording** (Wikipedia)
 
@@ -877,11 +908,12 @@ Patterns added from external sources. Most academic single-words are `soft`
 | Words / phrases | Note |
 |-----------------|------|
 | elucidate, delineate, underpin, unveil, seamless, invaluable, noteworthy | Soft — overused style verbs/adjectives |
-| revolutionize, "holds (great) promise", "new avenues", "shed new light" | Hype/discussion-section closers |
+| revolutionize, revolutionizing, "holds (great) promise", "new avenues", "shed new light" | Hype/discussion-section closers |
 | "warrants further investigation", "it should be noted that" | Empty closers / filler |
 | "in recent years", "with the advent of", "taken together," | Formulaic openers/summarizers |
 | "garnered significant/considerable attention" | Manufactured-consensus framing |
 | "a deeper/more nuanced understanding of" | Inflated stand-in for "understanding" |
+| "treasure trove", "ever-evolving", "ever-changing" | Cliche AI vocabulary |
 
 **Sources:** Wikipedia [Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing); Berens & Kobak, "Delving into ChatGPT usage in academic writing," *Science Advances* (2024), [llm-excess-vocab](https://github.com/berenslab/llm-excess-vocab); [hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop).
 

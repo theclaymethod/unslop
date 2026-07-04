@@ -61,6 +61,12 @@ def mask_ignored_spans(text: str, include_quoted: bool = False) -> str:
     return masked
 
 
+def _phrase_pattern(phrase: str) -> re.Pattern[str]:
+    left = r"(?<![a-z0-9_-])" if phrase[0].isalnum() else ""
+    right = r"(?![a-z0-9_-])" if phrase[-1].isalnum() else ""
+    return re.compile(left + re.escape(phrase) + right)
+
+
 # Banned phrases with categories, suggestions, and severity.
 # severity: "hard" = always an AI tell; "soft" = context-dependent
 BANNED_PHRASES: dict[str, dict[str, str | None]] = {
@@ -104,6 +110,8 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
     "underscores the importance": {"category": "significance_inflation", "severity": "hard", "suggestion": "shows, demonstrates"},
     "underscoring the importance": {"category": "significance_inflation", "severity": "hard", "suggestion": "showing"},
     "highlights the importance": {"category": "significance_inflation", "severity": "soft", "suggestion": "shows"},
+    "analysts predict": {"category": "vague_attribution", "severity": "hard", "suggestion": "Name the analysts or cite the forecast."},
+    "what remains clear is": {"category": "generic_conclusion", "severity": "hard", "suggestion": "State the conclusion directly."},
     "treasure trove": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "collection, source"},
     "ever-evolving": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "changing"},
     "ever-changing": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "changing"},
@@ -127,6 +135,8 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
     # Travel-brochure promotional language
     "rich cultural heritage": {"category": "promotional", "severity": "hard", "suggestion": None},
     "stunning natural beauty": {"category": "promotional", "severity": "soft", "suggestion": None},
+    "picturesque": {"category": "promotional", "severity": "soft", "suggestion": None},
+    "iconic": {"category": "promotional", "severity": "soft", "suggestion": None},
 
     # Vague attribution / weasel wording
     "has been described as": {"category": "vague_attribution", "severity": "soft", "suggestion": "Name and cite who described it."},
@@ -177,12 +187,8 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
     # Business jargon
     # ("navigate" and "leverage" alone have legitimate literal/financial senses;
     # they're matched as jargon collocations in STRUCTURAL_PATTERNS instead.)
-    "unpack": {"category": "jargon", "severity": "hard", "suggestion": "explain, examine"},
-    "lean into": {"category": "jargon", "severity": "hard", "suggestion": "accept, embrace"},
-    "landscape": {"category": "jargon", "severity": "soft", "suggestion": "situation, field, market"},
     "game-changer": {"category": "jargon", "severity": "hard", "suggestion": "significant, important"},
     "game changer": {"category": "jargon", "severity": "hard", "suggestion": "significant, important"},
-    "double down": {"category": "jargon", "severity": "hard", "suggestion": "commit, increase"},
     "deep dive": {"category": "jargon", "severity": "hard", "suggestion": "analysis, examination"},
     "take a step back": {"category": "jargon", "severity": "hard", "suggestion": "reconsider, pause"},
     "moving forward": {"category": "jargon", "severity": "hard", "suggestion": "next, from now"},
@@ -197,7 +203,6 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
     "scalable": {"category": "jargon", "severity": "soft", "suggestion": "expandable, growable"},
     "actionable": {"category": "jargon", "severity": "hard", "suggestion": "practical, usable"},
     "ecosystem": {"category": "jargon", "severity": "soft", "suggestion": "environment, system"},
-    "stakeholder": {"category": "jargon", "severity": "hard", "suggestion": "people involved"},
     "touch base": {"category": "jargon", "severity": "hard", "suggestion": "talk, connect"},
     "value-add": {"category": "jargon", "severity": "hard", "suggestion": "benefit, contribution"},
     "thought leader": {"category": "jargon", "severity": "hard", "suggestion": "expert"},
@@ -205,25 +210,21 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
     "cutting-edge": {"category": "jargon", "severity": "hard", "suggestion": "modern, advanced"},
     "delve into": {"category": "jargon", "severity": "hard", "suggestion": "explore, examine, look at"},
     "delve deeper": {"category": "jargon", "severity": "hard", "suggestion": "explore, examine, look at"},
-    "garner": {"category": "jargon", "severity": "hard", "suggestion": "get, earn, attract"},
     "robust": {"category": "jargon", "severity": "soft", "suggestion": "strong, solid, thorough"},
     "comprehensive": {"category": "jargon", "severity": "soft", "suggestion": "full, complete, thorough"},
     "utilize": {"category": "jargon", "severity": "hard", "suggestion": "use"},
     "facilitate": {"category": "jargon", "severity": "hard", "suggestion": "help, enable, run"},
     "spearhead": {"category": "jargon", "severity": "hard", "suggestion": "lead, start, run"},
-    "bolster": {"category": "jargon", "severity": "hard", "suggestion": "support, strengthen"},
     "streamline": {"category": "jargon", "severity": "soft", "suggestion": "simplify, speed up"},
     "multifaceted": {"category": "jargon", "severity": "hard", "suggestion": "complex, varied"},
     # ("harness" and "foster" have literal senses (a horse harness, a foster
     # family); their jargon use is matched as a collocation in STRUCTURAL_PATTERNS.)
     "enhance": {"category": "jargon", "severity": "soft", "suggestion": "improve, strengthen"},
-    "showcase": {"category": "jargon", "severity": "hard", "suggestion": "show, demonstrate"},
     "align with": {"category": "jargon", "severity": "hard", "suggestion": "match, fit, support"},
 
     # Filler phrases
     "at its core": {"category": "filler", "severity": "hard", "suggestion": None},
     "in today's": {"category": "filler", "severity": "hard", "suggestion": None},
-    "it's worth noting": {"category": "filler", "severity": "hard", "suggestion": None},
     "interestingly,": {"category": "filler", "severity": "hard", "suggestion": None},
     "importantly,": {"category": "filler", "severity": "hard", "suggestion": None},
     "crucially,": {"category": "filler", "severity": "hard", "suggestion": None},
@@ -244,7 +245,6 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
     "due to the fact that": {"category": "filler", "severity": "hard", "suggestion": "because"},
     "at this point in time": {"category": "filler", "severity": "hard", "suggestion": "now"},
     "in the event that": {"category": "filler", "severity": "hard", "suggestion": "if"},
-    "it is important to note that": {"category": "filler", "severity": "hard", "suggestion": None},
 
     # Meta-commentary
     "hint:": {"category": "meta", "severity": "hard", "suggestion": None},
@@ -359,7 +359,6 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
     "henceforth": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "from now on"},
     "whereby": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "where, by which"},
     "therein": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "in it, there"},
-    "notwithstanding": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "despite, regardless"},
     "burgeoning": {"category": "ai_vocabulary", "severity": "hard", "suggestion": "growing, expanding"},
     "myriad": {"category": "ai_vocabulary", "severity": "soft", "suggestion": "many, numerous"},
     "plethora": {"category": "ai_vocabulary", "severity": "soft", "suggestion": "many, lots of"},
@@ -401,8 +400,6 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
     "it's a no-brainer": {"category": "performative", "severity": "hard", "suggestion": None},
     "at the forefront of": {"category": "promotional", "severity": "hard", "suggestion": "leading, ahead in"},
     "a testament to": {"category": "significance_inflation", "severity": "hard", "suggestion": "shows, proves"},
-    "the landscape of": {"category": "jargon", "severity": "hard", "suggestion": "cut or use specific domain"},
-    "a game changer": {"category": "jargon", "severity": "hard", "suggestion": "significant, important"},
     "needless to say": {"category": "filler", "severity": "hard", "suggestion": None},
     "navigating the complexities": {"category": "jargon", "severity": "hard", "suggestion": "handling, dealing with"},
     "in an era of": {"category": "filler", "severity": "hard", "suggestion": None},
@@ -516,16 +513,70 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "suggestion": "build, encourage, create"
     },
     {
+        "pattern": r"\bunpack(?:s|ed|ing)?\s+(?:the\s+|this\s+|that\s+|our\s+)?(?:idea|argument|assumption|implication|implications|nuance|meaning|claim|concept|topic|dynamic|why|how|what)\b",
+        "category": "jargon",
+        "severity": "hard",
+        "suggestion": "explain, examine"
+    },
+    {
+        "pattern": r"\blean(?:s|ed|ing)?\s+into\s+(?:the\s+|this\s+|that\s+|our\s+|your\s+)?(?:strength|strengths|opportunity|moment|change|uncertainty|discomfort|messiness|complexity|challenge|future)\b",
+        "category": "jargon",
+        "severity": "hard",
+        "suggestion": "accept, use, emphasize"
+    },
+    {
+        "pattern": r"\bdouble\s+down\s+on\s+(?:the\s+|this\s+|that\s+|our\s+|your\s+)?(?:strategy|approach|investment|bet|commitment|vision|message|plan|position)\b",
+        "category": "jargon",
+        "severity": "hard",
+        "suggestion": "commit, increase"
+    },
+    {
+        "pattern": r"\bshowcas(?:e|es|ed|ing)\s+(?:the\s+|this\s+|that\s+|our\s+|your\s+|their\s+)?(?:team|results|work|value|impact|capabilities|features|strengths|expertise|innovation)\b",
+        "category": "jargon",
+        "severity": "hard",
+        "suggestion": "show, demonstrate"
+    },
+    {
+        "pattern": r"\bbolster(?:s|ed|ing)?\s+(?:the\s+|this\s+|that\s+|our\s+|your\s+)?(?:argument|case|claim|confidence|credibility|support|position|strategy|effort|security)\b",
+        "category": "jargon",
+        "severity": "hard",
+        "suggestion": "support, strengthen"
+    },
+    {
+        "pattern": r"\bgarner(?:s|ed|ing)?\s+(?:significant\s+|considerable\s+|widespread\s+)?(?:attention|support|praise|interest|acclaim|criticism|votes)\b",
+        "category": "jargon",
+        "severity": "hard",
+        "suggestion": "get, earn, attract"
+    },
+    {
+        "pattern": r"\bstakeholders?\b[^.!?\n]{0,50}\b(?:buy-in|alignment|engagement|feedback|input|management)\b|\b(?:buy-in|alignment|engagement)\b[^.!?\n]{0,50}\bstakeholders?\b",
+        "category": "jargon",
+        "severity": "hard",
+        "suggestion": "people involved"
+    },
+    {
+        "pattern": r"\b(?:in\s+)?(?:today's|modern|contemporary|business|marketing|tech|ai|media|education|healthcare|finance|industry)\s+landscape\b|\bthe\s+(?:business|marketing|tech|ai|media|education|healthcare|finance|industry)\s+landscape\s+of\b|\bthe\s+landscape\s+of\s+(?:modern\s+|today's\s+|contemporary\s+)?(?:marketing|business|tech\w*|ai|work|media|education|healthcare|finance|the industry)\b",
+        "category": "jargon",
+        "severity": "hard",
+        "suggestion": "situation, field, market"
+    },
+    {
         "pattern": r"\bload-bearing\s+(?:part|piece|point|claim|idea|insight|assumption|detail|context|constraint|requirement|decision|argument|premise|section|paragraph|sentence|word|term|concept)\b",
         "category": "jargon",
         "severity": "hard",
         "suggestion": "essential, important, necessary"
     },
     {
-        "pattern": r"\bwedge\s+(?:into|for|against|between|to)\b|\bas\s+a\s+wedge\b",
+        "pattern": r"\b(?:our|the|a)\s+wedge\s+into\s+the\s+(?:\w+\s+)?(?:market|enterprise|industry|segment|category|account|vertical)s?\b|\bas\s+a\s+wedge\b",
         "category": "jargon",
         "severity": "hard",
         "suggestion": "opening, angle, advantage, entry point"
+    },
+    {
+        "pattern": r"\b(?:the\s+)?substrate\s+(?:for|of)\s+(?:everything|all|our|the\s+(?:company|business|movement|conversation|debate|work))\b|\bcultural\s+substrate\b",
+        "category": "ai_vocabulary",
+        "severity": "soft",
+        "suggestion": "foundation, base, layer"
     },
     # Promotional "boasts <boastful complement>" (not "boasts a capacity of 50,000").
     {
@@ -550,10 +601,22 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
     },
     # "highlights/emphasizes the need/importance of" — boilerplate significance closer.
     {
-        "pattern": r"\b(?:highlight|emphasiz|reflect)\w*\s+the\s+(?:need|importance)\s+(?:for|of)\b",
+        "pattern": r"\b(?:highlight|emphasiz|reflect|underscor|stress)\w*\s+the\s+(?:need|importance)\s+(?:for|of)\b",
         "category": "significance_inflation",
         "severity": "soft",
         "suggestion": "State the takeaway directly."
+    },
+    {
+        "pattern": r"\bit(?:'s| is)\s+(?:worth noting|(?:also\s+)?important to note)\b",
+        "category": "filler",
+        "severity": "hard",
+        "suggestion": "Cut and state the point directly."
+    },
+    {
+        "pattern": r"\bnotwithstanding\b(?!\s+(?:anything\s+to\s+the\s+contrary|the\s+foregoing|any(?:thing)?\s+(?:other\s+)?provision|section|clause|subsection|anything\s+in))",
+        "category": "ai_vocabulary",
+        "severity": "soft",
+        "suggestion": "despite, regardless"
     },
     # Reader-addressing essay frame ("In this article, we will explore …").
     {
@@ -564,7 +627,7 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
     },
     # Inflated "serves/stands as a <significance noun>" (not "serves as a kitchen").
     {
-        "pattern": r"\b(?:serves|stands|stood)\s+as\s+(?:a|an|the)\s+(?:testament|reminder|symbol|beacon|foundation|cornerstone|gateway|catalyst|bridge|hub|springboard|window|monument|hallmark|blueprint|cautionary|stark|powerful|shining|prime example|case study|model for)\b",
+        "pattern": r"\b(?:acts|serves|stands|stood)\s+as\s+(?:a|an|the)\s+(?:testament|reminder|symbol|beacon|foundation|cornerstone|gateway|catalyst|bridge|hub|springboard|window|monument|hallmark|blueprint|cautionary|stark|powerful|shining|prime example|case study|model for)\b",
         "category": "copula_avoidance",
         "severity": "hard",
         "suggestion": "Use 'is', and state the specific fact."
@@ -617,10 +680,16 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "suggestion": "'The ___ loop.' is a dramatic fragment. Rewrite as a complete sentence or cut."
     },
     {
-        "pattern": r"\b\w+\s+(?:isn'?t|aren'?t|is\s+not|are\s+not)\s+[^.\n]{1,80}\.\s+it'?s\s+[^.\n]{1,120}",
+        "pattern": r"\b(?:\w+\s+(?:isn'?t|aren'?t|is\s+not|are\s+not)|(?:it|this|that)'s\s+not)\s+[^.\n]{1,80}\.\s+it'?s\s+[^.\n]{1,120}",
         "category": "binary_contrast",
         "severity": "hard",
         "suggestion": "'X isn't Y. It's Z.' is a formulaic contrast. State Z directly."
+    },
+    {
+        "pattern": r"\b(?:it|this|that)'s not\b[^.!?\n]{1,60}[.!?]\s+(?:it|this|that)'s not\b",
+        "category": "negative_listing",
+        "severity": "hard",
+        "suggestion": "Replace the repeated negative listing with the affirmative point."
     },
     {
         "pattern": r"\b\w+\s+things\.\s+one\s+thing\b",
@@ -671,10 +740,16 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "suggestion": "State what it's about directly"
     },
     {
-        "pattern": r"it'?s not just .+?,?\s*it'?s\s",
+        "pattern": r"\b(?:it'?s not|this is not|that'?s not|isn'?t|wasn'?t|aren'?t|weren'?t)\s+just\b[^.;!?\n]{1,60}[,;—–-]\s*(?:it'?s|it (?:is|was)|they'?re|that'?s)\b",
         "category": "negative_parallelism",
         "severity": "hard",
         "suggestion": "State both points directly"
+    },
+    {
+        "pattern": r"\bnot merely\s+[^,.\n]{1,60},?\s+but\b",
+        "category": "negative_parallelism",
+        "severity": "hard",
+        "suggestion": "State the affirmative point directly."
     },
     {
         "pattern": r"\bnot\s+[^,\n]{1,40},\s+not\s+[^,\n]{1,40},\s+(?:just|but)\s",
@@ -727,7 +802,7 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
 
     # Em-dash overuse
     {
-        "pattern": r"—[^—]*—",
+        "pattern": r"—(?:(?!\n\n)[^—])*—",
         "category": "em_dash_overuse",
         "severity": "hard",
         "suggestion": "Two+ em-dashes in a stretch is the tell. Keep at most one appositive dash; use periods/commas for the rest."
@@ -759,7 +834,7 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
 
     # Excessive exclamation marks
     {
-        "pattern": r"!\s+[^.]*!",
+        "pattern": r"!(?:(?!\n\n)\s)+(?:(?!\n\n)[^.])*!",
         "category": "exclamation_overuse",
         "severity": "soft",
         "suggestion": "Multiple exclamation marks signal AI enthusiasm. Use sparingly."
@@ -794,6 +869,43 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "severity": "hard",
         "suggestion": "State why it matters directly."
     },
+    {
+        "pattern": r"(?im)(?:^|[.!?]\s+)(?:why does this matter|what's the (?:real )?takeaway|why this matters|so what does (?:this|that) mean)\b[^.!?\n]{0,40}[?:]",
+        "category": "rhetorical_question",
+        "severity": "soft",
+        "suggestion": "Answer directly instead of teeing up a self-Q&A."
+    },
+    {
+        "pattern": r"(?:^|[.!?]\s+)the (?:result|best part|catch|kicker|upshot|takeaway|twist|bottom line|payoff|difference)\?",
+        "category": "rhetorical_question",
+        "severity": "hard",
+        "suggestion": "State the result directly."
+    },
+    {
+        "pattern": r"\b(?:could|may|might|can)\s+(?:potentially|possibly)\b",
+        "category": "hedge",
+        "severity": "soft",
+        "suggestion": "Drop the redundant hedge."
+    },
+    {
+        "pattern": r"(?m)^\s*whether you'?re (?:a |an |just )?.{1,40}\bor (?:a |an |just )?",
+        "category": "reader_addressing",
+        "severity": "soft",
+        "suggestion": "Cut the audience-flattering opener."
+    },
+    {
+        "pattern": r"(?m)^#+\s*looking ahead\s*$",
+        "category": "conclusion_scaffold",
+        "severity": "soft",
+        "suggestion": "Use a specific section title."
+    },
+    {
+        "pattern": r"(?m)^(?:\s*#+\s*|\s*[-*]\s+|\s*)[\U0001F300-\U0001FAFF✀-➿☀-⛿]️?\s+\w",
+        "category": "formatting",
+        "severity": "soft",
+        "suggestion": "Remove repeated emoji section-header decoration.",
+        "min_matches": "2"
+    },
 ]
 
 
@@ -805,11 +917,8 @@ def scan_for_violations(text: str, include_quoted: bool = False) -> list[Violati
 
     # Check banned phrases
     for phrase, info in BANNED_PHRASES.items():
-        start = 0
-        while True:
-            pos = text_lower.find(phrase, start)
-            if pos == -1:
-                break
+        for match in _phrase_pattern(phrase).finditer(text_lower):
+            pos = match.start()
 
             # Calculate line number and column
             line_num = text[:pos].count('\n') + 1
@@ -832,11 +941,13 @@ def scan_for_violations(text: str, include_quoted: bool = False) -> list[Violati
                 "suggestion": info["suggestion"]
             })
 
-            start = pos + 1
-
     # Check structural patterns
     for pattern_info in STRUCTURAL_PATTERNS:
-        for match in re.finditer(pattern_info["pattern"], text_lower):
+        matches = list(re.finditer(pattern_info["pattern"], text_lower))
+        min_matches = int(pattern_info.get("min_matches", "1"))
+        if len(matches) < min_matches:
+            continue
+        for match in matches:
             pos = match.start()
             line_num = text[:pos].count('\n') + 1
             line_start = text.rfind('\n', 0, pos) + 1
@@ -856,6 +967,23 @@ def scan_for_violations(text: str, include_quoted: bool = False) -> list[Violati
                 "context": context[:100] + "..." if len(context) > 100 else context,
                 "suggestion": pattern_info["suggestion"]
             })
+
+    filtered: list[Violation] = []
+    spans: list[tuple[int, int]] = []
+    for v in violations:
+        start = sum(len(line) + 1 for line in text.splitlines()[:v["line_number"] - 1]) + v["column"] - 1
+        end = start + len(v["phrase"])
+        spans.append((start, end))
+
+    for i, v in enumerate(violations):
+        start, end = spans[i]
+        contained = any(
+            i != j and other_start <= start and end <= other_end and (other_end - other_start) > (end - start)
+            for j, (other_start, other_end) in enumerate(spans)
+        )
+        if not contained:
+            filtered.append(v)
+    violations = filtered
 
     # Sort by line number, then column
     violations.sort(key=lambda v: (v["line_number"], v["column"]))

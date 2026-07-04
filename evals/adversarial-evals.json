@@ -1451,6 +1451,1265 @@
       ]
     },
     {
+      "id": "FP-15",
+      "category": "scanner_false_positive",
+      "title": "Garner, North Carolina is a place name",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The plant is in Garner, North Carolina, near Raleigh.",
+      "failure_mode": "Overbroad scanner pattern flags legitimate literal/domain prose.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-16",
+      "category": "scanner_false_positive",
+      "title": "Unpacked boxes is literal moving prose",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "We unpacked the boxes the day after the move.",
+      "failure_mode": "Overbroad scanner pattern flags legitimate literal/domain prose.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-17",
+      "category": "scanner_false_positive",
+      "title": "A glass showcase is a display case",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The medals sat in a glass showcase near the entrance.",
+      "failure_mode": "Overbroad scanner pattern flags legitimate literal/domain prose.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-18",
+      "category": "scanner_false_positive",
+      "title": "Bolster pillow is literal bedding",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "She propped the book against a bolster pillow.",
+      "failure_mode": "Overbroad scanner pattern flags legitimate literal/domain prose.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-19",
+      "category": "scanner_false_positive",
+      "title": "Double down is literal blackjack play",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The basic strategy card says to double down on an eleven against a dealer six.",
+      "failure_mode": "Overbroad scanner pattern flags legitimate literal/domain prose.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-20",
+      "category": "scanner_false_positive",
+      "title": "Leaning into a corner is physical motion",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Riders lean into the corner before the descent.",
+      "failure_mode": "Overbroad scanner pattern flags legitimate literal/domain prose.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-21",
+      "category": "scanner_false_positive",
+      "title": "Stakeholder is a legal escrow role",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Each stakeholder must be notified before the escrow agent releases funds.",
+      "failure_mode": "Overbroad scanner pattern flags legitimate literal/domain prose.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "REC-08",
+      "category": "scanner_recall",
+      "title": "Unpack abstract implication still flags",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Let's unpack the implications before we decide.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "unpack"
+        }
+      ]
+    },
+    {
+      "id": "REC-09",
+      "category": "scanner_recall",
+      "title": "Showcase abstract results still flags",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The dashboard showcases the team's impressive results.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "showcase"
+        }
+      ]
+    },
+    {
+      "id": "REC-10",
+      "category": "scanner_recall",
+      "title": "Bolster abstract argument still flags",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "This evidence will bolster the argument.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "bolster"
+        }
+      ]
+    },
+    {
+      "id": "REC-11",
+      "category": "scanner_recall",
+      "title": "Garner support still flags",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The proposal could garner support from voters.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "garner"
+        }
+      ]
+    },
+    {
+      "id": "REC-12",
+      "category": "scanner_recall",
+      "title": "Double down on strategy still flags",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "We should double down on the strategy.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "double down"
+        }
+      ]
+    },
+    {
+      "id": "REC-13",
+      "category": "scanner_recall",
+      "title": "Lean into strengths still flags",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The team should lean into our strengths.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "lean into"
+        }
+      ]
+    },
+    {
+      "id": "FP-22",
+      "category": "scanner_false_positive",
+      "title": "Pivotal moment does not substring-match pivot",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "It was a pivotal moment.",
+      "failure_mode": "Overbroad scanner pattern flags legitimate literal/domain prose.",
+      "correct_behavior": "One violation for pivotal moment, with no separate pivot substring hit.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "pivotal moment"
+        },
+        {
+          "type": "stdout_not_contains",
+          "value": "\"phrase\": \"pivot\""
+        }
+      ]
+    },
+    {
+      "id": "FN-07",
+      "category": "scanner_false_negative",
+      "title": "Wh-opener self-QA flags why does this matter",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Why does this matter? Because the costs compound over time.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "why does this matter"
+        }
+      ]
+    },
+    {
+      "id": "FN-08",
+      "category": "scanner_false_negative",
+      "title": "Wh-opener self-QA flags takeaway question",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "What's the takeaway? Ship weekly.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "what's the takeaway"
+        }
+      ]
+    },
+    {
+      "id": "FN-09",
+      "category": "scanner_false_negative",
+      "title": "Wh-opener self-QA flags why this matters colon",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Why this matters: the budget doubles next year.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "why this matters"
+        }
+      ]
+    },
+    {
+      "id": "FP-23",
+      "category": "scanner_false_positive",
+      "title": "Embedded why-this-matters clause is not self-QA",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "She asked why this matters to voters during the hearing.",
+      "failure_mode": "Overbroad scanner pattern flags legitimate literal/domain prose.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FN-10",
+      "category": "scanner_false_negative",
+      "title": "Contraction negative listing flags repeated It is not",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "It's not the money. It's not the fame. It's the craft that keeps them coming back year after year.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "it's not"
+        }
+      ]
+    },
+    {
+      "id": "FP-24",
+      "category": "scanner_false_positive",
+      "title": "It is not clear followed by unrelated sentence is not negative listing",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "It's not clear whether the vote will pass. The senate returns Monday.",
+      "failure_mode": "Overbroad scanner pattern flags legitimate literal/domain prose.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FN-11",
+      "category": "scanner_false_negative",
+      "title": "Negative parallelism catches is not just variant",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "This framework isn't just fast, it's a fundamental rethinking.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "isn't just"
+        }
+      ]
+    },
+    {
+      "id": "FN-12",
+      "category": "scanner_false_negative",
+      "title": "Negative parallelism catches was not just variant",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The migration wasn't just an upgrade, it was a transformation.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "wasn't just"
+        }
+      ]
+    },
+    {
+      "id": "FN-13",
+      "category": "scanner_false_negative",
+      "title": "Negative parallelism catches are not just variant",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "They aren't just features, they're commitments.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "aren't just"
+        }
+      ]
+    },
+    {
+      "id": "FP-25",
+      "category": "scanner_false_positive",
+      "title": "Non-parallel not-just clause is safe",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "He isn't just a lawyer.",
+      "failure_mode": "Overbroad scanner pattern flags legitimate literal/domain prose.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-26",
+      "category": "scanner_false_positive",
+      "title": "Literal wedge into kerf is construction prose",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Drive the wedge into the kerf to keep the saw from binding.",
+      "failure_mode": "Overbroad scanner pattern flags legitimate literal/domain prose.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-27",
+      "category": "scanner_false_positive",
+      "title": "Literal wedge between logs is construction prose",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "He hammered a wedge between the logs to split them.",
+      "failure_mode": "Overbroad scanner pattern flags legitimate literal/domain prose.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FN-14",
+      "category": "scanner_false_negative",
+      "title": "It is worth noting flags expanded form",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "It is worth noting that the study was small.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "it is worth noting"
+        }
+      ]
+    },
+    {
+      "id": "FN-15",
+      "category": "scanner_false_negative",
+      "title": "It is important to note flags contraction form",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "It's important to note that results vary.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "it's important to note"
+        }
+      ]
+    },
+    {
+      "id": "FN-16",
+      "category": "scanner_false_negative",
+      "title": "Important to note flags without that",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "It is important to note the deadline.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "it is important to note"
+        }
+      ]
+    },
+    {
+      "id": "FP-28",
+      "category": "scanner_false_positive",
+      "title": "Legal notwithstanding boilerplate is exempt",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Notwithstanding anything to the contrary in Section 4, Buyer may assign this Agreement.",
+      "failure_mode": "Overbroad scanner pattern flags legitimate literal/domain prose.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "REC-14",
+      "category": "scanner_recall",
+      "title": "Conversational notwithstanding still flags",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Notwithstanding the delay, this launch is a game changer.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "notwithstanding"
+        }
+      ]
+    },
+    {
+      "id": "FP-29",
+      "category": "scanner_false_positive",
+      "title": "Literal landscape of a place is exempt",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The surveyor painted the landscape of the Hudson Valley.",
+      "failure_mode": "Overbroad scanner pattern flags legitimate literal/domain prose.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "REC-15",
+      "category": "scanner_recall",
+      "title": "Marketing landscape still flags",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "In today's marketing landscape, teams chase attention.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "landscape"
+        }
+      ]
+    },
+    {
+      "id": "FN-17",
+      "category": "scanner_false_negative",
+      "title": "Cliffhanger fragment question flags result",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The result? A 40% drop in latency.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "the result?"
+        }
+      ]
+    },
+    {
+      "id": "FP-30",
+      "category": "scanner_false_positive",
+      "title": "Genuine interrogative result question is safe",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "What was the result? The clerk entered it into the docket.",
+      "failure_mode": "Overbroad scanner pattern flags legitimate literal/domain prose.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FN-18",
+      "category": "scanner_false_negative",
+      "title": "Redundant modal potentially stack flags",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "This approach could potentially improve outcomes.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "could potentially"
+        }
+      ]
+    },
+    {
+      "id": "FP-31",
+      "category": "scanner_false_positive",
+      "title": "Plain medical hedge remains safe",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The medication may cause drowsiness, and the dose could vary by patient.",
+      "failure_mode": "Overbroad scanner pattern flags legitimate literal/domain prose.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FN-19",
+      "category": "scanner_false_negative",
+      "title": "Whether you are audience opener flags",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Whether you're a beginner or an expert, this guide helps.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "whether you're"
+        }
+      ]
+    },
+    {
+      "id": "FP-32",
+      "category": "scanner_false_positive",
+      "title": "Legit conditional whether you are eligible is safe",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Whether you're eligible depends on income and residency.",
+      "failure_mode": "Overbroad scanner pattern flags legitimate literal/domain prose.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "DET-08",
+      "category": "scanner_detection",
+      "title": "Single game changer occurrence counts once",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The striker was a game changer in the second half.",
+      "failure_mode": "Overlapping phrase entries double-count one occurrence.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "game changer"
+        }
+      ]
+    },
+    {
+      "id": "FN-20",
+      "category": "scanner_false_negative",
+      "title": "Repeated emoji section headers flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "🚀 Getting Started\n\n🔧 Configuration\n\n✨ Advanced Features",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "🚀"
+        }
+      ]
+    },
+    {
+      "id": "FP-33",
+      "category": "scanner_false_positive",
+      "title": "Single emoji in body text is safe",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The launch went well 🚀 and the team wrote up the notes.",
+      "failure_mode": "Overbroad scanner pattern flags legitimate literal/domain prose.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-34",
+      "category": "scanner_false_positive",
+      "title": "One em dash per paragraph is safe",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The first test ran clean — no failures.\n\nWeeks later the second run finished — same result.\n",
+      "failure_mode": "Overbroad scanner pattern flags legitimate literal/domain prose.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "REC-16",
+      "category": "scanner_recall",
+      "title": "Two em dashes in one paragraph still flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The results — all forty cases — were archived.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "—"
+        }
+      ]
+    },
+    {
+      "id": "DET-09",
+      "category": "scanner_detection",
+      "title": "Underscores the need for flags",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "This failure underscores the need for independent review.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "underscores the need for"
+        }
+      ]
+    },
+    {
+      "id": "DET-10",
+      "category": "scanner_detection",
+      "title": "Metaphorical substrate flags",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The protocol became the substrate for everything the company built afterward.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "substrate for everything"
+        }
+      ]
+    },
+    {
+      "id": "FP-35",
+      "category": "scanner_false_positive",
+      "title": "Silicon substrate is literal electronics prose",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The silicon substrate cracked during wafer inspection.",
+      "failure_mode": "Overbroad scanner pattern flags legitimate literal/domain prose.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "DET-11",
+      "category": "scanner_detection",
+      "title": "Analysts predict vague attribution flags",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Analysts predict the market will contract next quarter.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "analysts predict"
+        }
+      ]
+    },
+    {
+      "id": "DET-12",
+      "category": "scanner_detection",
+      "title": "What remains clear generic conclusion flags",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "What remains clear is that adoption depends on price.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "what remains clear is"
+        }
+      ]
+    },
+    {
+      "id": "DET-13",
+      "category": "scanner_detection",
+      "title": "Not merely but negative parallelism flags",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "This is not merely a scheduling tool, but a complete rethinking of work.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "not merely"
+        }
+      ]
+    },
+    {
+      "id": "DET-14",
+      "category": "scanner_detection",
+      "title": "Acts as inflated copula flags",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The foundation acts as a testament to their ambition.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "acts as a testament"
+        }
+      ]
+    },
+    {
+      "id": "DET-15",
+      "category": "scanner_detection",
+      "title": "Looking Ahead header flags",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "## Looking Ahead\n\nThe committee expects more hearings.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "looking ahead"
+        }
+      ]
+    },
+    {
+      "id": "DET-16",
+      "category": "scanner_detection",
+      "title": "Iconic promotional descriptor flags",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The bridge is an iconic symbol of the city.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "iconic"
+        }
+      ]
+    },
+    {
+      "id": "DET-17",
+      "category": "scanner_detection",
+      "title": "Picturesque promotional descriptor flags",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The village is picturesque in every season.",
+      "failure_mode": "Scanner misses a documented AI-writing tell or recall control.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "picturesque"
+        }
+      ]
+    },
+    {
+      "id": "FP-36",
+      "category": "scanner_false_positive",
+      "title": "Merely decorative hinge does not trigger not-merely pattern",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The hinge is merely decorative but sturdy enough for the cabinet.",
+      "failure_mode": "Overbroad scanner pattern flags legitimate literal/domain prose.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "DOC-01",
+      "category": "scanner_catalog_parity",
+      "title": "Banned phrase keys are documented in taboo catalog",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_taboo_parity.py"
+      ],
+      "stdin": "",
+      "failure_mode": "Scanner/catalog drift lets agents miss deterministic scanner entries.",
+      "correct_behavior": "Assertions encode the intended scanner behavior.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
       "id": "SKILL-DONOHARM-01",
       "category": "do_no_harm",
       "title": "Already-human text: do (almost) nothing",
@@ -1924,6 +3183,118 @@
         {
           "type": "judge",
           "check": "Meaning preserved: market readiness is sensed in behavior, not manufactured."
+        }
+      ]
+    },
+    {
+      "id": "FP-37",
+      "category": "scanner_false_positive",
+      "title": "Exclamations in separate paragraphs are not stacked enthusiasm",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "We shipped it!\n\nMonths of work paid off!",
+      "failure_mode": "exclamation_overuse regex let \\s+ consume the paragraph break, so single exclamations in adjacent paragraphs counted as a stacked pair.",
+      "correct_behavior": "No violations: one exclamation per paragraph is normal emphasis.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "REC-17",
+      "category": "scanner_recall",
+      "title": "Stacked exclamations in one paragraph still flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "We shipped it! Months of work paid off!",
+      "failure_mode": "Fixing the cross-paragraph leak must not drop same-paragraph detection.",
+      "correct_behavior": "Flagged as exclamation_overuse.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "exclamation_overuse"
+        }
+      ]
+    },
+    {
+      "id": "FP-38",
+      "category": "scanner_false_positive",
+      "title": "A growth substrate for a cell culture is lab equipment, not metaphor",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "We prepared a growth substrate for the culture and incubated it overnight.",
+      "failure_mode": "The substrate metaphor gate included 'culture' in its complement list, colliding with literal microbiology.",
+      "correct_behavior": "No violations: literal biology usage stays clean.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "REC-18",
+      "category": "scanner_recall",
+      "title": "Metaphorical 'cultural substrate' still flags after the biology carve-out",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Trust is the cultural substrate of every high-performing team.",
+      "failure_mode": "Narrowing the substrate gate must not gut the metaphor detection.",
+      "correct_behavior": "Flagged as ai_vocabulary (soft).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "cultural substrate"
+        }
+      ]
+    },
+    {
+      "id": "FN-21",
+      "category": "scanner_false_negative",
+      "title": "Long-clause 'That's not X. That's not Y.' listing is caught by the dedicated pattern",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "That's not a pricing problem for our enterprise team. That's not a marketing gap in the funnel. That's a trust deficit.",
+      "failure_mode": "Long that's-subject listings are outside binary_contrast's reach; only the dedicated negative_listing pattern catches them, and it had no independent eval coverage.",
+      "correct_behavior": "Flagged with category negative_listing.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "negative_listing"
         }
       ]
     }
