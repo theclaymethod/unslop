@@ -1451,6 +1451,536 @@
       ]
     },
     {
+      "id": "PRES-10",
+      "category": "fact_preservation",
+      "title": "150 km -> 150 miles is a unit swap",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/validate_preservation.py",
+        "evals/fixtures/wp3_unit_swap_original.txt",
+        "evals/fixtures/wp3_unit_swap_transformed.txt"
+      ],
+      "failure_mode": "Measurement validation matched only the digits, so a unit swap passed.",
+      "correct_behavior": "missing_count >= 1.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "missing_count",
+          "gte": 1
+        }
+      ]
+    },
+    {
+      "id": "PRES-11",
+      "category": "fact_preservation",
+      "title": "150 km -> 150 kilometers is preserved",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/validate_preservation.py",
+        "evals/fixtures/wp3_unit_synonym_original.txt",
+        "evals/fixtures/wp3_unit_synonym_transformed.txt"
+      ],
+      "failure_mode": "Unit-aware measurement validation must allow equivalent unit spellings.",
+      "correct_behavior": "missing_count 0.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "missing_count",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "PRES-12",
+      "category": "fact_preservation",
+      "title": "5 million users -> 5 billion users is a magnitude swap",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/validate_preservation.py",
+        "evals/fixtures/wp3_magnitude_swap_original.txt",
+        "evals/fixtures/wp3_magnitude_swap_transformed.txt"
+      ],
+      "failure_mode": "Magnitude words without currency were ignored.",
+      "correct_behavior": "missing_count >= 1.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "missing_count",
+          "gte": 1
+        }
+      ]
+    },
+    {
+      "id": "PRES-13",
+      "category": "fact_preservation",
+      "title": "5 million users -> 5,000,000 users is preserved",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/validate_preservation.py",
+        "evals/fixtures/wp3_magnitude_numeric_original.txt",
+        "evals/fixtures/wp3_magnitude_numeric_transformed.txt"
+      ],
+      "failure_mode": "Magnitude-aware validation must not false-miss equivalent numeric formatting.",
+      "correct_behavior": "missing_count 0.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "missing_count",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "PRES-14",
+      "category": "fact_preservation",
+      "title": "10-20% -> between 10% and 20% is preserved",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/validate_preservation.py",
+        "evals/fixtures/wp3_range_reword_original.txt",
+        "evals/fixtures/wp3_range_reword_transformed.txt"
+      ],
+      "failure_mode": "Range validation required the original punctuation.",
+      "correct_behavior": "missing_count 0.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "missing_count",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "PRES-15",
+      "category": "fact_preservation",
+      "title": "10-20% -> 10% loses the upper bound",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/validate_preservation.py",
+        "evals/fixtures/wp3_range_truncated_original.txt",
+        "evals/fixtures/wp3_range_truncated_transformed.txt"
+      ],
+      "failure_mode": "Range endpoint checks must still catch truncation.",
+      "correct_behavior": "missing_count >= 1.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "missing_count",
+          "gte": 1
+        }
+      ]
+    },
+    {
+      "id": "PRES-16",
+      "category": "fact_preservation",
+      "title": "Q3 2024 -> third quarter of 2024 is preserved",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/validate_preservation.py",
+        "evals/fixtures/wp3_quarter_reword_original.txt",
+        "evals/fixtures/wp3_quarter_reword_transformed.txt"
+      ],
+      "failure_mode": "Quarter validation required Q-number syntax.",
+      "correct_behavior": "missing_count 0.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "missing_count",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "PRES-17",
+      "category": "fact_preservation",
+      "title": "Q3 2024 -> Q4 2024 is a changed quarter",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/validate_preservation.py",
+        "evals/fixtures/wp3_quarter_swap_original.txt",
+        "evals/fixtures/wp3_quarter_swap_transformed.txt"
+      ],
+      "failure_mode": "Quarter reword support must still catch changed quarters.",
+      "correct_behavior": "missing_count >= 1.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "missing_count",
+          "gte": 1
+        }
+      ]
+    },
+    {
+      "id": "PRES-18",
+      "category": "fact_preservation",
+      "title": "3:00 PM -> 3 PM is preserved",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/validate_preservation.py",
+        "evals/fixtures/wp3_time_reword_original.txt",
+        "evals/fixtures/wp3_time_reword_transformed.txt"
+      ],
+      "failure_mode": "Time validation required the original minute formatting.",
+      "correct_behavior": "missing_count 0.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "missing_count",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "PRES-19",
+      "category": "fact_preservation",
+      "title": "3:00 PM -> 4 PM is a changed time",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/validate_preservation.py",
+        "evals/fixtures/wp3_time_swap_original.txt",
+        "evals/fixtures/wp3_time_swap_transformed.txt"
+      ],
+      "failure_mode": "Time normalization must still catch changed hours.",
+      "correct_behavior": "missing_count >= 1.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "missing_count",
+          "gte": 1
+        }
+      ]
+    },
+    {
+      "id": "PRES-20",
+      "category": "fact_preservation",
+      "title": "Proper noun mega-span reorder is preserved",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/validate_preservation.py",
+        "evals/fixtures/wp3_proper_reorder_original.txt",
+        "evals/fixtures/wp3_proper_reorder_transformed.txt"
+      ],
+      "failure_mode": "Proper-noun extraction glued adjacent capitalized phrases and failed harmless reorders.",
+      "correct_behavior": "missing_count 0.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "missing_count",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "PRES-21",
+      "category": "fact_preservation",
+      "title": "Sarah Chen -> Sara Chen is a misspelling",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/validate_preservation.py",
+        "evals/fixtures/wp3_proper_misspell_original.txt",
+        "evals/fixtures/wp3_proper_misspell_transformed.txt"
+      ],
+      "failure_mode": "Proper-noun fallback must still catch misspellings.",
+      "correct_behavior": "missing_count >= 1.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "missing_count",
+          "gte": 1
+        }
+      ]
+    },
+    {
+      "id": "PRES-22",
+      "category": "fact_preservation",
+      "title": "Changed curly-quoted quote is missing",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/validate_preservation.py",
+        "evals/fixtures/wp3_curly_quote_changed_original.txt",
+        "evals/fixtures/wp3_curly_quote_changed_transformed.txt"
+      ],
+      "failure_mode": "Curly-quoted direct quotations were not extracted.",
+      "correct_behavior": "missing_count >= 1.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "missing_count",
+          "gte": 1
+        }
+      ]
+    },
+    {
+      "id": "PRES-23",
+      "category": "fact_preservation",
+      "title": "Straight quote -> curly quote restyle is preserved",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/validate_preservation.py",
+        "evals/fixtures/wp3_curly_quote_restyle_original.txt",
+        "evals/fixtures/wp3_curly_quote_restyle_transformed.txt"
+      ],
+      "failure_mode": "Quote normalization must not false-miss typography-only quote restyling.",
+      "correct_behavior": "missing_count 0.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "missing_count",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "SEM-03",
+      "category": "fact_preservation",
+      "title": "may -> will emits modality-strengthening warning",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/validate_preservation.py",
+        "evals/fixtures/wp3_modal_strengthen_original.txt",
+        "evals/fixtures/wp3_modal_strengthen_transformed.txt"
+      ],
+      "failure_mode": "Semantic warnings missed de-hedging into certainty.",
+      "correct_behavior": "Warning names strengthened hedging.",
+      "assertions": [
+        {
+          "type": "stdout_contains",
+          "value": "Hedged claim may have been strengthened"
+        }
+      ]
+    },
+    {
+      "id": "SEM-04",
+      "category": "fact_preservation",
+      "title": "Preserved may does not warn",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/validate_preservation.py",
+        "evals/fixtures/wp3_modal_survives_original.txt",
+        "evals/fixtures/wp3_modal_survives_transformed.txt"
+      ],
+      "failure_mode": "Modality warning must not fire when the hedge survives.",
+      "correct_behavior": "No strengthening warning.",
+      "assertions": [
+        {
+          "type": "stdout_not_contains",
+          "value": "Hedged claim may have been strengthened"
+        }
+      ]
+    },
+    {
+      "id": "SEM-05",
+      "category": "fact_preservation",
+      "title": "Dropped exception marker emits warning",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/validate_preservation.py",
+        "evals/fixtures/wp3_exception_dropped_original.txt",
+        "evals/fixtures/wp3_exception_dropped_transformed.txt"
+      ],
+      "failure_mode": "Semantic warnings missed dropped exception markers like except.",
+      "correct_behavior": "Conditional warning is emitted.",
+      "assertions": [
+        {
+          "type": "stdout_contains",
+          "value": "Conditional count dropped"
+        }
+      ]
+    },
+    {
+      "id": "SEM-06",
+      "category": "fact_preservation",
+      "title": "--strict promotes semantic warnings to exit 1",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/validate_preservation.py",
+        "--strict",
+        "evals/fixtures/wp3_strict_neg_original.txt",
+        "evals/fixtures/wp3_strict_neg_transformed.txt"
+      ],
+      "failure_mode": "Semantic warnings were advisory only with no strict gate.",
+      "correct_behavior": "Exit 1 when strict and semantic warning is present.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 1
+        },
+        {
+          "type": "stdout_contains",
+          "value": "Negation count dropped"
+        }
+      ]
+    },
+    {
+      "id": "SEM-07",
+      "category": "fact_preservation",
+      "title": "Default semantic warnings remain non-fatal",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/validate_preservation.py",
+        "evals/fixtures/wp3_strict_neg_original.txt",
+        "evals/fixtures/wp3_strict_neg_transformed.txt"
+      ],
+      "failure_mode": "Default behavior should remain warning-only for semantic drift.",
+      "correct_behavior": "Exit 0 with warning present.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "Negation count dropped"
+        }
+      ]
+    },
+    {
+      "id": "AS-05",
+      "category": "anti_slop_register",
+      "title": "Readability flags em-dash staccato fragments",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/readability_metrics.py"
+      ],
+      "stdin": "Building products is hard — not the technology — the people.",
+      "failure_mode": "Staccato detection only split on period boundaries.",
+      "correct_behavior": "Output names the staccato cadence.",
+      "assertions": [
+        {
+          "type": "stdout_contains",
+          "value": "Staccato"
+        }
+      ]
+    },
+    {
+      "id": "ROB-09",
+      "category": "robustness",
+      "title": "Sentence splitter handles closing quotes",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/readability_metrics.py"
+      ],
+      "stdin": "The launch went well. \"Did the metrics hold?\" asked Priya. \"They did,\" said Tom. \"Retention is up nine percent and churn is flat.\" The team celebrated with a quiet dinner near the office.",
+      "failure_mode": "Sentence splitting missed terminators followed by closing quotes.",
+      "correct_behavior": "sentence_count >= 4 and no long-average-sentence warning.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "sentence_count",
+          "gte": 4
+        },
+        {
+          "type": "stdout_not_contains",
+          "value": "Long average sentence length"
+        }
+      ]
+    },
+    {
+      "id": "PRES-24",
+      "category": "fact_preservation",
+      "title": "and/or -> or is not a missing API endpoint",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/validate_preservation.py",
+        "evals/fixtures/wp3_and_or_original.txt",
+        "evals/fixtures/wp3_and_or_transformed.txt"
+      ],
+      "failure_mode": "API endpoint regex extracted '/or' from and/or.",
+      "correct_behavior": "missing_count 0.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "missing_count",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "PRES-25",
+      "category": "fact_preservation",
+      "title": "Dropping /api/v2/users still fails",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/validate_preservation.py",
+        "evals/fixtures/wp3_api_drop_original.txt",
+        "evals/fixtures/wp3_api_drop_transformed.txt"
+      ],
+      "failure_mode": "Tightening endpoint extraction must still catch real API paths.",
+      "correct_behavior": "missing_count >= 1.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "missing_count",
+          "gte": 1
+        }
+      ]
+    },
+    {
+      "id": "ROB-10",
+      "category": "robustness",
+      "title": "Pure sentence reorder is not excessive change",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/diff_check.py",
+        "evals/fixtures/wp3_reorder_original.txt",
+        "evals/fixtures/wp3_reorder_transformed.txt"
+      ],
+      "failure_mode": "Diff check counted moved blocks as delete plus insert.",
+      "correct_behavior": "excessive_change false.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "excessive_change",
+          "equals": false
+        }
+      ]
+    },
+    {
+      "id": "ROB-11",
+      "category": "robustness",
+      "title": "Genuine rewrite still counts as excessive change",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/diff_check.py",
+        "evals/fixtures/wp3_overedit_original.txt",
+        "evals/fixtures/wp3_overedit_transformed.txt"
+      ],
+      "failure_mode": "Reorder handling must not gut the over-edit gate.",
+      "correct_behavior": "excessive_change true.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "excessive_change",
+          "equals": true
+        }
+      ]
+    },
+    {
       "id": "SKILL-DONOHARM-01",
       "category": "do_no_harm",
       "title": "Already-human text: do (almost) nothing",
@@ -1924,6 +2454,51 @@
         {
           "type": "judge",
           "check": "Meaning preserved: market readiness is sensed in behavior, not manufactured."
+        }
+      ]
+    },
+    {
+      "id": "PRES-26",
+      "category": "fact_preservation",
+      "title": "Expanding GB/hr abbreviations is a faithful rewrite, not a lost fact",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/validate_preservation.py",
+        "evals/fixtures/wp3_unit_family_original.txt",
+        "evals/fixtures/wp3_unit_family_transformed.txt"
+      ],
+      "failure_mode": "_UNIT_SYNONYMS only covered length/mass/temperature, so data-size and time units ('5 GB' -> '5 gigabytes', '3 hr' -> '3 hours') false-failed validation on a routine de-slop expansion.",
+      "correct_behavior": "Exit 0: unit-family expansion preserves the fact.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "PRES-27",
+      "category": "fact_preservation",
+      "title": "5 GB -> 5 TB is a 1000x unit swap and must fail",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/validate_preservation.py",
+        "evals/fixtures/wp3_unit_family_original.txt",
+        "evals/fixtures/wp3_unit_family_swapped.txt"
+      ],
+      "failure_mode": "Covering the data/time unit families must not weaken swap detection within the family.",
+      "correct_behavior": "Exit 1 with the GB constraint missing.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 1
+        },
+        {
+          "type": "json",
+          "path": "missing_count",
+          "gte": 1
         }
       ]
     }

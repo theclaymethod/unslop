@@ -71,10 +71,25 @@ def count_syllables(word: str) -> int:
 
 def split_sentences(text: str) -> list[str]:
     """Split text into sentences."""
-    # Simple sentence splitting (handles common cases)
-    sentences = re.split(r'(?<=[.!?])\s+(?=[A-Z])', text)
+    parts = re.split(r'([.!?]["”]?)\s+(?=["“]?[A-Z])', text)
+    sentences = []
+    current = ""
+    for part in parts:
+        if re.match(r'[.!?]["”]?$', part):
+            current += part
+            sentences.append(current.strip())
+            current = ""
+        else:
+            current += part
+    if current.strip():
+        sentences.append(current.strip())
     # Filter empty and clean up
     return [s.strip() for s in sentences if s.strip()]
+
+
+def split_staccato_units(text: str) -> list[str]:
+    units = re.split(r'\s*[—;]\s*|(?<=[.!?])\s+', text)
+    return [u.strip() for u in units if u.strip()]
 
 
 def split_words(text: str) -> list[str]:
@@ -137,11 +152,12 @@ def calculate_metrics(text: str) -> ReadabilityMetrics:
         else:
             consecutive_similar = 0
 
-    # Longest run of tiny (<=5-word) sentences — the staccato "anti-slop" cadence.
+    # Longest run of tiny (<=5-word) sentence-like units — the staccato "anti-slop" cadence.
     # Tracked independently of sentence_count so short de-slopped outputs don't slip.
+    staccato_lengths = [len(split_words(s)) for s in split_staccato_units(text)]
     staccato_run = 0
     max_staccato_run = 0
-    for length in sentence_lengths:
+    for length in staccato_lengths:
         if length <= 5:
             staccato_run += 1
             max_staccato_run = max(max_staccato_run, staccato_run)

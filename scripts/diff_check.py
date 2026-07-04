@@ -4,6 +4,11 @@ Check change percentage between original and transformed text.
 
 Flags if >40% of words changed (may indicate over-editing).
 
+Pure reordering is exempt: change_percentage still reflects the raw
+delete+insert diff, but excessive_change stays false when the transformed
+text is a word-level permutation of the original (moved sentences are not
+over-editing). SKILL.md's 40% guidance refers to the excessive_change flag.
+
 Usage:
     python diff_check.py original.txt transformed.txt
 """
@@ -11,6 +16,7 @@ Usage:
 import sys
 import json
 import re
+from collections import Counter
 from difflib import SequenceMatcher
 from typing import TypedDict
 
@@ -64,14 +70,19 @@ def calculate_diff(original: str, transformed: str) -> DiffResult:
         (total_changes / len(original_words) * 100)
         if original_words else 0
     )
+    shared_tokens = sum((Counter(original_words) & Counter(transformed_words)).values())
+    token_overlap = shared_tokens / len(original_words) if original_words else 0
 
     # Flags
     flags: list[str] = []
     excessive = False
 
     if change_percentage > 40:
-        flags.append(f"Excessive change ({change_percentage:.1f}% > 40% threshold)")
-        excessive = True
+        if token_overlap >= 0.9:
+            flags.append(f"Mostly reordered ({token_overlap:.0%} tokens shared)")
+        else:
+            flags.append(f"Excessive change ({change_percentage:.1f}% > 40% threshold)")
+            excessive = True
 
     if len(transformed_words) < len(original_words) * 0.3:
         flags.append("Transformed text is less than 30% of original length")
