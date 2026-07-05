@@ -799,6 +799,76 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "suggestion": "State the consequence directly"
     },
 
+    # Contrastive-definition tail: "<...>, not <noun phrase>." — the affirm-then-
+    # negate template ("The design system is a build step, not an output." /
+    # "Failures lived in the shared substrate, not the models."). Soft: it is a
+    # judgment call and a factual correction ("born in Paris, not London") can look
+    # the same. Two guards keep the common legitimate corrections out:
+    #   * imperative-first lookahead spares instructions ("Use pnpm, not npm.")
+    #   * requiring a letter-led noun after "not" spares numeric corrections
+    #     ("Latency fell 40%, not 4%.")
+    # A minimum lead length spares tiny fragments ("Cats, not dogs."). A set of
+    # fixed-width negative lookbehinds spares the authentication idiom, where the
+    # affirmed side is a genuineness adjective ("The painting is real, not a
+    # forgery." / "The signature is genuine, not a copy.").
+    {
+        "pattern": r"(?:^|[.!?]\s+)(?!(?:use|run|type|call|pass|set|do|say|pick|choose|write|add|prefer|ship|keep|drop|make|see|note|try|go|get|put|give|take|send)\b)[a-z][^.!?\n]{10,}(?<!real)(?<!genuine)(?<!authentic)(?<!fake)(?<!true)(?<!false)(?<!original),\s+not\s+(?:a\s+|an\s+|the\s+|its\s+|your\s+|our\s+|their\s+|this\s+|that\s+)?[a-z][^.!?\n]{0,45}[.!?]",
+        "category": "contrastive_definition",
+        "severity": "soft",
+        "suggestion": "'X, not Y.' contrastive tail manufactures drama. State the positive claim on its own."
+    },
+    # Contrastive-definition, negation-first comma variant: "X isn't a Y, it's a Z."
+    # The period-split form ("X isn't Y. It's Z.") is already caught; this covers the
+    # comma-joined skeleton, which is almost always the same tell.
+    {
+        "pattern": r"\b(?:isn'?t|aren'?t|wasn'?t|weren'?t)\s+(?:just\s+|only\s+|merely\s+|even\s+)?(?:a\s+|an\s+|the\s+)?[^,.!?\n]{2,45},\s+(?:it'?s|it\s+is|they'?re|that'?s|these\s+are|those\s+are)\s+[^.!?\n]{1,45}[.!?]",
+        "category": "contrastive_definition",
+        "severity": "soft",
+        "suggestion": "'X isn't a Y, it's a Z.' is a formulaic contrast. State what it is directly."
+    },
+    # Two-beat parallel imperative slogan: two consecutive <=4-word sentences that
+    # both start with an imperative verb ("Emit 1,100 tokens. Ship 237KB."). Encoded
+    # conservatively via a curated verb list so subject-first pairs ("Reviewers
+    # click. The agent fixes.") and imperative+noun-list ("Write once. Page, deck,
+    # poster, video.") do NOT fire. Soft: a real two-step instruction can look the
+    # same, so this is a judgment flag.
+    {
+        "pattern": r"(?:^|[.!?]\s+)\b(?:ship|emit|build|deploy|render|run|write|generate|export|compile|parse|cache|serve|stream|batch|encode|decode|paste|scan|flag|track|save|load|push|pull|spin|boot|wire|mount|patch|sync|scale|send|log|test|check|match|store|count|map|route|split|merge|trim|hash|sign|mint|queue|drop|cut|keep|skip|pick)\b(?:\s+[^\s.!?]+){1,3}[.!?]\s+\b(?:ship|emit|build|deploy|render|run|write|generate|export|compile|parse|cache|serve|stream|batch|encode|decode|paste|scan|flag|track|save|load|push|pull|spin|boot|wire|mount|patch|sync|scale|send|log|test|check|match|store|count|map|route|split|merge|trim|hash|sign|mint|queue|drop|cut|keep|skip|pick)\b(?:\s+[^\s.!?]+){1,3}[.!?]",
+        "category": "imperative_slogan",
+        "severity": "soft",
+        "suggestion": "Two back-to-back tiny imperative sentences ('Emit X. Ship Y.') is a slogan cadence tell. Use one sentence."
+    },
+    # Repeated "<plural noun> that <verb>." headline fragment. A single instance can
+    # be intentional; the tell is FREQUENCY, so this fires only at 2+ occurrences in
+    # one document (min_matches). Leading token restricted to a plural-ish word
+    # ending in "s" so ordinary sentences ("Note that this works.") are spared.
+    {
+        "pattern": r"(?:^|[.!?]\s+)[a-z][\w'’-]*s\s+that\s+[^.!?\n]{1,40}[.!?]",
+        "category": "fragment_template",
+        "severity": "soft",
+        "suggestion": "Repeated '<plural noun> that <verb>.' fragments are an AI cadence tell. Vary the structure or use full sentences.",
+        "min_matches": "2"
+    },
+    # Numeric-parallelism headline: "One X, N Y." Narrowed to the leading-"one" shape
+    # on purpose so generic "<N> X, <N> Y." data lines ("Six aesthetics, zero
+    # prompting.") are NOT swept in.
+    {
+        "pattern": r"(?:^|[.!?]\s+)one\s+[^,.!?\n]{1,30},\s+(?:two|three|four|five|six|seven|eight|nine|ten|\d+|a\s+dozen|dozens|hundreds|thousands)\s+[^,.!?\n]{1,30}[.!?]",
+        "category": "numeric_parallelism",
+        "severity": "soft",
+        "suggestion": "'One X, N Y.' numeric-parallelism headline is a slogan tell. Rewrite as a normal sentence."
+    },
+    # Anthropomorphic shipping: an abstraction that "ships inside/with" something
+    # ("The feedback loop ships inside the artifact."). Guarded so concrete
+    # changelog uses ("The SDK ships with a CLI.") are spared: fire only when the
+    # subject is an abstraction OR the verb is the "ships inside/within" form.
+    {
+        "pattern": r"\b(?:(?:loop|story|experience|magic|feedback|journey|narrative|workflow|feeling|insight|intelligence|value|understanding|context|logic|flow)\s+ships?\s+(?:inside|within|with|in|alongside)\b|ships?\s+(?:inside|within)\s+(?:the|your|its|our|a|an)\b)",
+        "category": "anthropomorphic_shipping",
+        "severity": "soft",
+        "suggestion": "Abstractions don't 'ship inside' things. State the mechanism plainly."
+    },
+
     # Em-dash overuse
     {
         "pattern": r"—(?:(?!\n\n)[^—])*—",

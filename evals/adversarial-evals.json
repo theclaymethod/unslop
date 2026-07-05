@@ -4681,6 +4681,166 @@
       ]
     },
     {
+      "id": "FP-42",
+      "category": "scanner_false_positive",
+      "title": "Compound noun phrase 'real gutters' is not the '<noun> is real' tell",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Diffs with real gutters.",
+      "failure_mode": "A contrastive/emphasis rule could over-fire on 'real'.",
+      "correct_behavior": "No violations: 'real gutters' is a literal attribute, not slop.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-43",
+      "category": "scanner_false_positive",
+      "title": "'Six aesthetics, zero prompting.' is NOT the 'One X, N Y.' numeric-parallelism shape",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Six aesthetics, zero prompting.",
+      "failure_mode": "A too-broad '<number> X, <number> Y.' rule would catch this legitimate line.",
+      "correct_behavior": "No violations: numeric_parallelism is deliberately narrowed to the leading-'one' shape, so this stays clean.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-44",
+      "category": "scanner_false_positive",
+      "title": "Plain declarative clause fragment",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "a file you still have to host",
+      "failure_mode": "Over-broad structural rules could trip on ordinary copy.",
+      "correct_behavior": "No violations.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-45",
+      "category": "scanner_false_positive",
+      "title": "Imperative + noun list is not a two-beat imperative slogan",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Write once. Page, deck, poster, video.",
+      "failure_mode": "The imperative_slogan rule must not fire when the second beat is a noun list rather than an imperative verb.",
+      "correct_behavior": "No violations: second sentence starts with a noun ('Page'), not an imperative verb.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-46",
+      "category": "scanner_false_positive",
+      "title": "Two short subject-verb sentences are not a two-beat imperative slogan",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Reviewers click. The agent fixes.",
+      "failure_mode": "The imperative_slogan rule must not fire on subject-first short sentences.",
+      "correct_behavior": "No violations: both sentences lead with a subject, not an imperative verb.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-47",
+      "category": "scanner_false_positive",
+      "title": "Imperative correction 'Use X, not Y.' is legitimate instruction",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Use pnpm, not npm.",
+      "failure_mode": "The contrastive-tail rule must not fire on short imperative-first corrections.",
+      "correct_behavior": "No violations: an imperative correction is a real instruction, guarded by the imperative-first lookahead.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-48",
+      "category": "scanner_false_positive",
+      "title": "Numeric correction 'X, not N.' is legitimate data",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Latency fell 40%, not 4%.",
+      "failure_mode": "The contrastive-tail rule must not fire on numeric corrections.",
+      "correct_behavior": "No violations: the tail after 'not' is numeric, guarded by requiring a letter-led noun phrase.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-49",
+      "category": "scanner_false_positive",
+      "title": "Single '<plural noun> that <verb>.' fragment is fine (frequency gate)",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Quizzes that teach back.",
+      "failure_mode": "fragment_template must require 2+ occurrences; a single instance may be intentional.",
+      "correct_behavior": "No violations: one occurrence is below the frequency threshold.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
       "id": "REC-20",
       "category": "scanner_recall",
       "title": "'bolstered the case' still flags after dropping the bare ban",
@@ -4725,6 +4885,174 @@
         {
           "type": "violation_phrase_contains",
           "value": "doubled down on"
+        }
+      ]
+    },
+    {
+      "id": "FN-23",
+      "category": "scanner_false_negative",
+      "title": "Contrastive-definition tail: copula 'X is a Y, not a Z.'",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The design system is a build step, not an output.",
+      "failure_mode": "The ', not <noun phrase>.' sentence-final contrastive tail slipped past every binary-contrast pattern (they required 'isn't'/a period split).",
+      "correct_behavior": "Flag as contrastive_definition: 'X, not Y.' manufactures false drama; state the positive claim directly.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "contrastive_definition"
+        }
+      ]
+    },
+    {
+      "id": "FN-24",
+      "category": "scanner_false_negative",
+      "title": "Contrastive-definition tail: verb-fronted 'X <verb> Y, not Z.'",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Failures lived in the shared substrate, not the models.",
+      "failure_mode": "Verb-fronted contrastive tail (no copula) was uncaught.",
+      "correct_behavior": "Same family as FN-23; the ', not <noun>.' tail is the tell regardless of the verb.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "contrastive_definition"
+        }
+      ]
+    },
+    {
+      "id": "FN-25",
+      "category": "scanner_false_negative",
+      "title": "Contrastive-definition: negation-first comma variant 'X isn't a Y, it's a Z.'",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The design system isn't a deliverable, it's a build step.",
+      "failure_mode": "Comma-joined 'isn't a Y, it's a Z' was missed; existing pattern required a period between the clauses.",
+      "correct_behavior": "Flag as contrastive_definition.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "contrastive_definition"
+        }
+      ]
+    },
+    {
+      "id": "FN-26",
+      "category": "scanner_false_negative",
+      "title": "Two-beat parallel imperative slogan",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Emit 1,100 tokens. Ship 237KB.",
+      "failure_mode": "Two consecutive tiny imperative sentences fall below the 3-sentence staccato threshold, so nothing fired.",
+      "correct_behavior": "Flag as imperative_slogan: two back-to-back <=4-word imperative-first sentences are a slogan cadence tell.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "imperative_slogan"
+        }
+      ]
+    },
+    {
+      "id": "FN-27",
+      "category": "scanner_false_negative",
+      "title": "Repeated '<plural noun> that <verb>.' fragment (frequency>=2)",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The terminal panel is the single most important surface in the entire debugging experience. Terminals that replay the run. The diagram rendering pipeline copes with an enormous spread of responsive breakpoints. Diagrams that survive 390px.",
+      "failure_mode": "The bare 'Noun that verb.' headline fragment repeated across a document was uncaught when the fragments were not consecutive (so the staccato rule missed them).",
+      "correct_behavior": "Flag as fragment_template: 2+ occurrences of the '<plural noun> that <verb>.' fragment in one document is an AI cadence tell.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 2
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "fragment_template"
+        }
+      ]
+    },
+    {
+      "id": "FN-28",
+      "category": "scanner_false_negative",
+      "title": "Numeric-parallelism headline 'One X, N Y.'",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "One contract, five render targets.",
+      "failure_mode": "'One X, N Y.' slogan fragment was uncaught.",
+      "correct_behavior": "Flag as numeric_parallelism. Narrowed to the leading 'one' shape so '<N> X, <N> Y.' data lines are spared.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "numeric_parallelism"
+        }
+      ]
+    },
+    {
+      "id": "FN-29",
+      "category": "scanner_false_negative",
+      "title": "Anthropomorphic-shipping template 'X ships inside the Y.'",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The feedback loop ships inside the artifact.",
+      "failure_mode": "Abstraction-as-subject 'ships inside' was uncaught.",
+      "correct_behavior": "Flag as anthropomorphic_shipping when the subject is an abstraction (loop/story/experience) or the verb is 'ships inside/within'.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "anthropomorphic_shipping"
         }
       ]
     },

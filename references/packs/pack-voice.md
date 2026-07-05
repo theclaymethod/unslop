@@ -7,6 +7,7 @@ Use this pack for manufactured voice and the skill's own replacement tells. Do n
 - Anti-slop register: bare fragment contrasts such as "Not the tool. The team."; forced punch endings; repeated two- or three-word sentences.
 - Elegant variation and synonym cycling that calls attention to itself instead of clarifying.
 - Dramatic fragments, binary contrasts, negative parallelism, colon reveals, and rhetorical setups.
+- Contrastive-definition tails ("X is a build step, not an output."), two-beat imperative slogans ("Emit tokens. Ship bytes."), repeated "<plural noun> that <verb>." fragments, "One X, N Y." numeric parallelism, and abstractions that "ship inside" things.
 - Punctuation performance: em-dash clusters, exclamation overuse, decorative bolding, title case inside body prose.
 - Warmth stripped into telegraphese: an email or narrative that loses natural softeners and sounds colder than the source.
 

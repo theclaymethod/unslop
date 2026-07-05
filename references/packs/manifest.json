@@ -48,15 +48,20 @@
       "parenthetical_hedging"
     ],
     "pack-voice": [
+      "anthropomorphic_shipping",
       "anti_slop_register",
       "binary_contrast",
       "colon_reveal",
+      "contrastive_definition",
       "dramatic_fragment",
       "em_dash_overuse",
       "exclamation_overuse",
       "formatting",
+      "fragment_template",
+      "imperative_slogan",
       "negative_listing",
       "negative_parallelism",
+      "numeric_parallelism",
       "staccato_fragmentation"
     ],
     "pack-facts": []

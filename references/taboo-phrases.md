@@ -346,6 +346,32 @@ These make claims that are usually false.
 | Em-dashes before reveals | Use periods or commas |
 | Staccato fragmentation | Don't stack short punchy sentences |
 
+### Contrastive Definitions (False Drama)
+
+The "affirm then negate" template asserts an identity by rejecting a foil. It reads
+as insight but only manufactures contrast. Soft: a genuine factual correction can
+look the same, so imperative corrections ("Use pnpm, not npm."), numeric corrections
+("Latency fell 40%, not 4%."), and the authentication idiom ("The painting is real,
+not a forgery.") are exempted.
+
+| Pattern | Fix |
+|---------|-----|
+| "X is a build step, not an output." | State the positive claim on its own |
+| "Failures lived in the shared substrate, not the models." | State where they lived; drop the foil |
+| "X isn't a Y, it's a Z." | State what it is directly |
+
+### Slogan & Template Cadence
+
+Marketing copy from strong models leans on a few headline skeletons. Any one can be
+fine; the tell is the shape (and, for the fragment, its repetition). Soft severity.
+
+| Pattern | Fix |
+|---------|-----|
+| Two-beat imperative: "Emit 1,100 tokens. Ship 237KB." | Combine into one sentence |
+| Repeated "&lt;plural noun&gt; that &lt;verb&gt;." (2+ in a doc) | Vary the structure or use full sentences |
+| "One X, N Y." (numeric parallelism) | Rewrite as a normal sentence |
+| "The feedback loop ships inside the artifact." (abstraction ships inside/with) | State the mechanism plainly |
+
 ---
 
 ## Significance & Legacy Inflation
@@ -1002,6 +1028,16 @@ Related deterministic metrics: `sentence_burstiness`, `bold_colon_listicle`,
 
 # Negative parallelisms
 (?i)(not only .+? but also|it's not just about|not merely .+? but)
+
+# Contrastive definitions (soft; exempts imperative/numeric corrections + authentication idiom)
+(?im)(?:^|[.!?]\s+)(?![a-z]*\b(?:use|run|write|keep|drop|make|ship|add)\b)[a-z][^.!?\n]{10,}(?<!real)(?<!genuine),\s+not\s+(?:a |an |the )?[a-z][^.!?\n]{0,45}[.!?]
+(?i)\b(?:isn'?t|aren'?t|wasn'?t|weren'?t)\s+(?:a |an |the )?[^,.!?\n]{2,45},\s+(?:it'?s|that'?s|they'?re)\s+[^.!?\n]{1,45}[.!?]
+
+# Slogan & template cadence (soft; fragment_template fires only at 2+ occurrences)
+(?im)(?:^|[.!?]\s+)\b(?:ship|emit|build|deploy|render|run|write|export|scan|track|save|load|push)\b(?:\s+[^\s.!?]+){1,3}[.!?]\s+\b(?:ship|emit|build|deploy|render|run|write|export|scan|track|save|load|push)\b(?:\s+[^\s.!?]+){1,3}[.!?]
+(?im)(?:^|[.!?]\s+)[a-z][\w'-]*s\s+that\s+[^.!?\n]{1,40}[.!?]
+(?im)(?:^|[.!?]\s+)one\s+[^,.!?\n]{1,30},\s+(?:two|three|four|five|\d+)\s+[^,.!?\n]{1,30}[.!?]
+(?i)\b(?:loop|story|experience|magic|feedback|workflow)\s+ships?\s+(?:inside|within|with)\b|ships?\s+(?:inside|within)\s+(?:the|your|a|an)\b
 
 # False concession structures
 (?i)((while|although) .+?, .+? (remains|is still) .+?(challenge|concern|open question|limitation|constraint))
