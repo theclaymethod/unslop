@@ -1069,13 +1069,20 @@ def scan_for_violations(text: str, include_quoted: bool = False) -> list[Violati
         end = start + len(v["phrase"])
         spans.append((start, end))
 
+    # Frequency-gated structural findings (min_matches > 1) describe the DOCUMENT, not
+    # a single span. A broad, unrelated match (e.g. anti_slop_register spanning several
+    # short headlines) must not silently swallow every occurrence and erase the
+    # document-level tell, so these categories are exempt from containment suppression.
+    freq_gated = {
+        p["category"] for p in STRUCTURAL_PATTERNS if int(p.get("min_matches", "1")) > 1
+    }
     for i, v in enumerate(violations):
         start, end = spans[i]
         contained = any(
             i != j and other_start <= start and end <= other_end and (other_end - other_start) > (end - start)
             for j, (other_start, other_end) in enumerate(spans)
         )
-        if not contained:
+        if not contained or v["category"] in freq_gated:
             filtered.append(v)
     violations = filtered
 
