@@ -4841,6 +4841,46 @@
       ]
     },
     {
+      "id": "FP-50",
+      "category": "scanner_false_positive",
+      "title": "One headline slogan pair plus normal prose is fine (frequency gate)",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "One command. A real URL.\n\nThe importer now runs on a schedule and writes its output to the same bucket the dashboard reads from, so the numbers refresh without anyone touching them.",
+      "failure_mode": "headline_cadence must require 3+ 'Short statement. Short statement.' headlines in one document; a single slogan headline over ordinary prose is voice, not a template.",
+      "correct_behavior": "No violations: one pair-shaped headline is below the document-frequency threshold of 3.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-51",
+      "category": "scanner_false_positive",
+      "title": "Short-sentence prose flowing inside a paragraph is not a headline cadence",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "We tested the API. The retry path held. After that the rest of the release went out the door without any of the drama we had braced ourselves for.",
+      "failure_mode": "headline_cadence must target standalone headline-shaped lines, not a short-sentence run inside a paragraph. The pair 'We tested the API. The retry path held.' opens the paragraph but the line continues into a long clause, so the end-of-line line-shape anchor must keep it clean.",
+      "correct_behavior": "No violations: the short pair is not a standalone line, so the pattern does not fire even before the frequency gate.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
       "id": "REC-20",
       "category": "scanner_recall",
       "title": "'bolstered the case' still flags after dropping the bare ban",
@@ -5078,6 +5118,36 @@
         {
           "type": "violation_category_equals",
           "value": "anthropomorphic_shipping"
+        },
+        {
+          "type": "json",
+          "path": "violations.0.severity",
+          "equals": "soft"
+        }
+      ]
+    },
+    {
+      "id": "FN-30",
+      "category": "scanner_false_negative",
+      "title": "Production regression: headline slogan cadence repeated across a document",
+      "source": "regression: artifacture landing 2026-07-05",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Seventeen components, hand-built once.\n\nWrite once. Page, deck, poster, video.\n\nOne command. A real URL.\n\nReviewers click. The agent fixes.\n\nFix a component once. Every page ships the fix.\n\nAbout 13x cheaper. Here is the arithmetic.",
+      "failure_mode": "Each headline is a 'Short statement. Short statement.' pair. Individually every line stayed below the two-beat imperative_slogan rule (noun-phrase and subject-first beats it deliberately spares) and below the 3-sentence staccato threshold, so the whole page of slogan headlines passed the scanner clean. Verbatim shipped copy that previously passed in production.",
+      "correct_behavior": "Flag as headline_cadence: the two-beat short-declarative-pair rhythm repeated across 3+ standalone headlines in one document is template grammar. The tell is document-level frequency, not any single line.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "headline_cadence"
         },
         {
           "type": "json",

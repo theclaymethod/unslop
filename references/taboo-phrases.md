@@ -363,7 +363,8 @@ not a forgery.") are exempted.
 ### Slogan & Template Cadence
 
 Marketing copy from strong models leans on a few headline skeletons. Any one can be
-fine; the tell is the shape (and, for the fragment, its repetition). Soft severity.
+fine; the tell is the shape (and, for the fragment and the headline cadence, its
+repetition). Soft severity.
 
 | Pattern | Fix |
 |---------|-----|
@@ -371,6 +372,17 @@ fine; the tell is the shape (and, for the fragment, its repetition). Soft severi
 | Repeated "&lt;plural noun&gt; that &lt;verb&gt;." (2+ in a doc) | Vary the structure or use full sentences |
 | "One X, N Y." (numeric parallelism) | Rewrite as a normal sentence |
 | "The feedback loop ships inside the artifact." (abstraction ships inside/with) | State the mechanism plainly |
+| Headline slogan cadence: "Short statement. Short statement." on 3+ headlines in one doc | Vary the headline shapes |
+
+The headline-cadence family generalizes the two-beat imperative slogan to ANY
+standalone line built wholly from two-to-four short sentences (each &le;5 words,
+subject-verb, imperative, or a bare noun phrase): "One command. A real URL." /
+"Reviewers click. The agent fixes." A single such headline is voice, so it fires only
+at document frequency &ge;3. It is anchored to a full line — a line that opens with any
+long sentence, or a short-sentence run flowing inside a paragraph, is spared. Honest
+limit: in plain text "standalone headline" can only be approximated as "a line whose
+whole content is the short-sentence pair," so the tell is gated on frequency, not on
+proof that the line is a real heading.
 
 ---
 
@@ -1038,6 +1050,9 @@ Related deterministic metrics: `sentence_burstiness`, `bold_colon_listicle`,
 (?im)(?:^|[.!?]\s+)[a-z][\w'-]*s\s+that\s+[^.!?\n]{1,40}[.!?]
 (?im)(?:^|[.!?]\s+)one\s+[^,.!?\n]{1,30},\s+(?:two|three|four|five|\d+)\s+[^,.!?\n]{1,30}[.!?]
 (?i)\b(?:loop|story|experience|magic|feedback|workflow)\s+ships?\s+(?:inside|within|with)\b|ships?\s+(?:inside|within)\s+(?:the|your|a|an)\b
+
+# Headline slogan cadence (soft; DOCUMENT-LEVEL — fires only at 3+ line matches)
+(?i)(?:^|\n)[ \t]*(?:[a-z0-9][\w'-]*(?:[ ,]+[a-z0-9][\w'-]*){0,4}[.!?][ \t]+){1,3}[a-z0-9][\w'-]*(?:[ ,]+[a-z0-9][\w'-]*){0,4}[.!?][ \t]*(?=\n|$)
 
 # False concession structures
 (?i)((while|although) .+?, .+? (remains|is still) .+?(challenge|concern|open question|limitation|constraint))

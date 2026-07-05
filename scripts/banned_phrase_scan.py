@@ -849,6 +849,31 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "suggestion": "Repeated '<plural noun> that <verb>.' fragments are an AI cadence tell. Vary the structure or use full sentences.",
         "min_matches": "2"
     },
+    # Headline slogan cadence (DOCUMENT-LEVEL): the two-beat "Short statement. Short
+    # statement." rhythm repeated across a document's HEADLINES. One such headline is
+    # voice; the same cadence on 3+ standalone lines is template grammar, so this fires
+    # only at min_matches=3. Generalizes imperative_slogan (which requires an imperative
+    # curated verb first) to ANY line built wholly from 2-4 short sentences, each <=5
+    # words and ending in terminal punctuation — including noun-phrase beats ("One
+    # command. A real URL.") that imperative_slogan deliberately spares.
+    #
+    # Line-shape is the guard against ordinary staccato prose: the pattern is anchored
+    # to a full line (line start .. end-of-line), and the FIRST beat must begin at the
+    # line start, so a line that opens with any long sentence cannot match even if it
+    # ends with short ones ("The meeting ran long and everyone was tired. We left."
+    # stays clean). A run of short sentences flowing inside a paragraph is likewise
+    # spared because the trailing long clause blocks the end-of-line anchor. The honest
+    # limitation: in hard-wrapped plain text a genuinely headline-shaped standalone line
+    # of 2-4 short sentences DOES count as one occurrence — which is why the tell is
+    # gated purely on FREQUENCY (>=3), not on any semantic proof that the line is a
+    # heading. A single such line, or two, stays clean.
+    {
+        "pattern": r"(?:^|\n)[ \t]*(?:[a-z0-9][\w'’-]*(?:[ ,]+[a-z0-9][\w'’-]*){0,4}[.!?][ \t]+){1,3}[a-z0-9][\w'’-]*(?:[ ,]+[a-z0-9][\w'’-]*){0,4}[.!?][ \t]*(?=\n|$)",
+        "category": "headline_cadence",
+        "severity": "soft",
+        "suggestion": "The 'Short statement. Short statement.' headline cadence, repeated across a document (3+ headlines), is template grammar. Vary the headline shapes.",
+        "min_matches": "3"
+    },
     # Numeric-parallelism headline: "One X, N Y." Narrowed to the leading-"one" shape
     # on purpose so generic "<N> X, <N> Y." data lines ("Six aesthetics, zero
     # prompting.") are NOT swept in.
