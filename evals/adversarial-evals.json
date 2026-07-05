@@ -2,7 +2,7 @@
   "skill_name": "unslop",
   "suite": "adversarial",
   "version": "1.0.0",
-  "description": "Adversarial evals that probe failure modes the happy-path suite (evals.json) never touches: false positives, over-correction, do-no-harm on already-human text, mode/preset mis-routing, fact-preservation traps, rubric gaming, content-type blindness, prompt-injection, and newer AI patterns the scanner misses. Two target types: 'script' cases are deterministic and run by run_adversarial.py; 'skill' cases are behavioral and judged against the agent's actual output. 'xfail: true' marks a case that FAILS against the current code/skill — a documented bug to fix, not a runner error.",
+  "description": "Adversarial evals that probe failure modes the happy-path suite (evals.json) never touches: false positives, over-correction, do-no-harm on already-human text, mode/preset mis-routing, fact-preservation traps, rubric gaming, content-type blindness, prompt-injection, and newer AI patterns the scanner misses. Two target types: 'script' cases are deterministic and run by run_adversarial.py; 'skill' cases are behavioral and judged against the agent's actual output. 'xfail: true' marks a case that FAILS against the current code/skill — a documented bug to fix, not a runner error. Rows carrying a 'source' field are named production regressions: real shipped copy that previously passed the scanner clean and must stay caught.",
   "assertion_vocabulary": {
     "exit_code": "process exit code equals N",
     "stdout_contains": "stdout includes the literal substring",
@@ -4891,14 +4891,15 @@
     {
       "id": "FN-23",
       "category": "scanner_false_negative",
-      "title": "Contrastive-definition tail: copula 'X is a Y, not a Z.'",
+      "title": "Production regression: contrastive-definition tail 'X is a Y, not a Z.'",
+      "source": "regression: artifacture landing 2026-07-04",
       "target": "script",
       "command": [
         "python3",
         "scripts/banned_phrase_scan.py"
       ],
       "stdin": "The design system is a build step, not an output.",
-      "failure_mode": "The ', not <noun phrase>.' sentence-final contrastive tail slipped past every binary-contrast pattern (they required 'isn't'/a period split).",
+      "failure_mode": "The ', not <noun phrase>.' sentence-final contrastive tail slipped past every binary-contrast pattern (they required 'isn't'/a period split). Verbatim shipped copy that passed the scanner clean in production.",
       "correct_behavior": "Flag as contrastive_definition: 'X, not Y.' manufactures false drama; state the positive claim directly.",
       "assertions": [
         {
@@ -4909,20 +4910,26 @@
         {
           "type": "violation_category_equals",
           "value": "contrastive_definition"
+        },
+        {
+          "type": "json",
+          "path": "violations.0.severity",
+          "equals": "soft"
         }
       ]
     },
     {
       "id": "FN-24",
       "category": "scanner_false_negative",
-      "title": "Contrastive-definition tail: verb-fronted 'X <verb> Y, not Z.'",
+      "title": "Production regression: verb-fronted contrastive tail 'X <verb> Y, not Z.'",
+      "source": "regression: artifacture landing 2026-07-04",
       "target": "script",
       "command": [
         "python3",
         "scripts/banned_phrase_scan.py"
       ],
       "stdin": "Failures lived in the shared substrate, not the models.",
-      "failure_mode": "Verb-fronted contrastive tail (no copula) was uncaught.",
+      "failure_mode": "Verb-fronted contrastive tail (no copula) was uncaught. Verbatim shipped copy that passed the scanner clean in production.",
       "correct_behavior": "Same family as FN-23; the ', not <noun>.' tail is the tell regardless of the verb.",
       "assertions": [
         {
@@ -4933,6 +4940,11 @@
         {
           "type": "violation_category_equals",
           "value": "contrastive_definition"
+        },
+        {
+          "type": "json",
+          "path": "violations.0.severity",
+          "equals": "soft"
         }
       ]
     },
@@ -4963,14 +4975,15 @@
     {
       "id": "FN-26",
       "category": "scanner_false_negative",
-      "title": "Two-beat parallel imperative slogan",
+      "title": "Production regression: two-beat parallel imperative slogan",
+      "source": "regression: artifacture landing 2026-07-04",
       "target": "script",
       "command": [
         "python3",
         "scripts/banned_phrase_scan.py"
       ],
       "stdin": "Emit 1,100 tokens. Ship 237KB.",
-      "failure_mode": "Two consecutive tiny imperative sentences fall below the 3-sentence staccato threshold, so nothing fired.",
+      "failure_mode": "Two consecutive tiny imperative sentences fall below the 3-sentence staccato threshold, so nothing fired. Verbatim shipped copy that passed the scanner clean in production.",
       "correct_behavior": "Flag as imperative_slogan: two back-to-back <=4-word imperative-first sentences are a slogan cadence tell.",
       "assertions": [
         {
@@ -4981,6 +4994,11 @@
         {
           "type": "violation_category_equals",
           "value": "imperative_slogan"
+        },
+        {
+          "type": "json",
+          "path": "violations.0.severity",
+          "equals": "soft"
         }
       ]
     },
@@ -5011,14 +5029,15 @@
     {
       "id": "FN-28",
       "category": "scanner_false_negative",
-      "title": "Numeric-parallelism headline 'One X, N Y.'",
+      "title": "Production regression: numeric-parallelism headline 'One X, N Y.'",
+      "source": "regression: artifacture landing 2026-07-04",
       "target": "script",
       "command": [
         "python3",
         "scripts/banned_phrase_scan.py"
       ],
       "stdin": "One contract, five render targets.",
-      "failure_mode": "'One X, N Y.' slogan fragment was uncaught.",
+      "failure_mode": "'One X, N Y.' slogan fragment was uncaught. Verbatim shipped copy that passed the scanner clean in production.",
       "correct_behavior": "Flag as numeric_parallelism. Narrowed to the leading 'one' shape so '<N> X, <N> Y.' data lines are spared.",
       "assertions": [
         {
@@ -5029,20 +5048,26 @@
         {
           "type": "violation_category_equals",
           "value": "numeric_parallelism"
+        },
+        {
+          "type": "json",
+          "path": "violations.0.severity",
+          "equals": "soft"
         }
       ]
     },
     {
       "id": "FN-29",
       "category": "scanner_false_negative",
-      "title": "Anthropomorphic-shipping template 'X ships inside the Y.'",
+      "title": "Production regression: anthropomorphic-shipping template 'X ships inside the Y.'",
+      "source": "regression: artifacture landing 2026-07-04",
       "target": "script",
       "command": [
         "python3",
         "scripts/banned_phrase_scan.py"
       ],
       "stdin": "The feedback loop ships inside the artifact.",
-      "failure_mode": "Abstraction-as-subject 'ships inside' was uncaught.",
+      "failure_mode": "Abstraction-as-subject 'ships inside' was uncaught. Verbatim shipped copy that passed the scanner clean in production.",
       "correct_behavior": "Flag as anthropomorphic_shipping when the subject is an abstraction (loop/story/experience) or the verb is 'ships inside/within'.",
       "assertions": [
         {
@@ -5053,6 +5078,11 @@
         {
           "type": "violation_category_equals",
           "value": "anthropomorphic_shipping"
+        },
+        {
+          "type": "json",
+          "path": "violations.0.severity",
+          "equals": "soft"
         }
       ]
     },
