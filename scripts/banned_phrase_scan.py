@@ -162,7 +162,6 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
     "speak for themselves": {"category": "false_agency", "severity": "hard", "suggestion": "State the numbers and what they show."},
     "speaks for itself": {"category": "false_agency", "severity": "hard", "suggestion": "State the point directly."},
     "tells a clear story": {"category": "false_agency", "severity": "hard", "suggestion": "Say what the data shows."},
-    "tells a story": {"category": "false_agency", "severity": "hard", "suggestion": "Say what the data shows."},
     "paints a clear picture": {"category": "false_agency", "severity": "hard", "suggestion": "Describe it directly."},
 
     # Significance / legacy puffery (Wikipedia: Signs of AI writing)
@@ -975,6 +974,15 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "suggestion": "Start with content, not 'So,'"
     },
 
+    # False agency: inanimate subjects narrating. People tell stories literally;
+    # data does not.
+    {
+        "pattern": r"\b(?:data|numbers?|charts?|graphs?|metrics?|figures?|results?|dashboards?|spreadsheets?|trend\s?lines?|statistics)\s+tells?\s+a\s+story\b",
+        "category": "false_agency",
+        "severity": "hard",
+        "suggestion": "Say what the data shows."
+    },
+
     # Colon-before-dramatic-reveal
     {
         "pattern": r"(?:the (?:answer|secret|key|trick|truth|reality|problem|issue|question|solution|takeaway|lesson|difference|reason) (?:is|was|isn't|remains))\s*:",
@@ -1178,14 +1186,16 @@ def main() -> None:
         print(json.dumps({"error": "No input provided", "violations": []}))
         sys.exit(1)
 
-    # English-only graceful decline. Detect non-English input cheaply and decline
-    # rather than emitting misleading English-tuned findings.
-    if not is_probably_english(text):
+    violations = scan_for_violations(text, include_quoted=args.include_quoted)
+
+    # English-only graceful decline. Function-word absence alone is not evidence
+    # of a foreign language: imperative stacks and buzzword lists are English
+    # slop with few function words. Decline only when the text both fails the
+    # function-word heuristic AND produced zero English-pattern hits.
+    if not violations and not is_probably_english(text):
         print(json.dumps({"non_english": True, "total_violations": 0, "violations": []}, indent=2))
         print("note: input appears non-English; scanner declined (English-only).", file=sys.stderr)
         sys.exit(0)
-
-    violations = scan_for_violations(text, include_quoted=args.include_quoted)
 
     # Group by category for summary
     categories: dict[str, int] = {}

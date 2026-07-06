@@ -11660,6 +11660,98 @@
           "equals": 0
         }
       ]
+    },
+    {
+      "id": "LANG-3a",
+      "category": "scanner_false_negative",
+      "title": "Imperative headline stack is English slop, not a foreign language",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py"
+      ],
+      "stdin": "Ship faster. Build bolder. Dream bigger. Move smarter. Win sooner.\n\nShip cleaner. Build leaner. Dream louder. Move quicker. Win bigger.\n\nShip harder. Build brighter. Dream deeper. Move faster. Win louder.",
+      "failure_mode": "The English-detection gate keyed on function-word ABSENCE, so low-function-word English slop genres (imperative stacks, buzzword lists) were declined as non-English before any pattern ran — silently defeating the shipped headline-cadence detection.",
+      "correct_behavior": "non_english false; structural flags fire.",
+      "assertions": [
+        {
+          "type": "stdout_not_contains",
+          "value": "\"non_english\": true"
+        },
+        {
+          "type": "exit_code",
+          "equals": 1
+        }
+      ]
+    },
+    {
+      "id": "LANG-3b",
+      "category": "scanner_false_negative",
+      "title": "Buzzword noun-list is English slop, not a foreign language",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Synergy, alignment, leverage points, game changers, paradigm shifts, thought leadership, growth hacking, innovation pipelines, seamless integration, robust solutions.",
+      "failure_mode": "Same gate: comma-separated jargon lists fall under the function-word threshold and were declined unscanned.",
+      "correct_behavior": "non_english false; banned phrases flag.",
+      "assertions": [
+        {
+          "type": "stdout_not_contains",
+          "value": "\"non_english\": true"
+        },
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 2
+        }
+      ]
+    },
+    {
+      "id": "FP-85",
+      "category": "scanner_false_positive",
+      "title": "Humans telling stories are not false agency",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "My grandmother tells a story every night before bed. The patient tells a story of chest pain during exertion.",
+      "protects": "false_agency",
+      "failure_mode": "'tells a story' shipped as a flat hard ban; the false-agency tell is INANIMATE subjects narrating (the data tells a story), not people, who tell stories literally.",
+      "correct_behavior": "No violations for human subjects.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "REC-50",
+      "category": "scanner_recall",
+      "title": "Inanimate 'the data tells a story' still flags after the subject gate",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The dashboard tells a story of steady decline, and the numbers tell a story too.",
+      "failure_mode": "Gating on inanimate subjects must not lose the genuine false-agency form.",
+      "correct_behavior": "Flags as false_agency.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "false_agency"
+        }
+      ]
     }
   ]
 }

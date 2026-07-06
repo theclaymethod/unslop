@@ -326,12 +326,16 @@ def main(argv: list[str]) -> int:
         text = sys.stdin.read()
 
     # English-only graceful decline, matching banned_phrase_scan.py.
-    if not is_probably_english(text):
+    result = scan(text, args.genre)
+
+    # Function-word absence alone is not evidence of a foreign language
+    # (imperative stacks and buzzword lists are English slop with few function
+    # words). Decline only when the heuristic fails AND nothing flagged.
+    if not result.get("flags") and not is_probably_english(text):
         print(json.dumps({"non_english": True, "violations": [], "flags": []}, indent=2))
         print("note: input appears non-English; scanner declined (English-only).", file=sys.stderr)
         return 0
 
-    result = scan(text, args.genre)
     print(json.dumps(result, indent=2))
     return 1 if result["flags"] else 0
 
