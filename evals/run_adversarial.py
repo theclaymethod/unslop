@@ -172,6 +172,20 @@ def list_gates():
             "needs": [],
         },
         {
+            "id": "seeded-docs",
+            "command": "python3 evals/check_seeded_docs.py",
+            "pass_criterion": "exit 0",
+            "blocking": True,
+            "needs": [],
+        },
+        {
+            "id": "paired-fixture-hygiene",
+            "command": "python3 evals/check_pairs.py",
+            "pass_criterion": "exit 0",
+            "blocking": True,
+            "needs": [],
+        },
+        {
             "id": "pack-structure",
             "command": "python3 scripts/check_packs.py",
             "pass_criterion": "exit 0",

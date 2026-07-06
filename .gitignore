@@ -30,3 +30,4 @@ scripts/.wiki_sync_state.json
 # Behavioral eval run artifacts (prepared tasks, model outputs, judge results)
 evals/runs/
 runs/
+.claude/

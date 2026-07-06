@@ -1,0 +1,19 @@
+{
+  "expected": [
+    {
+      "category": "throat_clearing"
+    },
+    {
+      "category": "jargon"
+    },
+    {
+      "category": "negative_parallelism"
+    },
+    {
+      "category": "rhetorical_question"
+    },
+    {
+      "category": "conclusion_scaffold"
+    }
+  ]
+}

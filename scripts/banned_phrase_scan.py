@@ -162,6 +162,7 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
     "speak for themselves": {"category": "false_agency", "severity": "hard", "suggestion": "State the numbers and what they show."},
     "speaks for itself": {"category": "false_agency", "severity": "hard", "suggestion": "State the point directly."},
     "tells a clear story": {"category": "false_agency", "severity": "hard", "suggestion": "Say what the data shows."},
+    "tells a story": {"category": "false_agency", "severity": "hard", "suggestion": "Say what the data shows."},
     "paints a clear picture": {"category": "false_agency", "severity": "hard", "suggestion": "Describe it directly."},
 
     # Significance / legacy puffery (Wikipedia: Signs of AI writing)
@@ -793,7 +794,7 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "suggestion": "State what it's about directly"
     },
     {
-        "pattern": r"\b(?:it'?s not|this is not|that'?s not|isn'?t|wasn'?t|aren'?t|weren'?t)\s+just\b[^.;!?\n]{1,60}[,;—–-]\s*(?:it'?s|it (?:is|was)|they'?re|that'?s)\b",
+        "pattern": r"\b(?:it'?s not|it\s+is\s+not|this is not|that'?s not|isn'?t|is\s+not|wasn'?t|was\s+not|aren'?t|are\s+not|weren'?t|were\s+not)\s+just\b[^.;!?\n]{1,60}[,;—–-]\s*(?:it'?s|it (?:is|was)|they'?re|that'?s)\b",
         "category": "negative_parallelism",
         "severity": "hard",
         "suggestion": "State both points directly"
@@ -1033,7 +1034,7 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
     },
     {
         "pattern": r"\b(?:could|may|might|can)\s+(?:potentially|possibly)\b",
-        "category": "hedge",
+        "category": "hedge_stack",
         "severity": "soft",
         "suggestion": "Drop the redundant hedge."
     },

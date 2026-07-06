@@ -23,6 +23,15 @@ Same procedure, but the entry goes in `STRUCTURAL_PATTERNS` with a regex, and
 the false-positive row must cover the nearest legitimate construction the regex
 could clip.
 
+## Prefer a pair
+
+When a pattern has literal senses or only becomes visible in context, add a
+minimal pair under `evals/fixtures/pairs/` instead of relying only on one-line
+stdin rows. The `_with` twin should contain one controlled tell, the `_without`
+twin should preserve the facts while scanning clean, and the manifest should
+name the target category or structure metric. Run `python3 evals/check_pairs.py`
+before changing the scanner.
+
 ## Coverage gate and category protection (enforced)
 
 `python3 evals/check_pattern_coverage.py` makes the two rows above mandatory, not
