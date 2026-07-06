@@ -26,6 +26,13 @@ Humanize AI-generated prose. Audit first. Rewrite only when the user asks for a 
 | `--audit-only` | Flag AI patterns without rewriting | false |
 | Input | Text to transform (argument, file path, or stdin) | required |
 
+## Scripts
+
+| Script | Purpose |
+|--------|---------|
+| `scripts/voice_profile.py` | Build a deterministic stylometric voice profile from same-genre samples. |
+| `scripts/voice_score.py` | Score a candidate against a voice profile with impostor-calibrated metrics and copy-gate reporting. |
+
 ## Modes
 
 - `rewrite` (default): diagnose, rewrite, then validate.

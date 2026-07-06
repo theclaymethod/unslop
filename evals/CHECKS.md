@@ -39,6 +39,13 @@ Current gates:
     "needs": []
   },
   {
+    "id": "voice-scorer",
+    "command": "python3 evals/check_voice.py --separation && python3 evals/check_voice.py --gi && python3 evals/check_voice.py --gaming && python3 evals/check_voice.py --profiles",
+    "pass_criterion": "exit 0",
+    "blocking": true,
+    "needs": []
+  },
+  {
     "id": "pack-structure",
     "command": "python3 scripts/check_packs.py",
     "pass_criterion": "exit 0",
@@ -100,6 +107,7 @@ Current gates:
     ]
   }
 ]
+
 ```
 
 ## Parallel Check Protocol
