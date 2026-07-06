@@ -144,6 +144,20 @@ def list_gates():
             "needs": [],
         },
         {
+            "id": "pattern-coverage",
+            "command": "python3 evals/check_pattern_coverage.py",
+            "pass_criterion": "exit 0",
+            "blocking": True,
+            "needs": [],
+        },
+        {
+            "id": "add-pattern-kata",
+            "command": "python3 evals/kata_add_pattern.py --run",
+            "pass_criterion": "exit 0",
+            "blocking": True,
+            "needs": [],
+        },
+        {
             "id": "pack-structure",
             "command": "python3 scripts/check_packs.py",
             "pass_criterion": "exit 0",

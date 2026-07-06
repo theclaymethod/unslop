@@ -23,6 +23,34 @@ Same procedure, but the entry goes in `STRUCTURAL_PATTERNS` with a regex, and
 the false-positive row must cover the nearest legitimate construction the regex
 could clip.
 
+## Coverage gate and category protection (enforced)
+
+`python3 evals/check_pattern_coverage.py` makes the two rows above mandatory, not
+conventional:
+
+- **Coverage.** Every `STRUCTURAL_PATTERNS` regex must match at least one script
+  row's corpus (its stdin or a referenced fixture), and every `BANNED_PHRASES`
+  key must appear in at least one corpus text. A new scanner entry with no eval
+  row fails this gate (DOC-09) while every other gate is green. There is no
+  grandfather list: an uncovered pattern is a hard failure. If a batch of legacy
+  keys is uncovered, add `REC`-style coverage packs (8-12 phrases per stdin, one
+  natural sentence each) rather than exempting them.
+- **Protection.** Every violation category the scanner can emit must be claimed by
+  a `scanner_false_positive` row carrying `"protects": "<category>"`. Backfill the
+  field on the FP row whose failure mode names that category; add a new FP row
+  (asserting `total_violations == 0` on tempting-but-clean prose) for any category
+  with no protector. The runner ignores the `protects` key, so it is safe on any
+  FP row.
+
+## Rehearse the procedure (the kata)
+
+`python3 evals/kata_add_pattern.py --run` is a meta-eval (DOC-10): in a temp copy
+of the repo it adds a throwaway pattern and asserts each safety net fires in order
+— coverage catches the row-less entry, parity catches the missing catalog line,
+the runner goes green once both exist, and the row goes red if the scanner entry
+is later removed. Run it before touching the maintenance tooling; if a refactor
+breaks a safety net, this kata turns red.
+
 ## List current patterns
 
 ```bash

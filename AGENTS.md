@@ -19,6 +19,10 @@ start with evals, then update the skill or scripts until the suite passes.
    and domain, then regenerate `evals/shared-benchmark.json`.
 4. Update `scripts/banned_phrase_scan.py`, `SKILL.md`, `presets/`, or `references/`
    only after the eval captures the desired product behavior.
+5. `python3 evals/check_pattern_coverage.py` (gate DOC-09) fails unless every
+   scanner pattern is exercised by a row and every category has a `protects` FP
+   row; `python3 evals/kata_add_pattern.py --run` (DOC-10) rehearses this. No
+   grandfathering.
 
 Prefer contextual patterns over broad word bans. A row for `wedge` or `load-bearing`
 should also protect literal uses such as construction, mechanics, law, medicine, code,

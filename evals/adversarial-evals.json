@@ -16,6 +16,7 @@
     {
       "id": "FP-01",
       "category": "scanner_false_positive",
+      "protects": "jargon",
       "title": "Financial 'leverage' is a real word, not jargon",
       "target": "script",
       "command": [
@@ -36,6 +37,7 @@
     {
       "id": "FP-02",
       "category": "scanner_false_positive",
+      "protects": "jargon",
       "title": "Sailors literally navigate",
       "target": "script",
       "command": [
@@ -56,6 +58,7 @@
     {
       "id": "FP-03",
       "category": "scanner_false_positive",
+      "protects": "promotional",
       "title": "A museum tapestry / an arena's capacity are not promotional slop",
       "target": "script",
       "command": [
@@ -76,6 +79,7 @@
     {
       "id": "FP-06",
       "category": "scanner_false_positive",
+      "protects": "jargon",
       "title": "Literal 'delve into a place' — documented regex limit",
       "target": "script",
       "command": [
@@ -97,6 +101,7 @@
     {
       "id": "FP-04",
       "category": "scanner_false_positive",
+      "protects": "throat_clearing",
       "title": "Substring match: 'the real' inside 'the real estate'",
       "target": "script",
       "command": [
@@ -121,6 +126,7 @@
     {
       "id": "FP-05",
       "category": "scanner_false_positive",
+      "protects": "emphasis_crutch",
       "title": "Sentence-final 'period.' is an ordinary word",
       "target": "script",
       "command": [
@@ -197,6 +203,7 @@
     {
       "id": "FP-14",
       "category": "scanner_false_positive",
+      "protects": "emphasis_crutch",
       "title": "Literal 'is it genuine?' sense is not the 'X is real' tell",
       "target": "script",
       "command": [
@@ -545,6 +552,7 @@
     {
       "id": "FP-07",
       "category": "scanner_false_positive",
+      "protects": "jargon",
       "title": "A horse harness is not 'harness the power'",
       "target": "script",
       "command": [
@@ -565,6 +573,7 @@
     {
       "id": "FP-08",
       "category": "scanner_false_positive",
+      "protects": "jargon",
       "title": "A foster family is not 'foster a culture'",
       "target": "script",
       "command": [
@@ -585,6 +594,7 @@
     {
       "id": "FP-09",
       "category": "quote_exemption",
+      "protects": "throat_clearing",
       "title": "Curly (smart) double quotes are exempt too",
       "target": "script",
       "command": [
@@ -1048,6 +1058,7 @@
     {
       "id": "FP-10",
       "category": "scanner_false_positive",
+      "protects": "copula_avoidance",
       "title": "Literal 'serves as a kitchen' is not copula avoidance",
       "target": "script",
       "command": [
@@ -1068,6 +1079,7 @@
     {
       "id": "FP-11",
       "category": "scanner_false_positive",
+      "protects": "significance_inflation",
       "title": "Literal 'elevated glucose' is not hype",
       "target": "script",
       "command": [
@@ -1136,6 +1148,7 @@
     {
       "id": "FP-12",
       "category": "scanner_false_positive",
+      "protects": "anti_slop_register",
       "title": "Anti-slop detector spares normal varied prose",
       "target": "script",
       "command": [
@@ -1265,6 +1278,7 @@
     {
       "id": "FP-13",
       "category": "scanner_false_positive",
+      "protects": "jargon",
       "title": "Literal load-bearing and wedge are not AI tells",
       "target": "script",
       "command": [
@@ -1453,6 +1467,7 @@
     {
       "id": "FP-15",
       "category": "scanner_false_positive",
+      "protects": "jargon",
       "title": "Garner, North Carolina is a place name",
       "target": "script",
       "command": [
@@ -1473,6 +1488,7 @@
     {
       "id": "FP-16",
       "category": "scanner_false_positive",
+      "protects": "jargon",
       "title": "Unpacked boxes is literal moving prose",
       "target": "script",
       "command": [
@@ -1493,6 +1509,7 @@
     {
       "id": "FP-17",
       "category": "scanner_false_positive",
+      "protects": "jargon",
       "title": "A glass showcase is a display case",
       "target": "script",
       "command": [
@@ -1513,6 +1530,7 @@
     {
       "id": "FP-18",
       "category": "scanner_false_positive",
+      "protects": "jargon",
       "title": "Bolster pillow is literal bedding",
       "target": "script",
       "command": [
@@ -1533,6 +1551,7 @@
     {
       "id": "FP-19",
       "category": "scanner_false_positive",
+      "protects": "jargon",
       "title": "Double down is literal blackjack play",
       "target": "script",
       "command": [
@@ -1553,6 +1572,7 @@
     {
       "id": "FP-20",
       "category": "scanner_false_positive",
+      "protects": "jargon",
       "title": "Leaning into a corner is physical motion",
       "target": "script",
       "command": [
@@ -1573,6 +1593,7 @@
     {
       "id": "FP-21",
       "category": "scanner_false_positive",
+      "protects": "jargon",
       "title": "Stakeholder is a legal escrow role",
       "target": "script",
       "command": [
@@ -1737,6 +1758,7 @@
     {
       "id": "FP-22",
       "category": "scanner_false_positive",
+      "protects": "significance_inflation",
       "title": "Pivotal moment does not substring-match pivot",
       "target": "script",
       "command": [
@@ -1837,6 +1859,7 @@
     {
       "id": "FP-23",
       "category": "scanner_false_positive",
+      "protects": "emphasis_crutch",
       "title": "Embedded why-this-matters clause is not self-QA",
       "target": "script",
       "command": [
@@ -1881,6 +1904,7 @@
     {
       "id": "FP-24",
       "category": "scanner_false_positive",
+      "protects": "negative_listing",
       "title": "It is not clear followed by unrelated sentence is not negative listing",
       "target": "script",
       "command": [
@@ -1973,6 +1997,7 @@
     {
       "id": "FP-25",
       "category": "scanner_false_positive",
+      "protects": "negative_parallelism",
       "title": "Non-parallel not-just clause is safe",
       "target": "script",
       "command": [
@@ -1993,6 +2018,7 @@
     {
       "id": "FP-26",
       "category": "scanner_false_positive",
+      "protects": "jargon",
       "title": "Literal wedge into kerf is construction prose",
       "target": "script",
       "command": [
@@ -2013,6 +2039,7 @@
     {
       "id": "FP-27",
       "category": "scanner_false_positive",
+      "protects": "jargon",
       "title": "Literal wedge between logs is construction prose",
       "target": "script",
       "command": [
@@ -2105,6 +2132,7 @@
     {
       "id": "FP-28",
       "category": "scanner_false_positive",
+      "protects": "ai_vocabulary",
       "title": "Legal notwithstanding boilerplate is exempt",
       "target": "script",
       "command": [
@@ -2149,6 +2177,7 @@
     {
       "id": "FP-29",
       "category": "scanner_false_positive",
+      "protects": "jargon",
       "title": "Literal landscape of a place is exempt",
       "target": "script",
       "command": [
@@ -2217,6 +2246,7 @@
     {
       "id": "FP-30",
       "category": "scanner_false_positive",
+      "protects": "rhetorical_question",
       "title": "Genuine interrogative result question is safe",
       "target": "script",
       "command": [
@@ -2261,6 +2291,7 @@
     {
       "id": "FP-31",
       "category": "scanner_false_positive",
+      "protects": "hedge",
       "title": "Plain medical hedge remains safe",
       "target": "script",
       "command": [
@@ -2305,6 +2336,7 @@
     {
       "id": "FP-32",
       "category": "scanner_false_positive",
+      "protects": "reader_addressing",
       "title": "Legit conditional whether you are eligible is safe",
       "target": "script",
       "command": [
@@ -2373,6 +2405,7 @@
     {
       "id": "FP-33",
       "category": "scanner_false_positive",
+      "protects": "formatting",
       "title": "Single emoji in body text is safe",
       "target": "script",
       "command": [
@@ -2393,6 +2426,7 @@
     {
       "id": "FP-34",
       "category": "scanner_false_positive",
+      "protects": "em_dash_overuse",
       "title": "One em dash per paragraph is safe",
       "target": "script",
       "command": [
@@ -2485,6 +2519,7 @@
     {
       "id": "FP-35",
       "category": "scanner_false_positive",
+      "protects": "ai_vocabulary",
       "title": "Silicon substrate is literal electronics prose",
       "target": "script",
       "command": [
@@ -2673,6 +2708,7 @@
     {
       "id": "FP-36",
       "category": "scanner_false_positive",
+      "protects": "negative_parallelism",
       "title": "Merely decorative hinge does not trigger not-merely pattern",
       "target": "script",
       "command": [
@@ -3261,6 +3297,7 @@
     {
       "id": "FP-37",
       "category": "scanner_false_positive",
+      "protects": "exclamation_overuse",
       "title": "Exclamations in separate paragraphs are not stacked enthusiasm",
       "target": "script",
       "command": [
@@ -3305,6 +3342,7 @@
     {
       "id": "FP-38",
       "category": "scanner_false_positive",
+      "protects": "ai_vocabulary",
       "title": "A growth substrate for a cell culture is lab equipment, not metaphor",
       "target": "script",
       "command": [
@@ -4599,6 +4637,7 @@
     {
       "id": "FP-39",
       "category": "scanner_false_positive",
+      "protects": "reader_addressing",
       "title": "'Whether you're right or wrong' is ordinary English, not audience flattery",
       "target": "script",
       "command": [
@@ -4619,6 +4658,7 @@
     {
       "id": "FP-40",
       "category": "scanner_false_positive",
+      "protects": "reader_addressing",
       "title": "'Whether you're driving or flying' is a plain alternative, not flattery",
       "target": "script",
       "command": [
@@ -4663,6 +4703,7 @@
     {
       "id": "FP-41",
       "category": "scanner_false_positive",
+      "protects": "ai_vocabulary",
       "title": "Soldiers bolstering a trench wall is construction, not AI vocabulary",
       "target": "script",
       "command": [
@@ -4683,6 +4724,7 @@
     {
       "id": "FP-42",
       "category": "scanner_false_positive",
+      "protects": "emphasis_crutch",
       "title": "Compound noun phrase 'real gutters' is not the '<noun> is real' tell",
       "target": "script",
       "command": [
@@ -4703,6 +4745,7 @@
     {
       "id": "FP-43",
       "category": "scanner_false_positive",
+      "protects": "numeric_parallelism",
       "title": "'Six aesthetics, zero prompting.' is NOT the 'One X, N Y.' numeric-parallelism shape",
       "target": "script",
       "command": [
@@ -4723,6 +4766,7 @@
     {
       "id": "FP-44",
       "category": "scanner_false_positive",
+      "protects": "contrastive_definition",
       "title": "Plain declarative clause fragment",
       "target": "script",
       "command": [
@@ -4743,6 +4787,7 @@
     {
       "id": "FP-45",
       "category": "scanner_false_positive",
+      "protects": "imperative_slogan",
       "title": "Imperative + noun list is not a two-beat imperative slogan",
       "target": "script",
       "command": [
@@ -4763,6 +4808,7 @@
     {
       "id": "FP-46",
       "category": "scanner_false_positive",
+      "protects": "imperative_slogan",
       "title": "Two short subject-verb sentences are not a two-beat imperative slogan",
       "target": "script",
       "command": [
@@ -4783,6 +4829,7 @@
     {
       "id": "FP-47",
       "category": "scanner_false_positive",
+      "protects": "contrastive_definition",
       "title": "Imperative correction 'Use X, not Y.' is legitimate instruction",
       "target": "script",
       "command": [
@@ -4803,6 +4850,7 @@
     {
       "id": "FP-48",
       "category": "scanner_false_positive",
+      "protects": "contrastive_definition",
       "title": "Numeric correction 'X, not N.' is legitimate data",
       "target": "script",
       "command": [
@@ -4823,6 +4871,7 @@
     {
       "id": "FP-49",
       "category": "scanner_false_positive",
+      "protects": "fragment_template",
       "title": "Single '<plural noun> that <verb>.' fragment is fine (frequency gate)",
       "target": "script",
       "command": [
@@ -4843,6 +4892,7 @@
     {
       "id": "FP-50",
       "category": "scanner_false_positive",
+      "protects": "headline_cadence",
       "title": "One headline slogan pair plus normal prose is fine (frequency gate)",
       "target": "script",
       "command": [
@@ -4863,6 +4913,7 @@
     {
       "id": "FP-51",
       "category": "scanner_false_positive",
+      "protects": "headline_cadence",
       "title": "Short-sentence prose flowing inside a paragraph is not a headline cadence",
       "target": "script",
       "command": [
@@ -5222,6 +5273,3067 @@
           "type": "json",
           "path": "flagged",
           "equals": {}
+        }
+      ]
+    },
+    {
+      "id": "DET-18",
+      "category": "scanner_detection",
+      "title": "Structural pattern exercised: stakeholder + alignment collocation flags as jargon",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "We need stronger stakeholder alignment before the launch review next week.",
+      "failure_mode": "The jargon structural pattern could regress or be deleted with no eval exercising it.",
+      "correct_behavior": "Scanner flags the structural tell (>=1 violation).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "jargon"
+        }
+      ]
+    },
+    {
+      "id": "DET-19",
+      "category": "scanner_detection",
+      "title": "Structural pattern exercised: 'a deeper understanding of' significance-inflation frame",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "This chapter gives readers a deeper understanding of the underlying market forces.",
+      "failure_mode": "The significance_inflation structural pattern could regress or be deleted with no eval exercising it.",
+      "correct_behavior": "Scanner flags the structural tell (>=1 violation).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "significance_inflation"
+        }
+      ]
+    },
+    {
+      "id": "DET-20",
+      "category": "scanner_detection",
+      "title": "Structural pattern exercised: 'not because X. Because Y.' binary-contrast cadence",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "We rebuilt the parser not because it was slow. Because it was wrong.",
+      "failure_mode": "The binary_contrast structural pattern could regress or be deleted with no eval exercising it.",
+      "correct_behavior": "Scanner flags the structural tell (>=1 violation).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "binary_contrast"
+        }
+      ]
+    },
+    {
+      "id": "DET-21",
+      "category": "scanner_detection",
+      "title": "Structural pattern exercised: 'X isn't the problem. Y is.' binary contrast",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Latency isn't the problem. Throughput is.",
+      "failure_mode": "The binary_contrast structural pattern could regress or be deleted with no eval exercising it.",
+      "correct_behavior": "Scanner flags the structural tell (>=1 violation).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "binary_contrast"
+        }
+      ]
+    },
+    {
+      "id": "DET-22",
+      "category": "scanner_detection",
+      "title": "Structural pattern exercised: 'feels like X. It's actually Y.' binary contrast",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "It feels like a caching bug. It's actually a race condition in the writer.",
+      "failure_mode": "The binary_contrast structural pattern could regress or be deleted with no eval exercising it.",
+      "correct_behavior": "Scanner flags the structural tell (>=1 violation).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "binary_contrast"
+        }
+      ]
+    },
+    {
+      "id": "DET-23",
+      "category": "scanner_detection",
+      "title": "Structural pattern exercised: 'That's it. That's the ...' dramatic-fragment cadence",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "You flip a single feature flag and the entire ingestion pipeline reroutes itself automatically. That's it. That's the whole migration.",
+      "failure_mode": "The dramatic_fragment structural pattern could regress or be deleted with no eval exercising it.",
+      "correct_behavior": "Scanner flags the structural tell (>=1 violation).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "anti_slop_register"
+        }
+      ]
+    },
+    {
+      "id": "DET-24",
+      "category": "scanner_detection",
+      "title": "Structural pattern exercised: sentence-initial 'The <noun> loop.' dramatic fragment",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Every request threads back through one place. The retry loop.",
+      "failure_mode": "The dramatic_fragment structural pattern could regress or be deleted with no eval exercising it.",
+      "correct_behavior": "Scanner flags the structural tell (>=1 violation).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "dramatic_fragment"
+        }
+      ]
+    },
+    {
+      "id": "DET-25",
+      "category": "scanner_detection",
+      "title": "Structural pattern exercised: '<n> things. One thing' dramatic fragment",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The rewrite changed two things. One thing mattered: the schema.",
+      "failure_mode": "The dramatic_fragment structural pattern could regress or be deleted with no eval exercising it.",
+      "correct_behavior": "Scanner flags the structural tell (>=1 violation).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "dramatic_fragment"
+        }
+      ]
+    },
+    {
+      "id": "DET-26",
+      "category": "scanner_detection",
+      "title": "Structural pattern exercised: 'What if I told you' rhetorical setup",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "What if I told you the slowest endpoint was never the database at all?",
+      "failure_mode": "The rhetorical_setup structural pattern could regress or be deleted with no eval exercising it.",
+      "correct_behavior": "Scanner flags the structural tell (>=1 violation).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "rhetorical_setup"
+        }
+      ]
+    },
+    {
+      "id": "DET-27",
+      "category": "scanner_detection",
+      "title": "Structural pattern exercised: 'Here's what I mean:' rhetorical setup",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The API should fail loudly on a stale token. Here's what I mean: return a 401 immediately.",
+      "failure_mode": "The rhetorical_setup structural pattern could regress or be deleted with no eval exercising it.",
+      "correct_behavior": "Scanner flags the structural tell (>=1 violation).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "rhetorical_setup"
+        }
+      ]
+    },
+    {
+      "id": "DET-28",
+      "category": "scanner_detection",
+      "title": "Structural pattern exercised: 'Think about it:' rhetorical setup",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The cache never expires on its own. Think about it: nothing ever evicts a stale key.",
+      "failure_mode": "The rhetorical_setup structural pattern could regress or be deleted with no eval exercising it.",
+      "correct_behavior": "Scanner flags the structural tell (>=1 violation).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "rhetorical_setup"
+        }
+      ]
+    },
+    {
+      "id": "DET-29",
+      "category": "scanner_detection",
+      "title": "Structural pattern exercised: 'and that's okay.' unnecessary-permission cadence",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Sometimes the rollback takes the whole afternoon, and that's okay.",
+      "failure_mode": "The unnecessary_permission structural pattern could regress or be deleted with no eval exercising it.",
+      "correct_behavior": "Scanner flags the structural tell (>=1 violation).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "unnecessary_permission"
+        }
+      ]
+    },
+    {
+      "id": "DET-30",
+      "category": "scanner_detection",
+      "title": "Structural pattern exercised: 'not only X but also Y' negative parallelism",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The framework not only ships a router but also bundles its own state layer.",
+      "failure_mode": "The negative_parallelism structural pattern could regress or be deleted with no eval exercising it.",
+      "correct_behavior": "Scanner flags the structural tell (>=1 violation).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "negative_parallelism"
+        }
+      ]
+    },
+    {
+      "id": "DET-31",
+      "category": "scanner_detection",
+      "title": "Structural pattern exercised: 'it's not just about X, it's about Y' negative parallelism",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "It's not just about raw speed, it's about predictable tail latency under load.",
+      "failure_mode": "The negative_parallelism structural pattern could regress or be deleted with no eval exercising it.",
+      "correct_behavior": "Scanner flags the structural tell (>=1 violation).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "negative_parallelism"
+        }
+      ]
+    },
+    {
+      "id": "DET-32",
+      "category": "scanner_detection",
+      "title": "Structural pattern exercised: 'not X, not Y, but Z' negative parallelism",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "We optimized for reads, not writes, not batch jobs, but live dashboards.",
+      "failure_mode": "The negative_parallelism structural pattern could regress or be deleted with no eval exercising it.",
+      "correct_behavior": "Scanner flags the structural tell (>=1 violation).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "contrastive_definition"
+        }
+      ]
+    },
+    {
+      "id": "DET-33",
+      "category": "scanner_detection",
+      "title": "Structural pattern exercised: 'is not X. Rather, it is Y' negative parallelism",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Test coverage is not a finish line. Rather, it is a running measure of confidence.",
+      "failure_mode": "The negative_parallelism structural pattern could regress or be deleted with no eval exercising it.",
+      "correct_behavior": "Scanner flags the structural tell (>=1 violation).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "negative_parallelism"
+        }
+      ]
+    },
+    {
+      "id": "DET-34",
+      "category": "scanner_detection",
+      "title": "Structural pattern exercised: 'from X to Y, from A to B' false range",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The dataset ranges from tiny to huge, from sparse to dense across every partition.",
+      "failure_mode": "The false_range structural pattern could regress or be deleted with no eval exercising it.",
+      "correct_behavior": "Scanner flags the structural tell (>=1 violation).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "false_range"
+        }
+      ]
+    },
+    {
+      "id": "DET-35",
+      "category": "scanner_detection",
+      "title": "Structural pattern exercised: 'Despite its X, Y faces challenges' formulaic challenges",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Despite its clean interface, the scheduler faces challenges under bursty traffic.",
+      "failure_mode": "The formulaic_challenges structural pattern could regress or be deleted with no eval exercising it.",
+      "correct_behavior": "Scanner flags the structural tell (>=1 violation).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "formulaic_challenges"
+        }
+      ]
+    },
+    {
+      "id": "DET-36",
+      "category": "scanner_detection",
+      "title": "Structural pattern exercised: 'however, it is not without its challenges' formula",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The approach scales well; however, it is not without its challenges at the edges.",
+      "failure_mode": "The formulaic_challenges structural pattern could regress or be deleted with no eval exercising it.",
+      "correct_behavior": "Scanner flags the structural tell (>=1 violation).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "formulaic_challenges"
+        }
+      ]
+    },
+    {
+      "id": "DET-37",
+      "category": "scanner_detection",
+      "title": "Structural pattern exercised: 'While X, Y remains a concern' formulaic challenges",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "While the numbers look strong, data drift remains a concern for the model.",
+      "failure_mode": "The formulaic_challenges structural pattern could regress or be deleted with no eval exercising it.",
+      "correct_behavior": "Scanner flags the structural tell (>=1 violation).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "formulaic_challenges"
+        }
+      ]
+    },
+    {
+      "id": "DET-38",
+      "category": "scanner_detection",
+      "title": "Structural pattern exercised: 'Although X, Y remains a challenge' false concession",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Although the team shipped the fix, latency remains a challenge for large tenants.",
+      "failure_mode": "The false_concession structural pattern could regress or be deleted with no eval exercising it.",
+      "correct_behavior": "Scanner flags the structural tell (>=1 violation).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "false_concession"
+        }
+      ]
+    },
+    {
+      "id": "DET-39",
+      "category": "scanner_detection",
+      "title": "Structural pattern exercised: one-word sentence run (staccato fragmentation)",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The build just died. Silence. Nothing. Gone. Done.",
+      "failure_mode": "The staccato_fragmentation structural pattern could regress or be deleted with no eval exercising it.",
+      "correct_behavior": "Scanner flags the structural tell (>=1 violation).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "anti_slop_register"
+        }
+      ]
+    },
+    {
+      "id": "DET-40",
+      "category": "scanner_detection",
+      "title": "Paragraph-initial 'So,' filler opener flags",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "So, the release went out and immediately paged the on-call engineer.",
+      "failure_mode": "The filler_opener structural pattern could regress or be deleted with no eval exercising it.",
+      "correct_behavior": "Scanner flags the structural tell (>=1 violation).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "filler_opener"
+        }
+      ]
+    },
+    {
+      "id": "DET-41",
+      "category": "scanner_detection",
+      "title": "Structural pattern exercised: 'The reason is:' colon reveal",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The reason is: the retry budget was never wired into the client.",
+      "failure_mode": "The colon_reveal structural pattern could regress or be deleted with no eval exercising it.",
+      "correct_behavior": "Scanner flags the structural tell (>=1 violation).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "colon_reveal"
+        }
+      ]
+    },
+    {
+      "id": "DET-42",
+      "category": "scanner_detection",
+      "title": "Structural pattern exercised: parenthetical hedge '(perhaps ...)'",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The migration finished overnight (perhaps too quietly for anyone to notice).",
+      "failure_mode": "The parenthetical_hedging structural pattern could regress or be deleted with no eval exercising it.",
+      "correct_behavior": "Scanner flags the structural tell (>=1 violation).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "parenthetical_hedging"
+        }
+      ]
+    },
+    {
+      "id": "DET-43",
+      "category": "scanner_detection",
+      "title": "Structural pattern exercised: 'Here are N reasons' numbered-list inflation",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Here are 5 reasons the rollout slipped past its original deadline.",
+      "failure_mode": "The numbered_list_inflation structural pattern could regress or be deleted with no eval exercising it.",
+      "correct_behavior": "Scanner flags the structural tell (>=1 violation).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "numbered_list_inflation"
+        }
+      ]
+    },
+    {
+      "id": "DET-44",
+      "category": "scanner_detection",
+      "title": "Structural pattern exercised: 'What does this mean for' rhetorical question",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "What does this mean for the average request path through the gateway?",
+      "failure_mode": "The rhetorical_question structural pattern could regress or be deleted with no eval exercising it.",
+      "correct_behavior": "Scanner flags the structural tell (>=1 violation).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "rhetorical_question"
+        }
+      ]
+    },
+    {
+      "id": "DET-45",
+      "category": "scanner_detection",
+      "title": "Structural pattern exercised: 'So why should you care' rhetorical question",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "So why should you care about a two-millisecond regression?",
+      "failure_mode": "The rhetorical_question structural pattern could regress or be deleted with no eval exercising it.",
+      "correct_behavior": "Scanner flags the structural tell (>=1 violation).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "rhetorical_question"
+        }
+      ]
+    },
+    {
+      "id": "REC-21",
+      "category": "scanner_recall",
+      "title": "Catalog coverage: 'the uncomfortable truth is' and 9 more banned phrases still flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "During the weekly review meeting the analyst mentioned the uncomfortable truth is and the group moved on to the next agenda item.\nThe consultant wrote that it turns out before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating let me be clear while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged the truth is and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned i'll say it again and the group moved on to the next agenda item.\nThe consultant wrote that i'm going to be honest before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating can we talk about while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged here's what i find interesting and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned here's the problem though and the group moved on to the next agenda item.\nThe consultant wrote that let's be real before summarizing the quarterly figures for the assembled department heads.",
+      "failure_mode": "Catalogued banned phrases with no eval row can be silently dropped from BANNED_PHRASES with every gate green.",
+      "correct_behavior": "Every phrase in the pack is flagged by the scanner.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "the uncomfortable truth is"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "it turns out"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "let me be clear"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "the truth is"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "i'll say it again"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "i'm going to be honest"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "can we talk about"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "here's what i find interesting"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "here's the problem though"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "let's be real"
+        }
+      ]
+    },
+    {
+      "id": "REC-22",
+      "category": "scanner_recall",
+      "title": "Catalog coverage: 'here's the deal' and 9 more banned phrases still flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "During the weekly review meeting the analyst mentioned here's the deal and the group moved on to the next agenda item.\nThe consultant wrote that here's what nobody tells you before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating let that sink in while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged this matters because and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned make no mistake and the group moved on to the next agenda item.\nThe consultant wrote that here's why that matters before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating read that again while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged this is important and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned this cannot be overstated and the group moved on to the next agenda item.\nThe consultant wrote that in summary before summarizing the quarterly figures for the assembled department heads.",
+      "failure_mode": "Catalogued banned phrases with no eval row can be silently dropped from BANNED_PHRASES with every gate green.",
+      "correct_behavior": "Every phrase in the pack is flagged by the scanner.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "here's the deal"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "here's what nobody tells you"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "let that sink in"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "this matters because"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "make no mistake"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "here's why that matters"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "read that again"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "this is important"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "this cannot be overstated"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "in summary"
+        }
+      ]
+    },
+    {
+      "id": "REC-23",
+      "category": "scanner_recall",
+      "title": "Catalog coverage: 'to summarize' and 9 more banned phrases still flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "During the weekly review meeting the analyst mentioned to summarize and the group moved on to the next agenda item.\nThe consultant wrote that thirdly before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating underscores the importance while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged underscoring the importance and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned highlights the importance and the group moved on to the next agenda item.\nThe consultant wrote that ever-changing before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating speaks for itself while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged paints a clear picture and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned leaves a lasting impact and the group moved on to the next agenda item.\nThe consultant wrote that lasting impact before summarizing the quarterly figures for the assembled department heads.",
+      "failure_mode": "Catalogued banned phrases with no eval row can be silently dropped from BANNED_PHRASES with every gate green.",
+      "correct_behavior": "Every phrase in the pack is flagged by the scanner.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "to summarize"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "thirdly"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "underscores the importance"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "underscoring the importance"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "highlights the importance"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "ever-changing"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "speaks for itself"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "paints a clear picture"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "leaves a lasting impact"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "lasting impact"
+        }
+      ]
+    },
+    {
+      "id": "REC-24",
+      "category": "scanner_recall",
+      "title": "Catalog coverage: 'enduring legacy' and 9 more banned phrases still flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "During the weekly review meeting the analyst mentioned enduring legacy and the group moved on to the next agenda item.\nThe consultant wrote that lasting legacy before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating watershed moment while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged in the realm of and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned is widely regarded as and the group moved on to the next agenda item.\nThe consultant wrote that some critics argue before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating observers have noted while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged would be complete without and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned future prospects and the group moved on to the next agenda item.\nThe consultant wrote that future outlook before summarizing the quarterly figures for the assembled department heads.",
+      "failure_mode": "Catalogued banned phrases with no eval row can be silently dropped from BANNED_PHRASES with every gate green.",
+      "correct_behavior": "Every phrase in the pack is flagged by the scanner.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "enduring legacy"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "lasting legacy"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "watershed moment"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "in the realm of"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "is widely regarded as"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "some critics argue"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "observers have noted"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "would be complete without"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "future prospects"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "future outlook"
+        }
+      ]
+    },
+    {
+      "id": "REC-25",
+      "category": "scanner_recall",
+      "title": "Catalog coverage: 'as an ai assistant' and 9 more banned phrases still flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "During the weekly review meeting the analyst mentioned as an ai assistant and the group moved on to the next agenda item.\nThe consultant wrote that as of my last knowledge update before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating elucidate while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged delineate and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned underpin and the group moved on to the next agenda item.\nThe consultant wrote that unveil before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating seamless while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged invaluable and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned noteworthy and the group moved on to the next agenda item.\nThe consultant wrote that revolutionize before summarizing the quarterly figures for the assembled department heads.",
+      "failure_mode": "Catalogued banned phrases with no eval row can be silently dropped from BANNED_PHRASES with every gate green.",
+      "correct_behavior": "Every phrase in the pack is flagged by the scanner.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "as an ai assistant"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "as of my last knowledge update"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "elucidate"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "delineate"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "underpin"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "unveil"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "seamless"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "invaluable"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "noteworthy"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "revolutionize"
+        }
+      ]
+    },
+    {
+      "id": "REC-26",
+      "category": "scanner_recall",
+      "title": "Catalog coverage: 'revolutionizing' and 9 more banned phrases still flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "During the weekly review meeting the analyst mentioned revolutionizing and the group moved on to the next agenda item.\nThe consultant wrote that it should be noted that before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating holds promise while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged new avenues and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned shed new light and the group moved on to the next agenda item.\nThe consultant wrote that to the best of our knowledge before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating a growing body of while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged in recent years and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned with the advent of and the group moved on to the next agenda item.\nThe consultant wrote that garnered significant attention before summarizing the quarterly figures for the assembled department heads.",
+      "failure_mode": "Catalogued banned phrases with no eval row can be silently dropped from BANNED_PHRASES with every gate green.",
+      "correct_behavior": "Every phrase in the pack is flagged by the scanner.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "revolutionizing"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "it should be noted that"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "holds promise"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "new avenues"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "shed new light"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "to the best of our knowledge"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "a growing body of"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "in recent years"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "with the advent of"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "garnered significant attention"
+        }
+      ]
+    },
+    {
+      "id": "REC-27",
+      "category": "scanner_recall",
+      "title": "Catalog coverage: 'garnered considerable attention' and 9 more banned phrases still flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "During the weekly review meeting the analyst mentioned garnered considerable attention and the group moved on to the next agenda item.\nThe consultant wrote that taken together, before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating game-changer while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged deep dive and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned take a step back and the group moved on to the next agenda item.\nThe consultant wrote that moving forward before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating circle back while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged on the same page and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned level up and the group moved on to the next agenda item.\nThe consultant wrote that bandwidth before summarizing the quarterly figures for the assembled department heads.",
+      "failure_mode": "Catalogued banned phrases with no eval row can be silently dropped from BANNED_PHRASES with every gate green.",
+      "correct_behavior": "Every phrase in the pack is flagged by the scanner.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "garnered considerable attention"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "taken together,"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "game-changer"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "deep dive"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "take a step back"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "moving forward"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "circle back"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "on the same page"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "level up"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "bandwidth"
+        }
+      ]
+    },
+    {
+      "id": "REC-28",
+      "category": "scanner_recall",
+      "title": "Catalog coverage: 'low-hanging fruit' and 9 more banned phrases still flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "During the weekly review meeting the analyst mentioned low-hanging fruit and the group moved on to the next agenda item.\nThe consultant wrote that disrupt before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating scalable while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged actionable and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned ecosystem and the group moved on to the next agenda item.\nThe consultant wrote that touch base before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating value-add while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged thought leader and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned best-in-class and the group moved on to the next agenda item.\nThe consultant wrote that cutting-edge before summarizing the quarterly figures for the assembled department heads.",
+      "failure_mode": "Catalogued banned phrases with no eval row can be silently dropped from BANNED_PHRASES with every gate green.",
+      "correct_behavior": "Every phrase in the pack is flagged by the scanner.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "low-hanging fruit"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "disrupt"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "scalable"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "actionable"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "ecosystem"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "touch base"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "value-add"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "thought leader"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "best-in-class"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "cutting-edge"
+        }
+      ]
+    },
+    {
+      "id": "REC-29",
+      "category": "scanner_recall",
+      "title": "Catalog coverage: 'delve deeper' and 9 more banned phrases still flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "During the weekly review meeting the analyst mentioned delve deeper and the group moved on to the next agenda item.\nThe consultant wrote that robust before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating comprehensive while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged utilize and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned facilitate and the group moved on to the next agenda item.\nThe consultant wrote that spearhead before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating streamline while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged multifaceted and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned enhance and the group moved on to the next agenda item.\nThe consultant wrote that align with before summarizing the quarterly figures for the assembled department heads.",
+      "failure_mode": "Catalogued banned phrases with no eval row can be silently dropped from BANNED_PHRASES with every gate green.",
+      "correct_behavior": "Every phrase in the pack is flagged by the scanner.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "delve deeper"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "robust"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "comprehensive"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "utilize"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "facilitate"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "spearhead"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "streamline"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "multifaceted"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "enhance"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "align with"
+        }
+      ]
+    },
+    {
+      "id": "REC-30",
+      "category": "scanner_recall",
+      "title": "Catalog coverage: 'at its core' and 9 more banned phrases still flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "During the weekly review meeting the analyst mentioned at its core and the group moved on to the next agenda item.\nThe consultant wrote that interestingly, before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating importantly, while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged crucially, and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned at the end of the day and the group moved on to the next agenda item.\nThe consultant wrote that when it comes to before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating in a world where while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged the reality is and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned with that said and the group moved on to the next agenda item.\nThe consultant wrote that that being said before summarizing the quarterly figures for the assembled department heads.",
+      "failure_mode": "Catalogued banned phrases with no eval row can be silently dropped from BANNED_PHRASES with every gate green.",
+      "correct_behavior": "Every phrase in the pack is flagged by the scanner.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "at its core"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "interestingly,"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "importantly,"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "crucially,"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "at the end of the day"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "when it comes to"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "in a world where"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "the reality is"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "with that said"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "that being said"
+        }
+      ]
+    },
+    {
+      "id": "REC-31",
+      "category": "scanner_recall",
+      "title": "Catalog coverage: 'all things considered' and 9 more banned phrases still flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "During the weekly review meeting the analyst mentioned all things considered and the group moved on to the next agenda item.\nThe consultant wrote that by and large before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating for the most part while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged to be fair and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned to be honest and the group moved on to the next agenda item.\nThe consultant wrote that needless to say before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating it goes without saying while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged in order to and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned due to the fact that and the group moved on to the next agenda item.\nThe consultant wrote that at this point in time before summarizing the quarterly figures for the assembled department heads.",
+      "failure_mode": "Catalogued banned phrases with no eval row can be silently dropped from BANNED_PHRASES with every gate green.",
+      "correct_behavior": "Every phrase in the pack is flagged by the scanner.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "all things considered"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "by and large"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "for the most part"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "to be fair"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "to be honest"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "needless to say"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "it goes without saying"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "in order to"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "due to the fact that"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "at this point in time"
+        }
+      ]
+    },
+    {
+      "id": "REC-32",
+      "category": "scanner_recall",
+      "title": "Catalog coverage: 'in the event that' and 9 more banned phrases still flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "During the weekly review meeting the analyst mentioned in the event that and the group moved on to the next agenda item.\nThe consultant wrote that hint: before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating plot twist: while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged spoiler: and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned you already know this, but and the group moved on to the next agenda item.\nThe consultant wrote that but that's another post before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating is a feature, not a bug while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged dressed up as and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned let me explain and the group moved on to the next agenda item.\nThe consultant wrote that to put it simply before summarizing the quarterly figures for the assembled department heads.",
+      "failure_mode": "Catalogued banned phrases with no eval row can be silently dropped from BANNED_PHRASES with every gate green.",
+      "correct_behavior": "Every phrase in the pack is flagged by the scanner.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "in the event that"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "hint:"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "plot twist:"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "spoiler:"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "you already know this, but"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "but that's another post"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "is a feature, not a bug"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "dressed up as"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "let me explain"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "to put it simply"
+        }
+      ]
+    },
+    {
+      "id": "REC-33",
+      "category": "scanner_recall",
+      "title": "Catalog coverage: 'in other words' and 9 more banned phrases still flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "During the weekly review meeting the analyst mentioned in other words and the group moved on to the next agenda item.\nThe consultant wrote that if you think about it before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating creeps in while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged i promise and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned they exist, i promise and the group moved on to the next agenda item.\nThe consultant wrote that this is genuinely before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating actually looks like while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged trust me and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned believe me and the group moved on to the next agenda item.\nThe consultant wrote that stands as a testament before summarizing the quarterly figures for the assembled department heads.",
+      "failure_mode": "Catalogued banned phrases with no eval row can be silently dropped from BANNED_PHRASES with every gate green.",
+      "correct_behavior": "Every phrase in the pack is flagged by the scanner.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "in other words"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "if you think about it"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "creeps in"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "i promise"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "they exist, i promise"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "this is genuinely"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "actually looks like"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "trust me"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "believe me"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "stands as a testament"
+        }
+      ]
+    },
+    {
+      "id": "REC-34",
+      "category": "scanner_recall",
+      "title": "Catalog coverage: 'indelible mark' and 9 more banned phrases still flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "During the weekly review meeting the analyst mentioned indelible mark and the group moved on to the next agenda item.\nThe consultant wrote that rich tapestry before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating rich history while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged a legacy of and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned cornerstone of and the group moved on to the next agenda item.\nThe consultant wrote that groundbreaking before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating transformative while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged trailblazing and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned seminal and the group moved on to the next agenda item.\nThe consultant wrote that nestled before summarizing the quarterly figures for the assembled department heads.",
+      "failure_mode": "Catalogued banned phrases with no eval row can be silently dropped from BANNED_PHRASES with every gate green.",
+      "correct_behavior": "Every phrase in the pack is flagged by the scanner.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "indelible mark"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "rich tapestry"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "rich history"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "a legacy of"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "cornerstone of"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "groundbreaking"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "transformative"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "trailblazing"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "seminal"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "nestled"
+        }
+      ]
+    },
+    {
+      "id": "REC-35",
+      "category": "scanner_recall",
+      "title": "Catalog coverage: 'breathtaking' and 9 more banned phrases still flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "During the weekly review meeting the analyst mentioned breathtaking and the group moved on to the next agenda item.\nThe consultant wrote that must-visit before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating in the heart of while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged world-class and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned state-of-the-art and the group moved on to the next agenda item.\nThe consultant wrote that second to none before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating a hidden gem while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged bustling and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned renowned for and the group moved on to the next agenda item.\nThe consultant wrote that a beacon of before summarizing the quarterly figures for the assembled department heads.",
+      "failure_mode": "Catalogued banned phrases with no eval row can be silently dropped from BANNED_PHRASES with every gate green.",
+      "correct_behavior": "Every phrase in the pack is flagged by the scanner.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "breathtaking"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "must-visit"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "in the heart of"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "world-class"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "state-of-the-art"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "second to none"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "a hidden gem"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "bustling"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "renowned for"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "a beacon of"
+        }
+      ]
+    },
+    {
+      "id": "REC-36",
+      "category": "scanner_recall",
+      "title": "Catalog coverage: 'experts argue' and 9 more banned phrases still flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "During the weekly review meeting the analyst mentioned experts argue and the group moved on to the next agenda item.\nThe consultant wrote that industry reports suggest before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating many believe while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged it is widely regarded and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned according to experts and the group moved on to the next agenda item.\nThe consultant wrote that observers note before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating research suggests while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged represents a and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned constitutes a and the group moved on to the next agenda item.\nThe consultant wrote that functions as a before summarizing the quarterly figures for the assembled department heads.",
+      "failure_mode": "Catalogued banned phrases with no eval row can be silently dropped from BANNED_PHRASES with every gate green.",
+      "correct_behavior": "Every phrase in the pack is flagged by the scanner.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "experts argue"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "industry reports suggest"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "many believe"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "it is widely regarded"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "according to experts"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "observers note"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "research suggests"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "represents a"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "constitutes a"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "functions as a"
+        }
+      ]
+    },
+    {
+      "id": "REC-37",
+      "category": "scanner_recall",
+      "title": "Catalog coverage: 'operates as a' and 9 more banned phrases still flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "During the weekly review meeting the analyst mentioned operates as a and the group moved on to the next agenda item.\nThe consultant wrote that i hope this helps before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating certainly! while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged great question and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned that's a great point and the group moved on to the next agenda item.\nThe consultant wrote that happy to help before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating let me know if you need anything else while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged i'd be happy to and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned i am happy to address and the group moved on to the next agenda item.\nThe consultant wrote that i am open to any suggestions before summarizing the quarterly figures for the assembled department heads.",
+      "failure_mode": "Catalogued banned phrases with no eval row can be silently dropped from BANNED_PHRASES with every gate green.",
+      "correct_behavior": "Every phrase in the pack is flagged by the scanner.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "operates as a"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "i hope this helps"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "certainly!"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "great question"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "that's a great point"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "happy to help"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "let me know if you need anything else"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "i'd be happy to"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "i am happy to address"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "i am open to any suggestions"
+        }
+      ]
+    },
+    {
+      "id": "REC-38",
+      "category": "scanner_recall",
+      "title": "Catalog coverage: 'i am open to feedback' and 9 more banned phrases still flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "During the weekly review meeting the analyst mentioned i am open to feedback and the group moved on to the next agenda item.\nThe consultant wrote that i would appreciate any feedback before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating i am willing to address while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged i assure you and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned demonstrate my commitment and the group moved on to the next agenda item.\nThe consultant wrote that with the utmost care before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating if you have any concerns or suggestions while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged as of my last and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned as of my knowledge cutoff and the group moved on to the next agenda item.\nThe consultant wrote that based on my training data before summarizing the quarterly figures for the assembled department heads.",
+      "failure_mode": "Catalogued banned phrases with no eval row can be silently dropped from BANNED_PHRASES with every gate green.",
+      "correct_behavior": "Every phrase in the pack is flagged by the scanner.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "i am open to feedback"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "i would appreciate any feedback"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "i am willing to address"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "i assure you"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "demonstrate my commitment"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "with the utmost care"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "if you have any concerns or suggestions"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "as of my last"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "as of my knowledge cutoff"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "based on my training data"
+        }
+      ]
+    },
+    {
+      "id": "REC-39",
+      "category": "scanner_recall",
+      "title": "Catalog coverage: 'based on available information' and 9 more banned phrases still flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "During the weekly review meeting the analyst mentioned based on available information and the group moved on to the next agenda item.\nThe consultant wrote that the future looks bright before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating exciting times lie ahead while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged only time will tell and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned one thing is certain and the group moved on to the next agenda item.\nThe consultant wrote that continues to evolve before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating continues to shape while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged poised for growth and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned remains to be seen and the group moved on to the next agenda item.\nThe consultant wrote that interplay before summarizing the quarterly figures for the assembled department heads.",
+      "failure_mode": "Catalogued banned phrases with no eval row can be silently dropped from BANNED_PHRASES with every gate green.",
+      "correct_behavior": "Every phrase in the pack is flagged by the scanner.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "based on available information"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "the future looks bright"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "exciting times lie ahead"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "only time will tell"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "one thing is certain"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "continues to evolve"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "continues to shape"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "poised for growth"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "remains to be seen"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "interplay"
+        }
+      ]
+    },
+    {
+      "id": "REC-40",
+      "category": "scanner_recall",
+      "title": "Catalog coverage: 'intricate' and 9 more banned phrases still flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "During the weekly review meeting the analyst mentioned intricate and the group moved on to the next agenda item.\nThe consultant wrote that tapestry of before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating paramount while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged pertaining to and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned aforementioned and the group moved on to the next agenda item.\nThe consultant wrote that henceforth before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating whereby while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged therein and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned burgeoning and the group moved on to the next agenda item.\nThe consultant wrote that myriad before summarizing the quarterly figures for the assembled department heads.",
+      "failure_mode": "Catalogued banned phrases with no eval row can be silently dropped from BANNED_PHRASES with every gate green.",
+      "correct_behavior": "Every phrase in the pack is flagged by the scanner.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "intricate"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "tapestry of"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "paramount"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "pertaining to"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "aforementioned"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "henceforth"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "whereby"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "therein"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "burgeoning"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "myriad"
+        }
+      ]
+    },
+    {
+      "id": "REC-41",
+      "category": "scanner_recall",
+      "title": "Catalog coverage: 'plethora' and 9 more banned phrases still flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "During the weekly review meeting the analyst mentioned plethora and the group moved on to the next agenda item.\nThe consultant wrote that encompass before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating nevertheless while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged ubiquitous and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned nuanced and the group moved on to the next agenda item.\nThe consultant wrote that meticulous before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating meticulously while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged emphasizing and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned enduring and the group moved on to the next agenda item.\nThe consultant wrote that vibrant before summarizing the quarterly figures for the assembled department heads.",
+      "failure_mode": "Catalogued banned phrases with no eval row can be silently dropped from BANNED_PHRASES with every gate green.",
+      "correct_behavior": "Every phrase in the pack is flagged by the scanner.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "plethora"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "encompass"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "nevertheless"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "ubiquitous"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "nuanced"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "meticulous"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "meticulously"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "emphasizing"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "enduring"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "vibrant"
+        }
+      ]
+    },
+    {
+      "id": "REC-42",
+      "category": "scanner_recall",
+      "title": "Catalog coverage: 'resonates with' and 9 more banned phrases still flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "During the weekly review meeting the analyst mentioned resonates with and the group moved on to the next agenda item.\nThe consultant wrote that resonate with before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating at the intersection of while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged it's no secret that and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned speaks volumes and the group moved on to the next agenda item.\nThe consultant wrote that the elephant in the room before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating it begs the question while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged a deep understanding and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned double-edged sword and the group moved on to the next agenda item.\nThe consultant wrote that sends a clear message before summarizing the quarterly figures for the assembled department heads.",
+      "failure_mode": "Catalogued banned phrases with no eval row can be silently dropped from BANNED_PHRASES with every gate green.",
+      "correct_behavior": "Every phrase in the pack is flagged by the scanner.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "resonates with"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "resonate with"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "at the intersection of"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "it's no secret that"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "speaks volumes"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "the elephant in the room"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "it begs the question"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "a deep understanding"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "double-edged sword"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "sends a clear message"
+        }
+      ]
+    },
+    {
+      "id": "REC-43",
+      "category": "scanner_recall",
+      "title": "Catalog coverage: 'here's why' and 9 more banned phrases still flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "During the weekly review meeting the analyst mentioned here's why and the group moved on to the next agenda item.\nThe consultant wrote that let's dive in before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating let's explore while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged let's break this down and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned let's take a look and the group moved on to the next agenda item.\nThe consultant wrote that let's examine before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating the bottom line while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged the key takeaway and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned it's clear that and the group moved on to the next agenda item.\nThe consultant wrote that what's clear is before summarizing the quarterly figures for the assembled department heads.",
+      "failure_mode": "Catalogued banned phrases with no eval row can be silently dropped from BANNED_PHRASES with every gate green.",
+      "correct_behavior": "Every phrase in the pack is flagged by the scanner.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "here's why"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "let's dive in"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "let's explore"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "let's break this down"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "let's take a look"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "let's examine"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "the bottom line"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "the key takeaway"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "it's clear that"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "what's clear is"
+        }
+      ]
+    },
+    {
+      "id": "REC-44",
+      "category": "scanner_recall",
+      "title": "Catalog coverage: 'it's a no-brainer' and 9 more banned phrases still flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "During the weekly review meeting the analyst mentioned it's a no-brainer and the group moved on to the next agenda item.\nThe consultant wrote that at the forefront of before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating navigating the complexities while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged in an era of and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned the fabric of and the group moved on to the next agenda item.\nThe consultant wrote that it's worth mentioning before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating sheds light on while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged strikes a balance and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned paints a picture and the group moved on to the next agenda item.\nThe consultant wrote that raises the bar before summarizing the quarterly figures for the assembled department heads.",
+      "failure_mode": "Catalogued banned phrases with no eval row can be silently dropped from BANNED_PHRASES with every gate green.",
+      "correct_behavior": "Every phrase in the pack is flagged by the scanner.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "it's a no-brainer"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "at the forefront of"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "navigating the complexities"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "in an era of"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "the fabric of"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "it's worth mentioning"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "sheds light on"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "strikes a balance"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "paints a picture"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "raises the bar"
+        }
+      ]
+    },
+    {
+      "id": "REC-45",
+      "category": "scanner_recall",
+      "title": "Catalog coverage: 'food for thought' and 9 more banned phrases still flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "During the weekly review meeting the analyst mentioned food for thought and the group moved on to the next agenda item.\nThe consultant wrote that the million-dollar question before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating this is where it gets interesting while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged buckle up and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned spoiler alert and the group moved on to the next agenda item.\nThe consultant wrote that pro tip before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating hot take while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged unpopular opinion and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned a closer look and the group moved on to the next agenda item.\nThe consultant wrote that here's what's interesting before summarizing the quarterly figures for the assembled department heads.",
+      "failure_mode": "Catalogued banned phrases with no eval row can be silently dropped from BANNED_PHRASES with every gate green.",
+      "correct_behavior": "Every phrase in the pack is flagged by the scanner.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "food for thought"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "the million-dollar question"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "this is where it gets interesting"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "buckle up"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "spoiler alert"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "pro tip"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "hot take"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "unpopular opinion"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "a closer look"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "here's what's interesting"
+        }
+      ]
+    },
+    {
+      "id": "REC-46",
+      "category": "scanner_recall",
+      "title": "Catalog coverage: 'here's what caught my eye' and 9 more banned phrases still flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "During the weekly review meeting the analyst mentioned here's what caught my eye and the group moved on to the next agenda item.\nThe consultant wrote that here's what stood out before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating worth reading while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged worth paying attention to and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned worth a look and the group moved on to the next agenda item.\nThe consultant wrote that worth exploring before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating worth checking out while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged worth your time and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned let me think step by step and the group moved on to the next agenda item.\nThe consultant wrote that breaking this down before summarizing the quarterly figures for the assembled department heads.",
+      "failure_mode": "Catalogued banned phrases with no eval row can be silently dropped from BANNED_PHRASES with every gate green.",
+      "correct_behavior": "Every phrase in the pack is flagged by the scanner.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "here's what caught my eye"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "here's what stood out"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "worth reading"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "worth paying attention to"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "worth a look"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "worth exploring"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "worth checking out"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "worth your time"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "let me think step by step"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "breaking this down"
+        }
+      ]
+    },
+    {
+      "id": "REC-47",
+      "category": "scanner_recall",
+      "title": "Catalog coverage: 'to approach this systematically' and 9 more banned phrases still flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "During the weekly review meeting the analyst mentioned to approach this systematically and the group moved on to the next agenda item.\nThe consultant wrote that here's my thought process before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating working through this logically while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged you're asking about and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned to answer your question and the group moved on to the next agenda item.\nThe consultant wrote that the question of whether before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating introduced a term while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged coined the phrase and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned a concept nobody's naming and the group moved on to the next agenda item.\nThe consultant wrote that a problem nobody talks about before summarizing the quarterly figures for the assembled department heads.",
+      "failure_mode": "Catalogued banned phrases with no eval row can be silently dropped from BANNED_PHRASES with every gate green.",
+      "correct_behavior": "Every phrase in the pack is flagged by the scanner.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "to approach this systematically"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "here's my thought process"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "working through this logically"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "you're asking about"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "to answer your question"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "the question of whether"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "introduced a term"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "coined the phrase"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "a concept nobody's naming"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "a problem nobody talks about"
+        }
+      ]
+    },
+    {
+      "id": "REC-48",
+      "category": "scanner_recall",
+      "title": "Catalog coverage: 'the insight everyone's missing' and 7 more banned phrases still flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "During the weekly review meeting the analyst mentioned the insight everyone's missing and the group moved on to the next agenda item.\nThe consultant wrote that what nobody tells you about before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating what does this mean for while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged why should you care and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned what's next? and the group moved on to the next agenda item.\nThe consultant wrote that three key takeaways before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating five things to know while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged top seven and asked for a plainer rewrite instead.",
+      "failure_mode": "Catalogued banned phrases with no eval row can be silently dropped from BANNED_PHRASES with every gate green.",
+      "correct_behavior": "Every phrase in the pack is flagged by the scanner.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "the insight everyone's missing"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "what nobody tells you about"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "what does this mean for"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "why should you care"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "what's next?"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "three key takeaways"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "five things to know"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "top seven"
+        }
+      ]
+    },
+    {
+      "id": "FP-52",
+      "category": "scanner_false_positive",
+      "protects": "academic_excess",
+      "title": "FP guard: near-academic_excess prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The masons repaired the underpinning beneath the old church wall.",
+      "failure_mode": "Over-broadening the academic_excess rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts academic_excess but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-53",
+      "category": "scanner_false_positive",
+      "protects": "acknowledgment_loop",
+      "title": "FP guard: near-acknowledgment_loop prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The question of how to route the packet was settled by the new switch.",
+      "failure_mode": "Over-broadening the acknowledgment_loop rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts acknowledgment_loop but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-54",
+      "category": "scanner_false_positive",
+      "protects": "anthropomorphic_shipping",
+      "title": "FP guard: near-anthropomorphic_shipping prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The new gadget arrives inside a labeled cardboard box at every store.",
+      "failure_mode": "Over-broadening the anthropomorphic_shipping rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts anthropomorphic_shipping but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-55",
+      "category": "scanner_false_positive",
+      "protects": "assistant_artifact",
+      "title": "FP guard: near-assistant_artifact prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "She works as an AI researcher on the alignment team.",
+      "failure_mode": "Over-broadening the assistant_artifact rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts assistant_artifact but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-56",
+      "category": "scanner_false_positive",
+      "protects": "binary_contrast",
+      "title": "FP guard: near-binary_contrast prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The bridge closed not for repairs but for a scheduled inspection.",
+      "failure_mode": "Over-broadening the binary_contrast rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts binary_contrast but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-57",
+      "category": "scanner_false_positive",
+      "protects": "colon_reveal",
+      "title": "FP guard: near-colon_reveal prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The answer is on page twelve of the appendix.",
+      "failure_mode": "Over-broadening the colon_reveal rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts colon_reveal but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-58",
+      "category": "scanner_false_positive",
+      "protects": "communication_artifact",
+      "title": "FP guard: near-communication_artifact prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The support rep was happy the ticket closed within the hour.",
+      "failure_mode": "Over-broadening the communication_artifact rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts communication_artifact but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-59",
+      "category": "scanner_false_positive",
+      "protects": "conclusion_scaffold",
+      "title": "FP guard: near-conclusion_scaffold prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The committee will summarize findings at Friday's meeting.",
+      "failure_mode": "Over-broadening the conclusion_scaffold rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts conclusion_scaffold but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-60",
+      "category": "scanner_false_positive",
+      "protects": "dramatic_fragment",
+      "title": "FP guard: near-dramatic_fragment prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The retry logic runs in a single continuous loop without pausing.",
+      "failure_mode": "Over-broadening the dramatic_fragment rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts dramatic_fragment but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-61",
+      "category": "scanner_false_positive",
+      "protects": "editorializing",
+      "title": "FP guard: near-editorializing prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The renovation was complete without any delays.",
+      "failure_mode": "Over-broadening the editorializing rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts editorializing but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-62",
+      "category": "scanner_false_positive",
+      "protects": "false_agency",
+      "title": "FP guard: near-false_agency prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The witness spoke for the defendant at the hearing.",
+      "failure_mode": "Over-broadening the false_agency rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts false_agency but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-63",
+      "category": "scanner_false_positive",
+      "protects": "false_concession",
+      "title": "FP guard: near-false_concession prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Although the trail was steep, the hikers reached the summit by noon.",
+      "failure_mode": "Over-broadening the false_concession rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts false_concession but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-64",
+      "category": "scanner_false_positive",
+      "protects": "false_range",
+      "title": "FP guard: near-false_range prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The shuttle runs from downtown to the airport every twenty minutes.",
+      "failure_mode": "Over-broadening the false_range rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts false_range but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-65",
+      "category": "scanner_false_positive",
+      "protects": "filler",
+      "title": "FP guard: near-filler prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The apple core was left on the desk overnight.",
+      "failure_mode": "Over-broadening the filler rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts filler but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-66",
+      "category": "scanner_false_positive",
+      "protects": "filler_opener",
+      "title": "FP guard: near-filler_opener prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The plan was solid, so the team shipped it on Friday.",
+      "failure_mode": "Over-broadening the filler_opener rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts filler_opener but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-67",
+      "category": "scanner_false_positive",
+      "protects": "formulaic_challenges",
+      "title": "FP guard: near-formulaic_challenges prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Despite the rain, the festival drew a record crowd downtown.",
+      "failure_mode": "Over-broadening the formulaic_challenges rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts formulaic_challenges but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-68",
+      "category": "scanner_false_positive",
+      "protects": "generic_conclusion",
+      "title": "FP guard: near-generic_conclusion prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The recount continues to run and results are due Friday.",
+      "failure_mode": "Over-broadening the generic_conclusion rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts generic_conclusion but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-69",
+      "category": "scanner_false_positive",
+      "protects": "knowledge_cutoff",
+      "title": "FP guard: near-knowledge_cutoff prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "As of the last inspection, the elevator passed every safety check.",
+      "failure_mode": "Over-broadening the knowledge_cutoff rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts knowledge_cutoff but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-70",
+      "category": "scanner_false_positive",
+      "protects": "meta",
+      "title": "FP guard: near-meta prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The teacher gave the class a helpful hint about the exam format.",
+      "failure_mode": "Over-broadening the meta rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts meta but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-71",
+      "category": "scanner_false_positive",
+      "protects": "novelty_inflation",
+      "title": "FP guard: near-novelty_inflation prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The mint coined a commemorative dollar for the anniversary.",
+      "failure_mode": "Over-broadening the novelty_inflation rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts novelty_inflation but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-72",
+      "category": "scanner_false_positive",
+      "protects": "numbered_list_inflation",
+      "title": "FP guard: near-numbered_list_inflation prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The chef listed three key ingredients for the sauce.",
+      "failure_mode": "Over-broadening the numbered_list_inflation rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts numbered_list_inflation but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-73",
+      "category": "scanner_false_positive",
+      "protects": "parenthetical_hedging",
+      "title": "FP guard: near-parenthetical_hedging prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The museum (founded in 1901) reopened last spring.",
+      "failure_mode": "Over-broadening the parenthetical_hedging rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts parenthetical_hedging but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-74",
+      "category": "scanner_false_positive",
+      "protects": "performative",
+      "title": "FP guard: near-performative prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The lawyer asked the jury to trust the physical evidence over hearsay.",
+      "failure_mode": "Over-broadening the performative rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts performative but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-75",
+      "category": "scanner_false_positive",
+      "protects": "reader_steering",
+      "title": "FP guard: near-reader_steering prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Here is the interesting part of the ledger the auditor flagged.",
+      "failure_mode": "Over-broadening the reader_steering rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts reader_steering but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-76",
+      "category": "scanner_false_positive",
+      "protects": "reasoning_chain",
+      "title": "FP guard: near-reasoning_chain prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The mechanic kept breaking the repair into smaller stages.",
+      "failure_mode": "Over-broadening the reasoning_chain rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts reasoning_chain but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-77",
+      "category": "scanner_false_positive",
+      "protects": "rhetorical_setup",
+      "title": "FP guard: near-rhetorical_setup prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Take a moment to think about the tradeoffs before you commit.",
+      "failure_mode": "Over-broadening the rhetorical_setup rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts rhetorical_setup but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-78",
+      "category": "scanner_false_positive",
+      "protects": "staccato_fragmentation",
+      "title": "FP guard: near-staccato_fragmentation prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The report was thorough, balanced, and finished on time.",
+      "failure_mode": "Over-broadening the staccato_fragmentation rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts staccato_fragmentation but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-79",
+      "category": "scanner_false_positive",
+      "protects": "superficial_ing",
+      "title": "FP guard: near-superficial_ing prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The crew finished paving the road before the frost arrived.",
+      "failure_mode": "Over-broadening the superficial_ing rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts superficial_ing but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-80",
+      "category": "scanner_false_positive",
+      "protects": "unnecessary_permission",
+      "title": "FP guard: near-unnecessary_permission prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The form was approved and the okay came through by email.",
+      "failure_mode": "Over-broadening the unnecessary_permission rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts unnecessary_permission but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-81",
+      "category": "scanner_false_positive",
+      "protects": "vague_attribution",
+      "title": "FP guard: near-vague_attribution prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The analysts at the firm published their Q3 spreadsheet.",
+      "failure_mode": "Over-broadening the vague_attribution rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts vague_attribution but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-82",
+      "category": "scanner_false_positive",
+      "protects": "vague_endorsement",
+      "title": "FP guard: near-vague_endorsement prose stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The antique was worth two thousand dollars at auction.",
+      "failure_mode": "Over-broadening the vague_endorsement rule could flag this legitimate literal use.",
+      "correct_behavior": "No violations: the text tempts vague_endorsement but is ordinary prose.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "DOC-09",
+      "category": "scanner_detection",
+      "title": "Every scanner pattern is exercised and every category is FP-protected",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_pattern_coverage.py"
+      ],
+      "failure_mode": "An agent can add a scanner pattern or category with zero eval coverage and every other gate stays green.",
+      "correct_behavior": "check_pattern_coverage.py exits 0: every STRUCTURAL_PATTERNS regex matches a corpus row, every BANNED_PHRASES key appears in a corpus row, and every emitted category is claimed by a protects FP row.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        }
+      ]
+    },
+    {
+      "id": "DOC-10",
+      "category": "scanner_detection",
+      "title": "The add-a-pattern kata proves each safety net fires in order",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/kata_add_pattern.py",
+        "--run"
+      ],
+      "failure_mode": "A refactor could silently disable the coverage gate, catalog parity, or the runner so a careless executor's pattern ships uncaught.",
+      "correct_behavior": "The kata rehearses add-a-pattern in a temp repo and asserts coverage, parity, and the runner each catch the throwaway pattern at the right step.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        }
+      ]
+    },
+    {
+      "id": "FP-83",
+      "category": "scanner_false_positive",
+      "title": "Comma-less sentence-initial 'So' in ordinary prose is not a filler opener",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "So the tenant remains liable under Section 4 until the walkthrough is complete.",
+      "protects": "filler_opener",
+      "failure_mode": "Resurrecting the dead filler_opener pattern with an optional comma made every paragraph-initial 'So' flag, including ordinary legal and narrative prose.",
+      "correct_behavior": "No violations: only the throat-clearing 'So,' (with comma) form flags.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
         }
       ]
     }

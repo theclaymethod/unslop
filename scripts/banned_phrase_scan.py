@@ -910,12 +910,14 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "suggestion": "Vary sentence length. Stacked short sentences are an AI rhythm tell."
     },
 
-    # Paragraph starting with "So,"
+    # Paragraph starting with "So," (comma required: bare "So the tenant remains
+    # liable" is ordinary prose). Match lowercase: scan_for_violations lowercases
+    # the text before applying structural patterns.
     {
-        "pattern": r"(?:^|\n)So,?\s",
+        "pattern": r"(?:^|\n)so,\s",
         "category": "filler_opener",
-        "severity": "hard",
-        "suggestion": "Start with content, not 'So'"
+        "severity": "soft",
+        "suggestion": "Start with content, not 'So,'"
     },
 
     # Colon-before-dramatic-reveal
