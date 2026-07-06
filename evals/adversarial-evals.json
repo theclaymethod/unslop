@@ -8684,6 +8684,392 @@
           "equals": "unavailable"
         }
       ]
+    },
+    {
+      "id": "HARV-01",
+      "category": "harvest",
+      "title": "Assistant-authored transcript text never reaches candidates",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/harvest_samples.py",
+        "evals/fixtures/harvest/fixture_session.jsonl",
+        "-o",
+        "-"
+      ],
+      "failure_mode": "Assistant transcript turns contaminate the teach candidate set.",
+      "correct_behavior": "No distinctive assistant-authored marker phrase appears in candidates JSON.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_not_contains",
+          "value": "ASSISTANT_CONTAMINATION_NEON_RIVER"
+        },
+        {
+          "type": "stdout_not_contains",
+          "value": "ASSISTANT_QUOTED_BRASS_LANTERN"
+        }
+      ]
+    },
+    {
+      "id": "HARV-02",
+      "category": "harvest",
+      "title": "Substantive user prose is harvested",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/harvest_samples.py",
+        "evals/fixtures/harvest/fixture_session.jsonl",
+        "-o",
+        "-"
+      ],
+      "failure_mode": "The harvester drops real user prose while filtering transcript noise.",
+      "correct_behavior": "The substantive user marker appears in candidates JSON.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "blue kiln notebook"
+        }
+      ]
+    },
+    {
+      "id": "HARV-03",
+      "category": "harvest",
+      "title": "Terse commands are dropped with command-likeness stats",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/harvest_samples.py",
+        "evals/fixtures/harvest/fixture_session.jsonl",
+        "-o",
+        "-"
+      ],
+      "failure_mode": "Command-ish transcript turns enter candidates or disappear without stats.",
+      "correct_behavior": "The slash command text is absent and command-likeness is counted.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_not_contains",
+          "value": "/review /tmp/draft.md --quick"
+        },
+        {
+          "type": "json",
+          "path": "drop_stats.command-likeness",
+          "gte": 1
+        }
+      ]
+    },
+    {
+      "id": "HARV-04",
+      "category": "harvest",
+      "title": "Near-duplicate transcript paragraphs collapse",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/harvest_samples.py",
+        "evals/fixtures/harvest/fixture_session.jsonl",
+        "-o",
+        "-"
+      ],
+      "failure_mode": "Duplicate transcript samples over-weight one passage in the voice profile.",
+      "correct_behavior": "The duplicate marker appears once and duplication is counted.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "drop_stats.duplication",
+          "equals": 1
+        },
+        {
+          "type": "stdout_contains",
+          "value": "copper ledger"
+        }
+      ]
+    },
+    {
+      "id": "HARV-05",
+      "category": "harvest",
+      "title": "Dictated user turn is flagged but kept",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/harvest_samples.py",
+        "evals/fixtures/harvest/fixture_session.jsonl",
+        "-o",
+        "-"
+      ],
+      "failure_mode": "Dictation artifacts cause useful voice evidence to be dropped or unmarked.",
+      "correct_behavior": "The dictated marker remains and the candidate has dictated:true.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "silver porch"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "\"dictated\": true"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "green hinge"
+        },
+        {
+          "type": "json",
+          "path": "candidates.3.dictated",
+          "equals": false
+        }
+      ]
+    },
+    {
+      "id": "HARV-06",
+      "category": "harvest",
+      "title": "Text-folder AI-tell-heavy sample is suspect and ranked last",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/harvest_samples.py",
+        "evals/fixtures/harvest/fixture_session.jsonl",
+        "evals/fixtures/harvest/text-folder",
+        "-o",
+        "-"
+      ],
+      "failure_mode": "Declared user folders can still contain AI text that should not be auto-approved.",
+      "correct_behavior": "The text-folder marker is kept, suspect_ai:true, and ranked last.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "TEXT_FOLDER_AI_TELL_MARKER"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "\"suspect_ai\": true"
+        },
+        {
+          "type": "json",
+          "path": "candidates.4.suspect_ai",
+          "equals": true
+        }
+      ]
+    },
+    {
+      "id": "HARV-07",
+      "category": "harvest",
+      "title": "Heuristic classifier fills expected coverage cells",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/harvest_classify.py",
+        "--candidates",
+        "evals/fixtures/harvest/classifier_candidates.json",
+        "--mode",
+        "heuristic"
+      ],
+      "failure_mode": "Tier-1 dry-run classifier cannot populate the situation coverage matrix.",
+      "correct_behavior": "Question, numbers/data, disagreement, and anecdote cells are detected.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "coverage_matrix.question_addressed",
+          "gte": 1
+        },
+        {
+          "type": "json",
+          "path": "coverage_matrix.numbers_data",
+          "gte": 1
+        },
+        {
+          "type": "json",
+          "path": "coverage_matrix.disagreement",
+          "gte": 1
+        },
+        {
+          "type": "json",
+          "path": "coverage_matrix.anecdote_markers",
+          "gte": 1
+        }
+      ]
+    },
+    {
+      "id": "HARV-08",
+      "category": "harvest",
+      "title": "Harvest output is deterministic across runs",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/harvest_samples.py",
+        "evals/fixtures/harvest/fixture_session.jsonl",
+        "evals/fixtures/harvest/text-folder",
+        "-o",
+        "-",
+        "--self-check-determinism"
+      ],
+      "failure_mode": "Candidate ordering or stats change between identical runs.",
+      "correct_behavior": "The built-in determinism check reports true.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "deterministic",
+          "equals": true
+        }
+      ]
+    },
+    {
+      "id": "HARV-09",
+      "category": "harvest",
+      "title": "Missing sources exit 2 and unknown JSONL schemas warn then skip",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/harvest_samples.py",
+        "evals/fixtures/harvest/unknown-jsonl",
+        "evals/fixtures/harvest/does-not-exist",
+        "-o",
+        "-"
+      ],
+      "failure_mode": "The harvester guesses authorship for unknown JSONL or ignores missing paths.",
+      "correct_behavior": "Unknown schema warns, missing source exits 2.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 2
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        },
+        {
+          "type": "stdout_not_contains",
+          "value": "No role field"
+        }
+      ]
+    },
+    {
+      "id": "HARV-10",
+      "category": "harvest",
+      "title": "Classifier results merge into candidates and rerank by coverage, quality, recency",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/harvest_classify.py",
+        "--candidates",
+        "evals/fixtures/harvest/merge_candidates.json",
+        "--merge",
+        "evals/fixtures/harvest/merge_results.jsonl"
+      ],
+      "failure_mode": "--merge returns raw classifier rows without applying cells, quality, why, coverage, or ranking.",
+      "correct_behavior": "Merged output contains attached cells, recomputed matrix counts, and a ranking where equal-quality coverage samples sort by recency.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "coverage_matrix.question_addressed",
+          "equals": 1
+        },
+        {
+          "type": "json",
+          "path": "coverage_matrix.numbers_data",
+          "equals": 1
+        },
+        {
+          "type": "json",
+          "path": "coverage_matrix.openings_closings",
+          "equals": 1
+        },
+        {
+          "type": "json",
+          "path": "candidates.0.cells.0",
+          "equals": "question_addressed"
+        },
+        {
+          "type": "json",
+          "path": "candidates.1.quality",
+          "equals": 4
+        },
+        {
+          "type": "json",
+          "path": "candidates.2.why",
+          "equals": "closing/signoff sample only"
+        },
+        {
+          "type": "json",
+          "path": "ranking.0",
+          "equals": 1
+        },
+        {
+          "type": "json",
+          "path": "ranking.1",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "ranking.2",
+          "equals": 2
+        }
+      ]
+    },
+    {
+      "id": "HARV-11",
+      "category": "harvest",
+      "title": "Single filler in a short quoted turn is not dictated",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/harvest_samples.py",
+        "evals/fixtures/harvest/single_um_short.jsonl",
+        "-o",
+        "-",
+        "--min-words",
+        "1"
+      ],
+      "failure_mode": "Dictation detection treats one quoted filler as a dictated turn when min-words is lowered.",
+      "correct_behavior": "The candidate is kept and explicitly marked dictated:false.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "red hinge"
+        },
+        {
+          "type": "json",
+          "path": "candidates.0.dictated",
+          "equals": false
+        }
+      ]
     }
   ]
 }
