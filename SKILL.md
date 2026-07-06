@@ -117,6 +117,8 @@ Blocking output failures:
 
 Validation scripts are necessary but not enough. Re-read negations, conditionals, scope, certainty, and party relationships yourself.
 
+Maintenance: Found a new AI-ism in the wild? `references/contribute.md` turns the exact snippet into an eval row and a structured PR.
+
 ## Output Format
 
 For a quick rewrite, return the cleaned text only. For audit-only:
