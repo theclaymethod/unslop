@@ -45,7 +45,15 @@ def load_corpus(evals):
         for part in e.get("command", []):
             if isinstance(part, str) and "fixtures" in part:
                 path = ROOT / part
-                if path.exists():
+                if path.is_dir():
+                    for sub in sorted(path.rglob("*")):
+                        if sub.is_file():
+                            try:
+                                text = sub.read_text().lower()
+                            except (UnicodeDecodeError, OSError):
+                                continue
+                            corpus.append((f"{e['id']}:{sub.relative_to(ROOT)}", text))
+                elif path.exists():
                     corpus.append((f"{e['id']}:{part}", path.read_text().lower()))
     return corpus
 
