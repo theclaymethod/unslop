@@ -482,6 +482,7 @@ These attribute claims to unnamed sources, creating an illusion of authority.
 | "Some critics" | Who? Be specific or cut. |
 | "Many believe" | Weasel phrasing |
 | "Research suggests" | Which research? |
+| "Research indicates / Research shows" (bare, clause-initial) | Unattributed authority — cite the study or name the source. Attributed ("Research by the Kaiser group indicates…") and possessive ("Our research indicates…") forms stay clean. |
 | "Studies show" | Which studies? |
 | "It is widely regarded" | By whom? |
 | "According to experts" | Name the experts |

@@ -617,6 +617,20 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "severity": "soft",
         "suggestion": "foundation, base, layer"
     },
+    # Bare unattributed "research indicates/shows/suggests" — the same vague_attribution
+    # move as "studies show": authority invoked with no source. Gated on the BARE,
+    # clause-initial form (sentence start or after .!?;:) where "research" sits
+    # immediately before the verb. An attributive phrase ("Research by the Kaiser group
+    # indicates …") or a leading possessive ("Our research indicates …") breaks the
+    # adjacency/anchor, so a named study or a concrete first-person claim stays clean.
+    # Soft: attribution is a judgment call and the anchor is a heuristic. Matched on
+    # lowercased text like every structural pattern.
+    {
+        "pattern": r"(?:^|[.!?;:]\s+)research\s+(?:indicates|shows|suggests)\b",
+        "category": "vague_attribution",
+        "severity": "soft",
+        "suggestion": "Cite the specific research or name the source."
+    },
     # Promotional "boasts <boastful complement>" (not "boasts a capacity of 50,000").
     {
         "pattern": r"\bboasts?\s+(?:a\s+|an\s+)?(?:world-class|state-of-the-art|cutting-edge|impressive|stunning|robust|comprehensive|unparalleled|rich|vibrant|array of|host of|range of|wealth of|plethora)",

@@ -8251,6 +8251,75 @@
       ]
     },
     {
+      "id": "FN-31",
+      "category": "scanner_false_negative",
+      "title": "Catches bare 'Research indicates that …' (unattributed authority)",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Research indicates that teenagers sleep longer on weekends.",
+      "failure_mode": "Bare, unattributed 'Research indicates …' is the same vague_attribution move as 'studies show' but was uncatalogued, so it scanned clean.",
+      "correct_behavior": "At least 1 vague_attribution violation on the sentence-initial bare 'research indicates'.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "research indicates"
+        }
+      ]
+    },
+    {
+      "id": "FP-84",
+      "category": "scanner_false_positive",
+      "protects": "vague_attribution",
+      "title": "Attributed / possessive 'research indicates' stays clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Research by the Kaiser group indicates the intervention works. Our research indicates the leak is in the driver.",
+      "failure_mode": "Gating on the bare word 'research' before 'indicates' would clip the legitimate attributed form (a named study) and the concrete possessive form (a debugging claim).",
+      "correct_behavior": "No violations: an attributive 'by …' phrase or a leading possessive breaks the sentence-initial bare pattern.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "REC-49",
+      "category": "scanner_recall",
+      "title": "Sibling form: bare 'Research shows …' still flags",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Research shows that teenagers need more sleep than they get.",
+      "failure_mode": "A pattern gated only on 'indicates' would miss the equally vague sibling 'research shows'.",
+      "correct_behavior": "At least 1 vague_attribution violation on the sentence-initial bare 'research shows'.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "research shows"
+        }
+      ]
+    },
+    {
       "id": "FP-82",
       "category": "scanner_false_positive",
       "protects": "vague_endorsement",
@@ -9306,6 +9375,27 @@
         {
           "type": "stderr_not_contains",
           "value": "Traceback"
+        }
+      ]
+    },
+    {
+      "id": "SIL-9",
+      "category": "scanner_false_positive",
+      "title": "A reference doc reprising its opening themes is convention, not a recap coda",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/silhouette_scan.py",
+        "--genre",
+        "docs",
+        "evals/fixtures/silhouette/doctrine_reprise.md"
+      ],
+      "failure_mode": "callback_content flags thematic reprise in doctrine/spec/RFC register; under --genre docs that is document convention (dogfooding docs/PRODUCT.md surfaced it), unlike the essay recap coda the metric exists to catch.",
+      "correct_behavior": "Exit 0 under --genre docs; the default genre keeps flagging essay recap codas (SIL-04 pins that).",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
         }
       ]
     }

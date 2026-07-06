@@ -276,13 +276,15 @@ def flag(metric, value, threshold, detail, suggestion) -> dict:
 
 
 def scan(text: str, reference: dict, genre: str = "prose") -> dict:
-    # Genre is a passthrough echoed for parity with structure_scan. Unlike
-    # structure_scan, --genre docs suppresses NONE of the five silhouette
-    # components: none is mere heading presence. heading_preview is deliberately
-    # retained under docs because it measures outline-following (a tell even in
-    # reference docs), and the metric already clears legitimate academic roadmaps
-    # (struct17) on its own. --genre social documents that loose social copy
-    # rarely has the >=3-paragraph structure these metrics need.
+    # Genre is a passthrough echoed for parity with structure_scan.
+    # --genre docs suppresses ONLY callback_content: reference docs, specs, and
+    # doctrine conventionally reprise opening themes at the end, which is not
+    # the essay recap coda the metric exists to catch (SIL rows pin both
+    # directions). heading_preview is deliberately retained under docs because
+    # it measures outline-following (a tell even in reference docs), and the
+    # metric already clears legitimate academic roadmaps (struct17) on its own.
+    # --genre social documents that loose social copy rarely has the
+    # >=3-paragraph structure these metrics need.
     paras = paragraphs(text)
     base = {
         "genre": genre,
@@ -304,6 +306,9 @@ def scan(text: str, reference: dict, genre: str = "prose") -> dict:
     penalty = 0.0
     flags = []
     for name in METRIC_ORDER:
+        if genre == "docs" and name == "callback_content":
+            contributions[name] = 0.0
+            continue
         ref = reference[name]
         value = metrics[name]
         if not isinstance(value, (int, float)):
