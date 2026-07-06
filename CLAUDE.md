@@ -43,6 +43,8 @@ skill-benchmark validate evals/shared-benchmark.json --strict-leakage
 If you touched `SKILL.md`, `presets/`, or `references/`, also run
 `evals/run_behavioral.sh tune`.
 
+If you touched the co-writer, mimic, or detector-pack model features, run `python3 evals/run_model_parity.py --dry-run --responses evals/fixtures/parity/canned_responses.json` and, before merge, the live matrix across the GPT and Anthropic spectrums (see `references/pipeline.md`, Model Parity).
+
 `evals/evals.json` is the legacy happy-path suite; never edit it. Use
 `evals/adversarial-evals.json` as the source of truth.
 

@@ -5224,6 +5224,120 @@
           "equals": {}
         }
       ]
+    },
+    {
+      "id": "PARITY-01",
+      "category": "model_parity",
+      "title": "Parity harness grades canned good/bad responses correctly on both tasks",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/run_model_parity.py",
+        "--dry-run",
+        "--responses",
+        "evals/fixtures/parity/canned_responses.json"
+      ],
+      "failure_mode": "Grading logic is wrong: a correct detection/replacement scores low or an obviously bad one scores high, so the tiering table would be set from noise.",
+      "correct_behavior": "cheap-good matches the reference (Task A recall 1.0, zero false findings; Task B pass_rate 1.0) and cheap-bad fails both (recall 0.0, 6 false findings, pass_rate 0.0).",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "models.cheap-good.A.mean_recall",
+          "equals": 1.0
+        },
+        {
+          "type": "json",
+          "path": "models.cheap-good.A.total_false_findings",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "models.cheap-good.B.pass_rate",
+          "equals": 1.0
+        },
+        {
+          "type": "json",
+          "path": "models.cheap-bad.A.mean_recall",
+          "equals": 0.0
+        },
+        {
+          "type": "json",
+          "path": "models.cheap-bad.A.total_false_findings",
+          "equals": 6
+        },
+        {
+          "type": "json",
+          "path": "models.cheap-bad.B.pass_rate",
+          "equals": 0.0
+        }
+      ]
+    },
+    {
+      "id": "PARITY-02",
+      "category": "model_parity",
+      "title": "Parity grading is deterministic across repeated runs",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/run_model_parity.py",
+        "--dry-run",
+        "--responses",
+        "evals/fixtures/parity/canned_responses.json",
+        "--check-determinism"
+      ],
+      "failure_mode": "Grading depends on dict/set ordering or other nondeterminism, so parity verdicts drift between runs and cannot gate merges.",
+      "correct_behavior": "Grading the same canned corpus twice yields byte-identical payloads; the harness reports deterministic true.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "deterministic",
+          "equals": true
+        }
+      ]
+    },
+    {
+      "id": "PARITY-03",
+      "category": "model_parity",
+      "title": "A missing keychain key or dead network never breaks the suite",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/run_model_parity.py",
+        "--no-network",
+        "--models",
+        "evals/fixtures/parity/models_live.json"
+      ],
+      "failure_mode": "The harness raises on a missing OPENROUTER_API_KEY, absent claude CLI, or network error, taking the whole eval suite down with it.",
+      "correct_behavior": "Every unreachable model is recorded as status unavailable and the run still exits 0 with a valid payload.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "mode",
+          "equals": "no-network"
+        },
+        {
+          "type": "json",
+          "path": "models.gpt-4o-mini.status",
+          "equals": "unavailable"
+        },
+        {
+          "type": "json",
+          "path": "models.claude-haiku.status",
+          "equals": "unavailable"
+        }
+      ]
     }
   ]
 }
