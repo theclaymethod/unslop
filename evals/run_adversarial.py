@@ -123,6 +123,13 @@ def list_gates():
             "needs": [],
         },
         {
+            "id": "harvest-suite",
+            "command": "python3 evals/run_adversarial.py --only HARV",
+            "pass_criterion": "exit 0",
+            "blocking": True,
+            "needs": [],
+        },
+        {
             "id": "shared-benchmark-check",
             "command": "python3 evals/build_shared_benchmark.py --check",
             "pass_criterion": "exit 0",
