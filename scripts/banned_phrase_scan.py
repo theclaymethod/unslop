@@ -22,6 +22,46 @@ import json
 from typing import TypedDict
 
 
+# A small set of high-frequency English function words used only for a cheap
+# language check. The words are chosen to be distinctively English: Spanish,
+# French, German, etc. rarely use them, so their share of tokens is a robust
+# signal without a language-model dependency. Kept identical to the set in
+# structure_scan.py so both scanners decline the same inputs.
+ENGLISH_FUNCTION_WORDS = frozenset({
+    "the", "and", "is", "are", "was", "were", "of", "to", "in", "that", "it",
+    "for", "with", "on", "this", "but", "not", "you", "have", "be", "as", "at",
+    "or", "we", "they", "will", "would", "there", "their", "what", "which",
+    "when", "from", "been", "has", "had", "its", "an", "by", "our", "your",
+    "if", "than", "then", "them", "these", "those", "about", "into", "over",
+    "after", "before", "how", "why", "where", "who", "can", "could", "should",
+    "do", "does", "did", "so", "out", "just", "more", "most", "some", "such",
+    "only", "also", "because", "while", "between", "through", "during", "being",
+})
+
+
+def english_function_share(text: str) -> float:
+    """Share of word tokens that are common English function words."""
+    tokens = re.findall(r"[a-z']+", text.lower())
+    if not tokens:
+        return 1.0
+    hits = sum(1 for t in tokens if t in ENGLISH_FUNCTION_WORDS)
+    return hits / len(tokens)
+
+
+def is_probably_english(text: str, threshold: float = 0.10, min_tokens: int = 15) -> bool:
+    """Cheap English detector backing a graceful non-English decline.
+
+    Conservative on purpose: inputs below ``min_tokens`` are always treated as
+    English (too little signal to decline), and ``threshold`` is low enough that
+    even terse or ESL-flavored English clears it. Only prose with almost no
+    English function words (i.e. another language) is declined.
+    """
+    tokens = re.findall(r"[a-z']+", text.lower())
+    if len(tokens) < min_tokens:
+        return True
+    return english_function_share(text) >= threshold
+
+
 class Violation(TypedDict):
     phrase: str
     category: str
@@ -1120,6 +1160,13 @@ def main() -> None:
     if not text.strip():
         print(json.dumps({"error": "No input provided", "violations": []}))
         sys.exit(1)
+
+    # English-only graceful decline. Detect non-English input cheaply and decline
+    # rather than emitting misleading English-tuned findings.
+    if not is_probably_english(text):
+        print(json.dumps({"non_english": True, "total_violations": 0, "violations": []}, indent=2))
+        print("note: input appears non-English; scanner declined (English-only).", file=sys.stderr)
+        sys.exit(0)
 
     violations = scan_for_violations(text, include_quoted=args.include_quoted)
 

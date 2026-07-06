@@ -5224,6 +5224,240 @@
           "equals": {}
         }
       ]
+    },
+    {
+      "id": "SUGG-01",
+      "category": "suggestion_mode",
+      "title": "Co-writer emits span-anchored suggestions for a seeded doc",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/suggest.py",
+        "evals/fixtures/suggest/sugg01_seed.md"
+      ],
+      "failure_mode": "Detection output is unstructured, so a host agent cannot surface findings as reviewable edits.",
+      "correct_behavior": "Two suggestions with correct spans/categories (false_agency + filler), replacements delegated (null).",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "counts.total",
+          "equals": 2
+        },
+        {
+          "type": "stdout_contains",
+          "value": "\"category\": \"false_agency\""
+        },
+        {
+          "type": "stdout_contains",
+          "value": "\"category\": \"filler\""
+        },
+        {
+          "type": "stdout_contains",
+          "value": "\"text\": \"speaks for itself\""
+        },
+        {
+          "type": "stdout_contains",
+          "value": "\"suggested_replacement\": null"
+        }
+      ]
+    },
+    {
+      "id": "SUGG-02",
+      "category": "suggestion_mode",
+      "title": "Soft finding is phrased as a question",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/suggest.py",
+        "evals/fixtures/suggest/sugg02_soft.md"
+      ],
+      "failure_mode": "Soft, register-dependent findings get stated as commands instead of surfaced as judgment-call questions.",
+      "correct_behavior": "The lone soft finding has phrased_as_question true and a question-worded rationale.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "suggestions.0.phrased_as_question",
+          "equals": true
+        },
+        {
+          "type": "json",
+          "path": "suggestions.0.severity",
+          "equals": "soft"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "could"
+        }
+      ]
+    },
+    {
+      "id": "SUGG-03",
+      "category": "suggestion_mode",
+      "title": "Contract gate catches an oversized (whole-sentence) replacement",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/check_suggestions.py",
+        "evals/fixtures/suggest/sugg03_oversized.json"
+      ],
+      "failure_mode": "A replacement that rewrites the whole sentence would silently overwrite clean text outside the offending phrase.",
+      "correct_behavior": "check_suggestions exits 1 naming span-minimality.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 1
+        },
+        {
+          "type": "stdout_contains",
+          "value": "span-minimality"
+        }
+      ]
+    },
+    {
+      "id": "SUGG-04",
+      "category": "suggestion_mode",
+      "title": "Accept-all safety on a good replacement set",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/check_suggestions.py",
+        "evals/fixtures/suggest/sugg04_accept.json"
+      ],
+      "failure_mode": "Applying every suggestion could reintroduce slop or drop a preserved constraint.",
+      "correct_behavior": "All gates pass: applied doc is scanner-clean and preserves constraints.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "\"passed\": true"
+        }
+      ]
+    },
+    {
+      "id": "SUGG-05",
+      "category": "suggestion_mode",
+      "title": "Overlapping spans are rejected",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/check_suggestions.py",
+        "evals/fixtures/suggest/sugg05_overlap.json"
+      ],
+      "failure_mode": "Overlapping edit spans corrupt the document when applied together.",
+      "correct_behavior": "check_suggestions exits 1 naming span-overlap.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 1
+        },
+        {
+          "type": "stdout_contains",
+          "value": "span-overlap"
+        }
+      ]
+    },
+    {
+      "id": "LANG-01a",
+      "category": "language_decline",
+      "title": "Spanish paragraph declined by banned_phrase_scan",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "El rapido zorro marron salta sobre el perro perezoso. La casa esta cerca del rio y los ninos juegan en el jardin todas las tardes despues de la escuela.",
+      "failure_mode": "English-tuned phrase bans fire nonsensically on non-English prose.",
+      "correct_behavior": "Non-English detected: non_english true, zero violations, exit 0.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "\"non_english\": true"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "\"violations\": []"
+        }
+      ]
+    },
+    {
+      "id": "LANG-01b",
+      "category": "language_decline",
+      "title": "Spanish paragraph declined by structure_scan",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py"
+      ],
+      "stdin": "El rapido zorro marron salta sobre el perro perezoso. La casa esta cerca del rio y los ninos juegan en el jardin todas las tardes despues de la escuela.",
+      "failure_mode": "Structure metrics are meaningless on non-English prose but would still be reported.",
+      "correct_behavior": "Non-English detected: non_english true, zero violations, exit 0.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "\"non_english\": true"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "\"violations\": []"
+        }
+      ]
+    },
+    {
+      "id": "LANG-02a",
+      "category": "language_decline",
+      "title": "ESL-flavored English still scans in banned_phrase_scan",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "I very like this product because it help me to do the work more fast. The team are very happy and we will using it every day for our reports.",
+      "failure_mode": "A too-aggressive language gate would decline imperfect/ESL English and refuse to help.",
+      "correct_behavior": "Treated as English and scanned normally; no non_english flag, exit 0.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_not_contains",
+          "value": "\"non_english\": true"
+        }
+      ]
+    },
+    {
+      "id": "LANG-02b",
+      "category": "language_decline",
+      "title": "ESL-flavored English still scans in structure_scan",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py"
+      ],
+      "stdin": "I very like this product because it help me to do the work more fast. The team are very happy and we will using it every day for our reports.",
+      "failure_mode": "A too-aggressive language gate would decline imperfect/ESL English and refuse to help.",
+      "correct_behavior": "Treated as English and scanned normally; no non_english flag, exit 0.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_not_contains",
+          "value": "\"non_english\": true"
+        }
+      ]
     }
   ]
 }
