@@ -19,6 +19,44 @@ STOPWORDS = {
     "if", "then", "so", "not", "no", "yes", "into", "over", "under",
 }
 
+# High-frequency English function words for the cheap English-only language check.
+# Kept identical to ENGLISH_FUNCTION_WORDS in banned_phrase_scan.py so both
+# scanners decline the same inputs.
+ENGLISH_FUNCTION_WORDS = frozenset({
+    "the", "and", "is", "are", "was", "were", "of", "to", "in", "that", "it",
+    "for", "with", "on", "this", "but", "not", "you", "have", "be", "as", "at",
+    "or", "we", "they", "will", "would", "there", "their", "what", "which",
+    "when", "from", "been", "has", "had", "its", "an", "by", "our", "your",
+    "if", "than", "then", "them", "these", "those", "about", "into", "over",
+    "after", "before", "how", "why", "where", "who", "can", "could", "should",
+    "do", "does", "did", "so", "out", "just", "more", "most", "some", "such",
+    "only", "also", "because", "while", "between", "through", "during", "being",
+})
+
+
+def english_function_share(text: str) -> float:
+    """Share of word tokens that are common English function words."""
+    tokens = re.findall(r"[a-z']+", text.lower())
+    if not tokens:
+        return 1.0
+    hits = sum(1 for t in tokens if t in ENGLISH_FUNCTION_WORDS)
+    return hits / len(tokens)
+
+
+def is_probably_english(text: str, threshold: float = 0.10, min_tokens: int = 15) -> bool:
+    """Cheap English detector backing a graceful non-English decline.
+
+    Conservative on purpose: inputs below ``min_tokens`` are always treated as
+    English, and ``threshold`` is low enough that even terse or ESL-flavored
+    English clears it. Only prose with almost no English function words is
+    declined.
+    """
+    tokens = re.findall(r"[a-z']+", text.lower())
+    if len(tokens) < min_tokens:
+        return True
+    return english_function_share(text) >= threshold
+
+
 CONNECTIVE_OPENERS = re.compile(
     r"^(however|moreover|furthermore|additionally|in addition|overall|"
     r"consequently|nevertheless)\b",
@@ -286,6 +324,13 @@ def main(argv: list[str]) -> int:
         text = path.read_text()
     else:
         text = sys.stdin.read()
+
+    # English-only graceful decline, matching banned_phrase_scan.py.
+    if not is_probably_english(text):
+        print(json.dumps({"non_english": True, "violations": [], "flags": []}, indent=2))
+        print("note: input appears non-English; scanner declined (English-only).", file=sys.stderr)
+        return 0
+
     result = scan(text, args.genre)
     print(json.dumps(result, indent=2))
     return 1 if result["flags"] else 0

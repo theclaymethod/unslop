@@ -146,6 +146,44 @@ For strict or requested analysis:
 - Score: [X]/40
 ```
 
+## Co-writer Mode
+
+When a user wants findings surfaced as reviewable edits rather than a finished
+rewrite, use co-writer mode. It is agent-invoked, never a background daemon.
+
+```bash
+python3 scripts/suggest.py document.md            # emit suggestions (replacements delegated)
+python3 scripts/suggest.py doc.md --apply-replacements repl.json   # merge model replacements
+python3 scripts/check_suggestions.py suggestions.json              # blocking contract gates
+```
+
+Split of labor:
+
+- **Detection is cheap and deterministic.** `suggest.py` runs both scanners and
+  emits LSP-style suggestions `{span, severity, category, rationale,
+  suggested_replacement, phrased_as_question}`, ordered and non-overlapping.
+- **Replacement generation is delegated to a stronger model.** `suggest.py`
+  leaves `suggested_replacement` null; a stronger model fills the replacements,
+  merged back via `--apply-replacements`.
+- **Hard findings** are stated as direct replacements. **Soft findings** are
+  register-dependent judgment calls, so their rationale is phrased as a question
+  (`phrased_as_question: true`).
+- **Suggestions are surfaced to the user, never silently applied.**
+
+`check_suggestions.py` is the blocking contract. Every proposed replacement must
+clear all four gates or it is rejected:
+
+- `span-minimality` — the edit changes only its span (no shared leading/trailing
+  whole words; a whole-sentence rewrite fails).
+- `replacement-scanner` — each replacement passes both scanners in isolation and
+  introduces no new violation in context.
+- `accept-all` — applying every suggestion yields a document that passes both
+  scanners with `validate_preservation` exit 0 versus the original.
+- `span-overlap` — spans must not overlap.
+
+Non-English input is declined the same way as the scanners: `suggest.py` returns
+`non_english: true` with no suggestions.
+
 ## Quick Examples
 
 **Input:**
