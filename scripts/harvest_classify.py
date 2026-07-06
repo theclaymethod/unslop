@@ -6,9 +6,14 @@ from __future__ import annotations
 import argparse
 import json
 import re
-from datetime import datetime
+import sys
 from pathlib import Path
 from typing import Any
+
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+
+from harvest_samples import DATE_FLOOR, recency_value  # noqa: E402
 
 
 CELLS = [
@@ -18,7 +23,6 @@ CELLS = [
     "disagreement",
     "openings_closings",
 ]
-DATE_FLOOR = 0.0
 
 
 def load_candidates(path: Path) -> list[dict[str, Any]]:
@@ -58,26 +62,6 @@ def quality_for(candidate: dict[str, Any], cells: list[str]) -> int:
     if candidate.get("dictated"):
         score -= 1
     return max(1, min(5, score))
-
-
-def recency_value(candidate: dict[str, Any]) -> float:
-    source = candidate.get("source", {})
-    raw_date = source.get("date")
-    if isinstance(raw_date, str):
-        try:
-            return datetime.fromisoformat(raw_date.replace("Z", "+00:00")).timestamp()
-        except ValueError:
-            pass
-    raw_mtime = source.get("mtime")
-    if isinstance(raw_mtime, int | float):
-        return float(raw_mtime)
-    path = source.get("path")
-    if isinstance(path, str):
-        try:
-            return Path(path).stat().st_mtime
-        except OSError:
-            pass
-    return DATE_FLOOR
 
 
 def candidate_id(candidate: dict[str, Any], index: int) -> Any:
@@ -131,23 +115,19 @@ def heuristic(candidates: list[dict[str, Any]]) -> dict[str, Any]:
         seen_empty.update(cells)
         enriched.append({
             "index": idx,
+            "id": candidate.get("id", idx),
             "cells": cells,
             "quality": quality,
             "why": "lexical heuristic matched " + (", ".join(cells) if cells else "no named cell"),
             "fills_empty_coverage_cell": fills_empty,
             "source": candidate.get("source", {}),
+            "suspect_ai": candidate.get("suspect_ai"),
+            "dictated": candidate.get("dictated"),
         })
     return {
         "coverage_matrix": coverage_from(enriched),
         "candidates": enriched,
-        "ranking": rank_enriched([
-            {
-                **candidates[row["index"]],
-                "cells": row["cells"],
-                "quality": row["quality"],
-            }
-            for row in enriched
-        ]),
+        "ranking": rank_enriched(enriched),
     }
 
 

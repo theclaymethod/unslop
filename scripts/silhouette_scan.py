@@ -54,6 +54,11 @@ import sys
 from collections import Counter
 from pathlib import Path
 
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+
+from structure_scan import STOPWORDS as _STRUCTURE_STOPWORDS  # noqa: E402
+
 
 REFERENCE_PATH = (
     Path(__file__).resolve().parent.parent
@@ -67,18 +72,15 @@ PENALTY_THRESHOLD = 1.0
 MIN_PARAGRAPHS = 3
 
 
-STOPWORDS = {
-    "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "of",
-    "with", "by", "from", "is", "are", "was", "were", "be", "been", "being",
-    "have", "has", "had", "do", "does", "did", "will", "would", "could",
-    "should", "may", "might", "must", "can", "it", "its", "this", "that",
-    "these", "those", "we", "you", "they", "i", "he", "she", "as", "than",
-    "if", "then", "so", "not", "no", "yes", "into", "over", "under", "our",
-    "your", "their", "my", "me", "us", "them", "his", "her", "what", "which",
-    "who", "when", "where", "how", "why", "there", "here", "about", "just",
-    "more", "most", "some", "all", "also", "out", "up", "one", "two", "get",
-    "got", "like", "much", "many", "very", "every", "only",
-}
+# silhouette_scan's stopword list is a pure superset of structure_scan's: same
+# core function words plus pronouns/quantifiers that matter for content-bigram
+# and callback-content comparisons but that structure_scan doesn't need.
+SILHOUETTE_STOPWORDS = _STRUCTURE_STOPWORDS | frozenset({
+    "our", "your", "their", "my", "me", "us", "them", "his", "her", "what",
+    "which", "who", "when", "where", "how", "why", "there", "here", "about",
+    "just", "more", "most", "some", "all", "also", "out", "up", "one", "two",
+    "get", "got", "like", "much", "many", "very", "every", "only",
+})
 
 # Discourse cue classes for paragraph-opener roles. Copied verbatim from the
 # validated research prototype (scratchpad/research-silhouette/silhouette_probe.py).
@@ -100,7 +102,7 @@ def words(text: str) -> list[str]:
 
 
 def content(text: str) -> list[str]:
-    return [w for w in words(text) if len(w) > 3 and w not in STOPWORDS]
+    return [w for w in words(text) if len(w) > 3 and w not in SILHOUETTE_STOPWORDS]
 
 
 def strip_md(text: str) -> str:
@@ -275,6 +277,13 @@ def flag(metric, value, threshold, detail, suggestion) -> dict:
     }
 
 
+# Metrics a given --genre suppresses outright. See the docstring in scan()
+# for why only callback_content is suppressed under --genre docs.
+GENRE_SUPPRESSIONS = {
+    "docs": {"callback_content"},
+}
+
+
 def scan(text: str, reference: dict, genre: str = "prose") -> dict:
     # Genre is a passthrough echoed for parity with structure_scan.
     # --genre docs suppresses ONLY callback_content: reference docs, specs, and
@@ -306,7 +315,7 @@ def scan(text: str, reference: dict, genre: str = "prose") -> dict:
     penalty = 0.0
     flags = []
     for name in METRIC_ORDER:
-        if genre == "docs" and name == "callback_content":
+        if name in GENRE_SUPPRESSIONS.get(genre, set()):
             contributions[name] = 0.0
             continue
         ref = reference[name]

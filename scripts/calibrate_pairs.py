@@ -134,6 +134,17 @@ def _in_capitalized_span(m: "re.Match[str]") -> bool:
     return _is_title_case(before_word) or _is_title_case(after_word)
 
 
+def _contraction_repl(replacement: str, hard: bool):
+    """One replacement closure shared by both contraction directions (expand
+    and contract) and both casing modes (hard-capital literal vs case-matched).
+    """
+    def repl(m):
+        if _in_capitalized_span(m):
+            return m.group(0)
+        return replacement if hard else _case_like(replacement, m.group(0)[0])
+    return repl
+
+
 def _apply_contractions(text: str) -> tuple[str, str]:
     contract_hits = []
     expand_hits = []
@@ -153,35 +164,19 @@ def _apply_contractions(text: str) -> tuple[str, str]:
     if contract_hits:
         out = text
         for expanded, contracted in contract_hits:
-            if expanded in _HARD_CAPITAL:
-                def repl_hard(m, _expanded=expanded):
-                    if _in_capitalized_span(m):
-                        return m.group(0)
-                    return _expanded
-                out = re.sub(re.escape(contracted), repl_hard, out)
-            else:
-                def repl(m, _expanded=expanded):
-                    if _in_capitalized_span(m):
-                        return m.group(0)
-                    return _case_like(_expanded, m.group(0)[0])
-                out = re.sub(r"\b" + re.escape(contracted) + r"\b", repl, out, flags=re.IGNORECASE)
+            hard = expanded in _HARD_CAPITAL
+            pattern = re.escape(contracted) if hard else r"\b" + re.escape(contracted) + r"\b"
+            flags = 0 if hard else re.IGNORECASE
+            out = re.sub(pattern, _contraction_repl(expanded, hard), out, flags=flags)
         return out, "expanded"
 
     if expand_hits:
         out = text
         for expanded, contracted in expand_hits:
-            if expanded in _HARD_CAPITAL:
-                def repl_hard2(m, _contracted=contracted):
-                    if _in_capitalized_span(m):
-                        return m.group(0)
-                    return _contracted
-                out = re.sub(re.escape(expanded), repl_hard2, out)
-            else:
-                def repl2(m, _contracted=contracted):
-                    if _in_capitalized_span(m):
-                        return m.group(0)
-                    return _case_like(_contracted, m.group(0)[0])
-                out = re.sub(r"\b" + re.escape(expanded) + r"\b", repl2, out, flags=re.IGNORECASE)
+            hard = expanded in _HARD_CAPITAL
+            pattern = re.escape(expanded) if hard else r"\b" + re.escape(expanded) + r"\b"
+            flags = 0 if hard else re.IGNORECASE
+            out = re.sub(pattern, _contraction_repl(contracted, hard), out, flags=flags)
         return out, "contracted"
 
     raise NotExpressible("no contraction or expandable phrase found")

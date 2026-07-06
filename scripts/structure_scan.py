@@ -9,6 +9,16 @@ import sys
 from collections import Counter
 from pathlib import Path
 
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+
+from _lang import (  # noqa: E402
+    ENGLISH_FUNCTION_WORDS,
+    english_function_share,
+    is_probably_english,
+)
+from readability_metrics import split_sentences  # noqa: E402
+
 
 STOPWORDS = {
     "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "of",
@@ -18,43 +28,6 @@ STOPWORDS = {
     "these", "those", "we", "you", "they", "i", "he", "she", "as", "than",
     "if", "then", "so", "not", "no", "yes", "into", "over", "under",
 }
-
-# High-frequency English function words for the cheap English-only language check.
-# Kept identical to ENGLISH_FUNCTION_WORDS in banned_phrase_scan.py so both
-# scanners decline the same inputs.
-ENGLISH_FUNCTION_WORDS = frozenset({
-    "the", "and", "is", "are", "was", "were", "of", "to", "in", "that", "it",
-    "for", "with", "on", "this", "but", "not", "you", "have", "be", "as", "at",
-    "or", "we", "they", "will", "would", "there", "their", "what", "which",
-    "when", "from", "been", "has", "had", "its", "an", "by", "our", "your",
-    "if", "than", "then", "them", "these", "those", "about", "into", "over",
-    "after", "before", "how", "why", "where", "who", "can", "could", "should",
-    "do", "does", "did", "so", "out", "just", "more", "most", "some", "such",
-    "only", "also", "because", "while", "between", "through", "during", "being",
-})
-
-
-def english_function_share(text: str) -> float:
-    """Share of word tokens that are common English function words."""
-    tokens = re.findall(r"[a-z']+", text.lower())
-    if not tokens:
-        return 1.0
-    hits = sum(1 for t in tokens if t in ENGLISH_FUNCTION_WORDS)
-    return hits / len(tokens)
-
-
-def is_probably_english(text: str, threshold: float = 0.10, min_tokens: int = 15) -> bool:
-    """Cheap English detector backing a graceful non-English decline.
-
-    Conservative on purpose: inputs below ``min_tokens`` are always treated as
-    English, and ``threshold`` is low enough that even terse or ESL-flavored
-    English clears it. Only prose with almost no English function words is
-    declined.
-    """
-    tokens = re.findall(r"[a-z']+", text.lower())
-    if len(tokens) < min_tokens:
-        return True
-    return english_function_share(text) >= threshold
 
 
 CONNECTIVE_OPENERS = re.compile(
@@ -80,22 +53,6 @@ CODA_START_RE = re.compile(
     re.I,
 )
 BOLD_COLON_RE = re.compile(r"^\s*[-*+]?\s*\*\*[^*]{1,40}\*\*\s*:", re.M)
-
-
-def split_sentences(text: str) -> list[str]:
-    parts = re.split(r'([.!?]["”]?)\s+(?=["“]?[A-Z])', text)
-    sentences = []
-    current = ""
-    for part in parts:
-        if re.match(r'[.!?]["”]?$', part):
-            current += part
-            sentences.append(current.strip())
-            current = ""
-        else:
-            current += part
-    if current.strip():
-        sentences.append(current.strip())
-    return [s.strip() for s in sentences if s.strip()]
 
 
 def words(text: str) -> list[str]:
@@ -147,6 +104,15 @@ def flag(metric: str, value: float | int, threshold: str, detail: str, suggestio
         "detail": detail,
         "suggestion": suggestion,
     }
+
+
+# Metrics a given --genre suppresses outright (the genre's normal shape trips
+# the metric without being AI-slop). Table form so each suppression is a single
+# lookup instead of an inline `genre != "..."` conditional per metric.
+GENRE_SUPPRESSIONS = {
+    "docs": {"bold_colon_listicle"},
+    "social": {"one_line_staccato"},
+}
 
 
 def scan(text: str, genre: str = "prose") -> dict:
@@ -204,7 +170,8 @@ def scan(text: str, genre: str = "prose") -> dict:
                 "Cut the wrap-up or end on a specific fact; if this is an abstract or executive summary, judge the genre before changing it.",
             ))
 
-    if metrics["bold_colon_listicle_count"] >= 3 and genre != "docs":
+    if (metrics["bold_colon_listicle_count"] >= 3
+            and "bold_colon_listicle" not in GENRE_SUPPRESSIONS.get(genre, set())):
         flags.append(flag(
             "bold_colon_listicle",
             metrics["bold_colon_listicle_count"],
@@ -220,7 +187,8 @@ def scan(text: str, genre: str = "prose") -> dict:
             if len(ps) == 1 and len(words(ps[0])) < 12:
                 one_line += 1
         metrics["one_line_staccato_share"] = round(one_line / len(paragraphs), 3)
-        if len(paragraphs) >= 6 and metrics["one_line_staccato_share"] > 0.6 and genre != "social":
+        if (len(paragraphs) >= 6 and metrics["one_line_staccato_share"] > 0.6
+                and "one_line_staccato" not in GENRE_SUPPRESSIONS.get(genre, set())):
             flags.append(flag(
                 "one_line_staccato",
                 metrics["one_line_staccato_share"],

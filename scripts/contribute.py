@@ -112,7 +112,7 @@ def apply_redactions(text: str, tell: str, pairs: list[tuple[str, str]]) -> str:
     return redacted
 
 
-def row_fn(slug: str, category: str, tell: str, snippet: str) -> dict[str, object]:
+def row_fn(slug: str, tell: str, snippet: str) -> dict[str, object]:
     assertion_tell = tell.casefold()
     return {
         "id": f"CONTRIB-FN-{slug}",
@@ -227,7 +227,7 @@ def cmd_scaffold(args: argparse.Namespace) -> int:
         "tell": args.tell,
         "word_count": word_count(redacted),
     }
-    write_json(bundle / "row_fn.json", row_fn(args.pattern_name, args.category, args.tell, redacted))
+    write_json(bundle / "row_fn.json", row_fn(args.pattern_name, args.tell, redacted))
     write_json(bundle / "row_fp_TEMPLATE.json", row_fp_template(args.pattern_name, args.category, args.tell))
     write_json(bundle / "manifest.json", manifest)
     (bundle / "snippet.txt").write_text(redacted, encoding="utf-8")

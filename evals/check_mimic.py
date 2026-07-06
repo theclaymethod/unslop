@@ -11,12 +11,12 @@ import argparse
 import hashlib
 import json
 import re
-import subprocess
 import sys
 import tempfile
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+from _check_support import ROOT, run  # noqa: E402
+
 FIX = ROOT / "evals" / "fixtures" / "mimic"
 SAMPLES = FIX / "samples"
 DIV_SAMPLES = FIX / "div_samples"
@@ -25,10 +25,6 @@ DRAFT = FIX / "draft.md"
 CANDS = FIX / "candidates"
 STATS = FIX / "stats"
 NO_NUMBERS = FIX / "card_corpora" / "no_numbers"
-
-
-def run(cmd):
-    return subprocess.run(cmd, cwd=ROOT, text=True, capture_output=True)
 
 
 def refine(scenario, out, seed, iterations, samples=SAMPLES, extra=None):

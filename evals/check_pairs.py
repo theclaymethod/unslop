@@ -1,14 +1,44 @@
 #!/usr/bin/env python3
-import json, subprocess, sys
-from pathlib import Path
-ROOT=Path(__file__).resolve().parent.parent
-PAIR_DIR=ROOT/'evals/fixtures/pairs'
+import json, sys
+from _check_support import ROOT
 
-def run(cmd):
-    return subprocess.run(cmd,cwd=ROOT,text=True,capture_output=True)
+SCRIPTS = ROOT / 'scripts'
+sys.path.insert(0, str(SCRIPTS))
+
+import banned_phrase_scan  # noqa: E402
+import structure_scan  # noqa: E402
+
+PAIR_DIR=ROOT/'evals/fixtures/pairs'
 
 def words(p):
     return len(p.read_text().split())
+
+def scan_banned(path):
+    """In-process equivalent of banned_phrase_scan.py's CLI: (returncode, data)."""
+    text = path.read_text()
+    violations = banned_phrase_scan.scan_for_violations(text)
+    if not violations and not banned_phrase_scan.is_probably_english(text):
+        return 0, {'non_english': True, 'total_violations': 0, 'violations': []}
+    categories = {}
+    by_severity = {'hard': 0, 'soft': 0}
+    for v in violations:
+        categories[v['category']] = categories.get(v['category'], 0) + 1
+        by_severity[v['severity']] = by_severity.get(v['severity'], 0) + 1
+    data = {
+        'total_violations': len(violations),
+        'by_severity': by_severity,
+        'by_category': categories,
+        'violations': violations,
+    }
+    return (1 if violations else 0), data
+
+def scan_structure(path):
+    """In-process equivalent of structure_scan.py's CLI: (returncode, data)."""
+    text = path.read_text()
+    result = structure_scan.scan(text)
+    if not result.get('flags') and not structure_scan.is_probably_english(text):
+        return 0, {'non_english': True, 'violations': [], 'flags': []}
+    return (1 if result['flags'] else 0), result
 
 def main():
     manifest=json.loads((PAIR_DIR/'manifest.json').read_text())
@@ -22,22 +52,16 @@ def main():
         diff=abs(wcw-wcn)/max(wcw,wcn,1)
         if diff>0.25:
             ok=False
-        b_without=run(['python3','scripts/banned_phrase_scan.py',str(np.relative_to(ROOT))])
-        try: b_data=json.loads(b_without.stdout)
-        except Exception: b_data={'total_violations':999,'violations':[]}
-        s_without=run(['python3','scripts/structure_scan.py',str(np.relative_to(ROOT))])
-        without_clean=(b_without.returncode==0 and b_data.get('total_violations')==0 and s_without.returncode==0)
+        b_rc,b_data=scan_banned(np)
+        s_rc,_=scan_structure(np)
+        without_clean=(b_rc==0 and b_data.get('total_violations')==0 and s_rc==0)
         if not without_clean: ok=False
         if info['kind']=='structure':
-            with_proc=run(['python3','scripts/structure_scan.py',str(wp.relative_to(ROOT))])
-            try: data=json.loads(with_proc.stdout)
-            except Exception: data={}
+            _,data=scan_structure(wp)
             hit=bool(data.get('flagged',{}).get(info['target']))
             desc=','.join(data.get('flagged',{}).keys()) or '-'
         else:
-            with_proc=run(['python3','scripts/banned_phrase_scan.py',str(wp.relative_to(ROOT))])
-            try: data=json.loads(with_proc.stdout)
-            except Exception: data={}
+            _,data=scan_banned(wp)
             cats=[v.get('category') for v in data.get('violations',[])]
             hit=info['target'] in cats
             desc=','.join(cats) or '-'

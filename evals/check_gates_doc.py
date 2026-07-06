@@ -11,6 +11,24 @@ sys.path.insert(0, str(HERE))
 
 from run_adversarial import list_gates  # noqa: E402
 
+ROOT = HERE.parent
+
+
+def missing_command_files(gates: list[dict]) -> list[str]:
+    """Every whitespace-delimited *.py token in a gate command must exist under
+    ROOT. Additive: catches a gate command left pointing at a renamed/deleted
+    script. Gates whose command has no .py token at all (a shell script like
+    behavioral-tune, or a natural-language row like rubric-judge) have nothing
+    to check here and pass trivially."""
+    problems = []
+    for gate in gates:
+        for token in gate.get("command", "").split():
+            if not token.endswith(".py"):
+                continue
+            if not (ROOT / token).exists():
+                problems.append(f"{gate['id']}: missing {token}")
+    return problems
+
 
 def main() -> int:
     doc = (HERE / "CHECKS.md").read_text()
@@ -28,6 +46,14 @@ def main() -> int:
         print(f"  live ids:       {live_ids}")
         print("Regenerate the block: python3 evals/run_adversarial.py --list-gates")
         return 1
+
+    problems = missing_command_files(live)
+    if problems:
+        print("Gate commands reference *.py files that don't exist:")
+        for p in problems:
+            print(f"  - {p}")
+        return 1
+
     print(f"gate matrix ok: {len(live)} gates documented")
     return 0
 

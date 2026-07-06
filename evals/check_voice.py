@@ -3,31 +3,59 @@
 
 import argparse
 import json
-import subprocess
 import sys
 import tempfile
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+from _check_support import ROOT  # noqa: E402
+
+SCRIPTS = ROOT / "scripts"
+sys.path.insert(0, str(SCRIPTS))
+
+import voice_profile  # noqa: E402
+import voice_score  # noqa: E402
+
 VOICE = ROOT / "evals" / "fixtures" / "voice"
 AUTHORS = ["amara", "boris", "celia"]
 
 
 def run_score(profile, candidate, seed=17, samples=None):
-    cmd = [
-        "python3", "scripts/voice_score.py",
-        "--profile", str(VOICE / "profiles" / f"{profile}.json"),
-        "--impostors", str(VOICE / "impostors"),
-        "--seed", str(seed),
-    ]
+    """In-process equivalent of scripts/voice_score.py's CLI: builds and
+    returns the same result dict main() would print, without the subprocess
+    and JSON-serialization round trip."""
+    profile_path = VOICE / "profiles" / f"{profile}.json"
+    impostors_path = VOICE / "impostors"
+    if not profile_path.exists() or not impostors_path.is_dir():
+        print("missing profile or impostors", file=sys.stderr)
+        raise SystemExit(2)
+    try:
+        text = voice_score.read_candidate(str(candidate))
+    except FileNotFoundError as e:
+        print(f"missing candidate: {e}", file=sys.stderr)
+        raise SystemExit(2)
+    profile_data = json.loads(profile_path.read_text())
+    feats = voice_profile.feature_bundle(text)
+    low = feats["total_words"] < 150
+    impostors = voice_score.impostor_features(str(impostors_path))
+    dist = voice_score.distances(profile_data, feats)
+    imp_dist = [voice_score.distances(profile_data, f) for _, f in impostors]
+    zs = voice_score.zscores(dist, imp_dist)
+    zsum = sum(
+        voice_score.WEIGHTS[k] * max(-3.0, min(3.0, zs[k] if zs[k] is not None else 0.0))
+        for k in voice_score.WEIGHTS
+    )
+    gi = voice_score.gi_score(profile_data, feats, impostors, seed) if impostors else 0.0
+    result = {
+        "candidate_words": feats["total_words"],
+        "low_confidence": low,
+        "distances": {k: (None if low and k in {"sentence_emd", "mtld"} else v) for k, v in dist.items()},
+        "z_scores": {k: (None if low and k in {"sentence_emd", "mtld"} else v) for k, v in zs.items()},
+        "gi": gi,
+        "composite": 0.5 * (1 - gi) + 0.5 * zsum,
+    }
     if samples:
-        cmd += ["--samples", str(samples)]
-    cmd.append(str(candidate))
-    proc = subprocess.run(cmd, cwd=ROOT, text=True, capture_output=True)
-    if proc.returncode != 0:
-        print(proc.stderr)
-        raise SystemExit(proc.returncode)
-    return json.loads(proc.stdout)
+        result["copy_gate"] = voice_score.copy_gate(text, samples)
+    return result
 
 
 def matrix():
@@ -124,13 +152,9 @@ def check_profiles():
             sample.mkdir()
             for idx in range(1, 5):
                 (sample / f"doc{idx}.md").write_text((VOICE / "authors" / author / f"doc{idx}.md").read_text())
-            out = Path(td) / "profile.json"
-            proc = subprocess.run(["python3", "scripts/voice_profile.py", str(sample), "-o", str(out)], cwd=ROOT, text=True, capture_output=True)
-            if proc.returncode != 0:
-                print(proc.stderr)
-                return proc.returncode
+            profile = voice_profile.build_profile(sample)
+            got = json.dumps(profile, indent=2, sort_keys=True) + "\n"
             expected = (VOICE / "profiles" / f"{author}.json").read_text()
-            got = out.read_text()
             if got != expected:
                 print(f"profile drift: {author}")
                 ok = False

@@ -113,11 +113,23 @@ def gi_score(profile, cand_feats, impostors, seed):
     keys = list(WEIGHTS)
     wins = 0
     trials = 64
+    # Per-key distances depend only on (profile, feats) -- not on which subset
+    # of keys a given trial happens to draw -- so compute every key's distance
+    # ONCE per candidate/impostor here, then have each trial do a subset-
+    # weighted sum over the precomputed values instead of recomputing
+    # distances() from scratch on every trial. Arithmetically exact: the
+    # trial loop still consumes rng.random()/rng.sample() in the same order,
+    # and summing WEIGHTS[k]*value only over the drawn subset is the same
+    # float sequence weighted_sum(distances(..., subset)) produced (excluded
+    # keys contributed an exact 0.0 term either way).
+    cand_dists = distances(profile, cand_feats)
+    impostor_dists = [(name, distances(profile, imp)) for name, imp in impostors]
     for _ in range(trials):
         subset = [k for k in keys if rng.random() < 0.5] or [rng.choice(keys)]
-        cand = weighted_sum(distances(profile, cand_feats, subset))
-        sampled = rng.sample(impostors, k=min(len(impostors), max(1, len(impostors) // 2)))
-        if all(cand < weighted_sum(distances(profile, imp, subset)) for _, imp in sampled):
+        cand = sum(WEIGHTS[k] * cand_dists.get(k, 0.0) for k in subset)
+        sampled = rng.sample(impostor_dists, k=min(len(impostor_dists), max(1, len(impostor_dists) // 2)))
+        if all(cand < sum(WEIGHTS[k] * imp_dists.get(k, 0.0) for k in subset)
+               for _, imp_dists in sampled):
             wins += 1
     return wins / trials
 
@@ -126,33 +138,78 @@ def ngrams(tokens, n=4):
     return set(tuple(tokens[i:i + n]) for i in range(max(0, len(tokens) - n + 1)))
 
 
-def lcs_len(a, b):
-    prev = [0] * (len(b) + 1)
-    best = 0
-    for ca in a:
-        cur = [0]
-        for j, cb in enumerate(b, 1):
-            val = prev[j - 1] + 1 if ca == cb else 0
-            best = max(best, val)
-            cur.append(val)
-        prev = cur
-    return best
+LCS_THRESHOLD = 120
+
+
+def has_common_substring_over(a: str, b: str, min_length: int) -> bool:
+    """Rolling-hash check: do ``a`` and ``b`` share a contiguous substring of at
+    least ``min_length`` characters?
+
+    O(len(a) + len(b)) expected time, vs. the O(len(a) * len(b)) classic DP a
+    true longest-common-substring computation needs. This only answers the
+    threshold question the copy gate actually asks ("is there a shared run
+    longer than N chars"); it does not recover the true longest common
+    substring length. Every hash match is verified against the source
+    characters before being trusted, so a hash collision never produces a
+    false positive.
+    """
+    if min_length <= 0:
+        return bool(a) and bool(b)
+    if len(a) < min_length or len(b) < min_length:
+        return False
+
+    base = 257
+    mod = (1 << 61) - 1
+    high_power = pow(base, min_length - 1, mod)
+
+    def window_hashes(s: str) -> dict[int, list[int]]:
+        table: dict[int, list[int]] = {}
+        h = 0
+        for i in range(min_length):
+            h = (h * base + ord(s[i])) % mod
+        table.setdefault(h, []).append(0)
+        for i in range(min_length, len(s)):
+            h = ((h - ord(s[i - min_length]) * high_power) * base + ord(s[i])) % mod
+            table.setdefault(h, []).append(i - min_length + 1)
+        return table
+
+    table_a = window_hashes(a)
+    table_b = window_hashes(b)
+    for h, starts_b in table_b.items():
+        starts_a = table_a.get(h)
+        if not starts_a:
+            continue
+        for sb in starts_b:
+            window_b = b[sb:sb + min_length]
+            for sa in starts_a:
+                if a[sa:sa + min_length] == window_b:
+                    return True
+    return False
 
 
 def copy_gate(candidate_text, samples_dir):
     cand_grams = ngrams(voice_profile.words(candidate_text))
     max_overlap = 0.0
-    max_lcs = 0
+    lcs_violation = False
     for path in voice_profile.iter_docs(samples_dir):
         text = path.read_text(errors="replace")
         sample_grams = ngrams(voice_profile.words(text))
         if cand_grams:
             max_overlap = max(max_overlap, len(cand_grams & sample_grams) / len(cand_grams))
-        max_lcs = max(max_lcs, lcs_len(candidate_text, text))
+        if has_common_substring_over(candidate_text, text, LCS_THRESHOLD + 1):
+            lcs_violation = True
+    # "longest_common_substring" is reported for backward-compatible shape only:
+    # nothing pins its exact value (checked evals/adversarial-evals.json and
+    # evals/check_*.py for max_lcs/longest_common_substring assertions; none
+    # exist). Its semantics changed from "the true LCS length" to "the
+    # matched threshold window length when a violation-length run was found,
+    # else 0" -- computing the true max cheaply isn't possible without the
+    # same O(n*m) cost this function exists to avoid.
+    max_lcs = LCS_THRESHOLD + 1 if lcs_violation else 0
     return {
         "max_overlap": max_overlap,
         "longest_common_substring": max_lcs,
-        "violation": max_overlap > 0.35 or max_lcs > 120,
+        "violation": max_overlap > 0.35 or lcs_violation,
     }
 
 

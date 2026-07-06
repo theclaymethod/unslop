@@ -19,18 +19,16 @@ eval coverage while every other gate stays green. Run from the skill root:
   python3 evals/check_pattern_coverage.py --protections # category protection only
 """
 import argparse
-import json
 import re
 import sys
 import time
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+from _check_support import ROOT, load_evals  # noqa: E402
+
 sys.path.insert(0, str(ROOT))
 
 from scripts.banned_phrase_scan import BANNED_PHRASES, STRUCTURAL_PATTERNS  # noqa: E402
-
-SUITE = ROOT / "evals" / "adversarial-evals.json"
 
 
 def load_corpus(evals):
@@ -137,12 +135,13 @@ def main(argv):
     parser.add_argument("--coverage", action="store_true", help="run only the coverage check")
     parser.add_argument("--protections", action="store_true", help="run only the protection check")
     args = parser.parse_args(argv)
-    run_coverage = args.coverage or not args.protections
-    run_protections = args.protections or not args.coverage
+    run_coverage = args.coverage
+    run_protections = args.protections
+    if not run_coverage and not run_protections:
+        run_coverage = run_protections = True
 
     start = time.perf_counter()
-    suite = json.loads(SUITE.read_text(encoding="utf-8"))
-    evals = suite["evals"]
+    evals = load_evals()
     corpus = load_corpus(evals)
 
     ok = True

@@ -57,6 +57,12 @@ ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "scripts"
 PACKS = ROOT / "references" / "packs"
 
+sys.path.insert(0, str(SCRIPTS))
+
+import banned_phrase_scan  # noqa: E402
+import structure_scan  # noqa: E402
+import validate_preservation  # noqa: E402
+
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 KEYCHAIN_SERVICE = "OPENROUTER_API_KEY"
 
@@ -291,35 +297,16 @@ def grade_task_a(fixture, raw):
 # Scanner helpers for Task B
 # --------------------------------------------------------------------------- #
 
-def _run_script(rel_args, stdin_text):
-    return subprocess.run(
-        ["python3", str(SCRIPTS / rel_args[0]), *rel_args[1:]],
-        input=stdin_text,
-        capture_output=True,
-        text=True,
-        cwd=ROOT,
-        timeout=30,
-    )
-
-
 def _banned_signal(text):
     """Set of (category, phrase) violations the banned-phrase scanner reports."""
-    proc = _run_script(["banned_phrase_scan.py"], text)
-    try:
-        data = json.loads(proc.stdout)
-    except (json.JSONDecodeError, ValueError):
-        return set()
+    violations = banned_phrase_scan.scan_for_violations(text)
     return {(v.get("category", ""), _norm(v.get("phrase", "")))
-            for v in data.get("violations", [])}
+            for v in violations}
 
 
 def _structure_signal(text):
     """Set of structure-scan flags for the text."""
-    proc = _run_script(["structure_scan.py"], text)
-    try:
-        data = json.loads(proc.stdout)
-    except (json.JSONDecodeError, ValueError):
-        return set()
+    data = structure_scan.scan(text)
     flags = data.get("flags", data.get("flagged", []))
     if isinstance(flags, dict):
         flags = [k for k, v in flags.items() if v]
@@ -327,14 +314,7 @@ def _structure_signal(text):
 
 
 def _preservation_ok(original, transformed):
-    import tempfile
-    with tempfile.TemporaryDirectory() as d:
-        op = Path(d) / "original.txt"
-        tp = Path(d) / "transformed.txt"
-        op.write_text(original)
-        tp.write_text(transformed)
-        proc = _run_script(["validate_preservation.py", str(op), str(tp)], "")
-    return proc.returncode == 0
+    return validate_preservation.validate_preservation(original, transformed)["passed"]
 
 
 def grade_task_b(fixture, replacement):
@@ -628,17 +608,17 @@ def parse_args(argv):
     return p.parse_args(argv)
 
 
-def resolve_models(args, responses):
+def resolve_models(args, payload):
     if args.models:
         models = _load_json_file(args.models, "models file")
         if isinstance(models, dict) and "models" in models:
             models = models["models"]
         return models
-    if isinstance(responses, dict) and responses.get("models"):
-        return responses["models"]
+    if isinstance(payload, dict) and payload.get("models"):
+        return payload["models"]
     if args.dry_run:
         # Derive canned model names from the response payload.
-        resp = (responses or {}).get("responses", responses or {})
+        resp = (payload or {}).get("responses", payload or {})
         return [{"name": n, "kind": "canned"} for n in resp]
     return DEFAULT_MODELS
 

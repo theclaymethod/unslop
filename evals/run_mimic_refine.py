@@ -127,14 +127,15 @@ def copy_gate_vs_paths(cand_text, a_paths):
     """Anti-verbatim-copy gate against the A split only (not the DEV holdout)."""
     cand_grams = voice_score.ngrams(voice_profile.words(cand_text))
     max_overlap = 0.0
-    max_lcs = 0
+    lcs_violation = False
     for path in a_paths:
         text = path.read_text(errors="replace")
         sample_grams = voice_score.ngrams(voice_profile.words(text))
         if cand_grams:
             max_overlap = max(max_overlap, len(cand_grams & sample_grams) / len(cand_grams))
-        max_lcs = max(max_lcs, voice_score.lcs_len(cand_text, text))
-    return max_overlap > 0.35 or max_lcs > 120
+        if voice_score.has_common_substring_over(cand_text, text, voice_score.LCS_THRESHOLD + 1):
+            lcs_violation = True
+    return max_overlap > 0.35 or lcs_violation
 
 
 def run_gates(cand_text, draft_text, a_paths, genre):
@@ -214,14 +215,8 @@ def generate_candidate(generate_cmd, prompt, iter_index):
     return proc.stdout
 
 
-def make_live_source(args, a_paths, profile_a, draft_text):
+def make_live_source(args, a_paths, profile_a, docs_a, matrix_a, draft_text):
     """Build the card once, then generate a beam per iteration through the CLI."""
-    docs_a = []
-    for p in a_paths:
-        sents = voice_card.split_sentences_text(p.read_text(errors="replace"))
-        if sents:
-            docs_a.append(sents)
-    matrix_a, _ = voice_card.coverage_matrix(docs_a)
     card_text = voice_card.build_card(profile_a, docs_a, matrix_a, args.name)
     samples = select_samples(args.baseline, draft_text, a_paths)
 
@@ -382,19 +377,13 @@ def build_report(args, a_paths, dev_paths, profile_a, profile_dev,
     return report, best_text
 
 
-def write_outputs(args, report, a_paths, profile_a, best_text):
+def write_outputs(args, report, a_paths, profile_a, docs_a, matrix_a, best_text):
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     (out / "report.json").write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n"
     )
     # Refined card: base card from the A split plus the directive amendments.
-    docs_a = []
-    for p in a_paths:
-        sents = voice_card.split_sentences_text(p.read_text(errors="replace"))
-        if sents:
-            docs_a.append(sents)
-    matrix_a, _ = voice_card.coverage_matrix(docs_a)
     base = voice_card.build_card(profile_a, docs_a, matrix_a, args.name)
     amend_lines = ["", "## Refinement amendments", ""]
     for d in report["directives"]:
@@ -446,6 +435,13 @@ def main(argv):
     profile_a = profile_from_paths(a_paths)
     profile_dev = profile_from_paths(dev_paths)
 
+    docs_a = []
+    for p in a_paths:
+        sents = voice_card.split_sentences_text(p.read_text(errors="replace"))
+        if sents:
+            docs_a.append(sents)
+    matrix_a, _ = voice_card.coverage_matrix(docs_a)
+
     impostor_rows = voice_score.impostor_features(args.impostors)
     score_a = make_scorer(profile_a, impostor_rows, args.seed)
     score_dev = make_scorer(profile_dev, impostor_rows, args.seed)
@@ -453,12 +449,12 @@ def main(argv):
     if args.candidates_dir is not None:
         get_batch = make_dry_run_source(args.candidates_dir)
     else:
-        get_batch = make_live_source(args, a_paths, profile_a,
+        get_batch = make_live_source(args, a_paths, profile_a, docs_a, matrix_a,
                                      Path(args.draft).read_text(errors="replace"))
 
     report, best_text = build_report(args, a_paths, dev_paths, profile_a,
                                      profile_dev, score_a, score_dev, get_batch)
-    write_outputs(args, report, a_paths, profile_a, best_text)
+    write_outputs(args, report, a_paths, profile_a, docs_a, matrix_a, best_text)
     print(json.dumps({
         "best_candidate": report["best_candidate"],
         "best_score": report["best_score"],

@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-import json, subprocess, sys
-from pathlib import Path
-ROOT=Path(__file__).resolve().parent.parent
+import json, sys
+from _check_support import ROOT, run
 DOC_DIR=ROOT/'evals/fixtures/docs'
 
-def run(cmd): return subprocess.run(cmd,cwd=ROOT,text=True,capture_output=True)
 def scan_phrase(path):
     p=run(['python3','scripts/banned_phrase_scan.py',str(path.relative_to(ROOT))])
     try: data=json.loads(p.stdout)

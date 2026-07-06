@@ -6,19 +6,17 @@ from __future__ import annotations
 import argparse
 import json
 import shutil
-import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+from _check_support import ROOT, run  # noqa: E402
+
 sys.path.insert(0, str(ROOT))
+from scripts import contribute  # noqa: E402
+
 FIXTURES = ROOT / "evals" / "fixtures" / "contrib"
 BUNDLE = ROOT / ".unslop" / "contrib" / "durable-bridge"
 CAP_BUNDLE = ROOT / ".unslop" / "contrib" / "let-that-sink-in"
-
-
-def run(command: list[str]) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(command, capture_output=True, text=True, cwd=ROOT, timeout=60)
 
 
 def reset_bundle() -> None:
@@ -76,7 +74,7 @@ def case_precheck_clean() -> None:
     data = json.loads(proc.stdout)
     assert_equal(data["status"], "clean", "status")
     assert_equal(data["words"], 29, "words")
-    findings = __import__("scripts.contribute", fromlist=["scanner_findings"]).scanner_findings(
+    findings = contribute.scanner_findings(
         (FIXTURES / "uncaught-snippet.txt").read_text(encoding="utf-8")
     )
     assert_equal(findings, [], "both scanner findings")
