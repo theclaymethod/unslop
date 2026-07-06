@@ -172,6 +172,20 @@ def list_gates():
             "needs": [],
         },
         {
+            "id": "silhouette-scan",
+            "command": "python3 scripts/silhouette_scan.py < transformed.txt",
+            "pass_criterion": "exit 0",
+            "blocking": True,
+            "needs": [],
+        },
+        {
+            "id": "silhouette-check",
+            "command": "python3 evals/check_silhouette.py",
+            "pass_criterion": "exit 0",
+            "blocking": True,
+            "needs": [],
+        },
+        {
             "id": "validate-preservation",
             "command": "python3 scripts/validate_preservation.py original.txt transformed.txt",
             "pass_criterion": "exit 0",
