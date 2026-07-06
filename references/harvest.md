@@ -24,6 +24,8 @@ The contamination tripwire runs each kept candidate through `banned_phrase_scan`
 `structure_scan`. A hard violation, or two or more distinct scanner categories, marks
 the sample as `suspect_ai: true`. Suspect samples are kept for human review, ranked last,
 and must never be auto-approved.
+A clean-styled, unmarked assistant paste inside a user turn is undetectable by parsing
+and only weakly covered by the tripwire; mandatory human approval is the real defense.
 
 The folder adapter treats `.md` and `.txt` files in a designated folder as user-authored
 by declaration, but still runs the same tripwire. Dictated text with heavy `um`/`uh`

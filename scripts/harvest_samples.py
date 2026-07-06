@@ -35,6 +35,7 @@ COMMAND_RE = re.compile(
 TAG_RE = re.compile(r"<(?:system-reminder|[^>\s]+)[^>]*>[\s\S]*?</(?:system-reminder|[^>\s]+)>", re.I)
 QUOTE_ASSISTANT_RE = re.compile(r"(?im)^\s*(?:>|you said:|assistant:|claude said:)")
 FILLER_RE = re.compile(r"\b(?:um|uh)\b,?", re.I)
+DATE_FLOOR = 0.0
 
 
 def words(text: str) -> list[str]:
@@ -118,7 +119,8 @@ def is_command_like(text: str) -> bool:
 
 def dictated(text: str) -> bool:
     w = max(1, len(words(text)))
-    return len(FILLER_RE.findall(text)) / w > 0.035
+    fillers = FILLER_RE.findall(text)
+    return len(fillers) >= 2 and len(fillers) / w > 0.035
 
 
 def tripwire(text: str) -> bool:
@@ -193,7 +195,12 @@ def iter_claude_jsonl(path: Path, warnings: list[str]) -> tuple[list[dict[str, A
 def iter_text_file(path: Path) -> list[dict[str, Any]]:
     return [{
         "text": path.read_text(),
-        "source": {"path": str(path), "offset": 0, "adapter": "text-folder"},
+        "source": {
+            "path": str(path),
+            "offset": 0,
+            "adapter": "text-folder",
+            "mtime": path.stat().st_mtime,
+        },
     }]
 
 
@@ -270,6 +277,7 @@ def apply_filters(raw: list[dict[str, Any]], min_words: int, since: datetime | N
             "text": text,
             "source": item["source"],
             "words": count,
+            "dictated": False,
         }
         if dictated(text):
             candidate["dictated"] = True
@@ -279,11 +287,32 @@ def apply_filters(raw: list[dict[str, Any]], min_words: int, since: datetime | N
     return kept, stats
 
 
+def recency_value(candidate: dict[str, Any]) -> float:
+    source = candidate.get("source", {})
+    raw_date = source.get("date")
+    if isinstance(raw_date, str):
+        try:
+            return datetime.fromisoformat(raw_date.replace("Z", "+00:00")).timestamp()
+        except ValueError:
+            pass
+    raw_mtime = source.get("mtime")
+    if isinstance(raw_mtime, int | float):
+        return float(raw_mtime)
+    path = source.get("path")
+    if isinstance(path, str):
+        try:
+            return Path(path).stat().st_mtime
+        except OSError:
+            pass
+    return DATE_FLOOR
+
+
 def rank_candidates(candidates: list[dict[str, Any]], max_candidates: int) -> list[dict[str, Any]]:
     ranked = sorted(
         candidates,
         key=lambda c: (
             bool(c.get("suspect_ai")),
+            -recency_value(c),
             c["source"]["path"],
             c["source"].get("line", c["source"].get("offset", 0)),
         ),

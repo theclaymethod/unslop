@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -17,6 +18,7 @@ CELLS = [
     "disagreement",
     "openings_closings",
 ]
+DATE_FLOOR = 0.0
 
 
 def load_candidates(path: Path) -> list[dict[str, Any]]:
@@ -58,14 +60,72 @@ def quality_for(candidate: dict[str, Any], cells: list[str]) -> int:
     return max(1, min(5, score))
 
 
-def heuristic(candidates: list[dict[str, Any]]) -> dict[str, Any]:
+def recency_value(candidate: dict[str, Any]) -> float:
+    source = candidate.get("source", {})
+    raw_date = source.get("date")
+    if isinstance(raw_date, str):
+        try:
+            return datetime.fromisoformat(raw_date.replace("Z", "+00:00")).timestamp()
+        except ValueError:
+            pass
+    raw_mtime = source.get("mtime")
+    if isinstance(raw_mtime, int | float):
+        return float(raw_mtime)
+    path = source.get("path")
+    if isinstance(path, str):
+        try:
+            return Path(path).stat().st_mtime
+        except OSError:
+            pass
+    return DATE_FLOOR
+
+
+def candidate_id(candidate: dict[str, Any], index: int) -> Any:
+    return candidate.get("id", index)
+
+
+def source_position(candidate: dict[str, Any]) -> str:
+    source = candidate.get("source", {})
+    return str(source.get("line", source.get("offset", "")))
+
+
+def coverage_from(candidates: list[dict[str, Any]]) -> dict[str, int]:
     coverage = {cell: 0 for cell in CELLS}
+    for candidate in candidates:
+        for cell in candidate.get("cells", []):
+            coverage[cell] = coverage.get(cell, 0) + 1
+    return coverage
+
+
+def rank_enriched(candidates: list[dict[str, Any]]) -> list[int]:
+    seen_empty = set()
+    rank_rows = []
+    for idx, candidate in enumerate(candidates):
+        cells = candidate.get("cells", [])
+        fills_empty = any(cell not in seen_empty for cell in cells)
+        seen_empty.update(cells)
+        rank_rows.append((idx, fills_empty))
+    ranked = sorted(
+        rank_rows,
+        key=lambda row: (
+            not row[1],
+            -int(candidates[row[0]].get("quality") or 0),
+            -recency_value(candidates[row[0]]),
+            bool(candidates[row[0]].get("suspect_ai")),
+            bool(candidates[row[0]].get("dictated")),
+            str(candidates[row[0]].get("source", {}).get("path", "")),
+            source_position(candidates[row[0]]),
+            row[0],
+        ),
+    )
+    return [candidate_id(candidates[idx], idx) for idx, _ in ranked]
+
+
+def heuristic(candidates: list[dict[str, Any]]) -> dict[str, Any]:
     enriched = []
     seen_empty = set()
     for idx, candidate in enumerate(candidates):
         cells = cells_for(candidate.get("text", ""))
-        for cell in cells:
-            coverage[cell] += 1
         quality = quality_for(candidate, cells)
         fills_empty = any(cell not in seen_empty for cell in cells)
         seen_empty.update(cells)
@@ -77,20 +137,17 @@ def heuristic(candidates: list[dict[str, Any]]) -> dict[str, Any]:
             "fills_empty_coverage_cell": fills_empty,
             "source": candidate.get("source", {}),
         })
-    ranked = sorted(
-        enriched,
-        key=lambda row: (
-            not row["fills_empty_coverage_cell"],
-            -row["quality"],
-            bool(candidates[row["index"]].get("suspect_ai")),
-            bool(candidates[row["index"]].get("dictated")),
-            row["index"],
-        ),
-    )
     return {
-        "coverage_matrix": coverage,
+        "coverage_matrix": coverage_from(enriched),
         "candidates": enriched,
-        "ranking": [row["index"] for row in ranked],
+        "ranking": rank_enriched([
+            {
+                **candidates[row["index"]],
+                "cells": row["cells"],
+                "quality": row["quality"],
+            }
+            for row in enriched
+        ]),
     }
 
 
@@ -119,12 +176,43 @@ def write_agent_tasks(candidates: list[dict[str, Any]], out_dir: Path) -> dict[s
     return {"task_files": chunks, "chunk_size": 10}
 
 
-def merge_results(path: Path) -> dict[str, Any]:
-    rows = []
-    for line in path.read_text().splitlines():
+def result_candidate_key(row: dict[str, Any]) -> Any:
+    for key in ("candidate_id", "id", "candidate_index", "index"):
+        if key in row:
+            return row[key]
+    raise ValueError("result row missing candidate id")
+
+
+def merge_results(candidates_path: Path, results_path: Path) -> dict[str, Any]:
+    candidates = load_candidates(candidates_path)
+    rows_by_id: dict[Any, dict[str, Any]] = {}
+    for line in results_path.read_text().splitlines():
         if line.strip():
-            rows.append(json.loads(line))
-    return {"merged": rows, "count": len(rows)}
+            row = json.loads(line)
+            rows_by_id[result_candidate_key(row)] = row
+
+    merged = []
+    for idx, candidate in enumerate(candidates):
+        cid = candidate_id(candidate, idx)
+        row = rows_by_id.get(cid)
+        if row is None and idx in rows_by_id:
+            row = rows_by_id[idx]
+        cells = list(row.get("cells", [])) if row else []
+        quality = int(row.get("quality")) if row and row.get("quality") is not None else quality_for(candidate, cells)
+        why = str(row.get("why", "no classifier result")) if row else "no classifier result"
+        merged.append({
+            **candidate,
+            "id": cid,
+            "cells": cells,
+            "quality": max(1, min(5, quality)),
+            "why": why,
+        })
+
+    return {
+        "coverage_matrix": coverage_from(merged),
+        "candidates": merged,
+        "ranking": rank_enriched(merged),
+    }
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
@@ -139,7 +227,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 def main(argv: list[str]) -> int:
     args = parse_args(argv)
     if args.merge:
-        print(json.dumps(merge_results(Path(args.merge)), indent=2, sort_keys=True))
+        print(json.dumps(merge_results(Path(args.candidates), Path(args.merge)), indent=2, sort_keys=True))
         return 0
     candidates = load_candidates(Path(args.candidates))
     if args.mode == "heuristic":

@@ -5321,7 +5321,9 @@
       "assertions": [
         {"type": "exit_code", "equals": 0},
         {"type": "stdout_contains", "value": "silver porch"},
-        {"type": "stdout_contains", "value": "\"dictated\": true"}
+        {"type": "stdout_contains", "value": "\"dictated\": true"},
+        {"type": "stdout_contains", "value": "green hinge"},
+        {"type": "json", "path": "candidates.3.dictated", "equals": false}
       ]
     },
     {
@@ -5343,7 +5345,7 @@
         {"type": "exit_code", "equals": 0},
         {"type": "stdout_contains", "value": "TEXT_FOLDER_AI_TELL_MARKER"},
         {"type": "stdout_contains", "value": "\"suspect_ai\": true"},
-        {"type": "json", "path": "candidates.3.suspect_ai", "equals": true}
+        {"type": "json", "path": "candidates.4.suspect_ai", "equals": true}
       ]
     },
     {
@@ -5409,6 +5411,56 @@
         {"type": "exit_code", "equals": 2},
         {"type": "stderr_not_contains", "value": "Traceback"},
         {"type": "stdout_not_contains", "value": "No role field"}
+      ]
+    },
+    {
+      "id": "HARV-10",
+      "category": "harvest",
+      "title": "Classifier results merge into candidates and rerank by coverage, quality, recency",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/harvest_classify.py",
+        "--candidates",
+        "evals/fixtures/harvest/merge_candidates.json",
+        "--merge",
+        "evals/fixtures/harvest/merge_results.jsonl"
+      ],
+      "failure_mode": "--merge returns raw classifier rows without applying cells, quality, why, coverage, or ranking.",
+      "correct_behavior": "Merged output contains attached cells, recomputed matrix counts, and a ranking where equal-quality coverage samples sort by recency.",
+      "assertions": [
+        {"type": "exit_code", "equals": 0},
+        {"type": "json", "path": "coverage_matrix.question_addressed", "equals": 1},
+        {"type": "json", "path": "coverage_matrix.numbers_data", "equals": 1},
+        {"type": "json", "path": "coverage_matrix.openings_closings", "equals": 1},
+        {"type": "json", "path": "candidates.0.cells.0", "equals": "question_addressed"},
+        {"type": "json", "path": "candidates.1.quality", "equals": 4},
+        {"type": "json", "path": "candidates.2.why", "equals": "closing/signoff sample only"},
+        {"type": "json", "path": "ranking.0", "equals": 1},
+        {"type": "json", "path": "ranking.1", "equals": 0},
+        {"type": "json", "path": "ranking.2", "equals": 2}
+      ]
+    },
+    {
+      "id": "HARV-11",
+      "category": "harvest",
+      "title": "Single filler in a short quoted turn is not dictated",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/harvest_samples.py",
+        "evals/fixtures/harvest/single_um_short.jsonl",
+        "-o",
+        "-",
+        "--min-words",
+        "1"
+      ],
+      "failure_mode": "Dictation detection treats one quoted filler as a dictated turn when min-words is lowered.",
+      "correct_behavior": "The candidate is kept and explicitly marked dictated:false.",
+      "assertions": [
+        {"type": "exit_code", "equals": 0},
+        {"type": "stdout_contains", "value": "red hinge"},
+        {"type": "json", "path": "candidates.0.dictated", "equals": false}
       ]
     }
   ]
