@@ -2291,7 +2291,7 @@
     {
       "id": "FP-31",
       "category": "scanner_false_positive",
-      "protects": "hedge",
+      "protects": "hedge_stack",
       "title": "Plain medical hedge remains safe",
       "target": "script",
       "command": [
