@@ -6,6 +6,18 @@ testable; the model is used only to generate prose, never to score itself.
 
 ## Teach — building a voice
 
+**The flow is agent-driven end to end.** The user should never create a
+directory, convert a file, or type a command. On "teach my voice" (or any
+trigger), the agent: (1) gathers samples — if none are offered, bootstrap via
+`references/harvest.md` over the user's transcripts and writing folders, then
+present ranked candidates with sources and flags for approval (`suspect_ai`
+candidates get extra scrutiny; that human review is the contamination defense);
+(2) creates `.unslop/voice/<name>/` and runs the steps below; (3) surfaces
+`low_confidence` and Uncovered dimensions, prompting only for what the user's
+writing will need; (4) closes with a scored demo mimic so the user sees the
+loop work before trusting it.
+
+
 `teach` distills a writer's samples into a reusable voice, stored under
 `.unslop/voice/<name>/` (gitignored by default):
 
