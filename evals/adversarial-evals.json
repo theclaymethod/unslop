@@ -11084,6 +11084,582 @@
           "equals": "2026-07-06T09:00:00Z"
         }
       ]
+    },
+    {
+      "id": "VOICE-01",
+      "category": "voice_separation",
+      "title": "Voice held-outs separate by composite",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_voice.py",
+        "--separation"
+      ],
+      "failure_mode": "Voice scorer regression: 3x3 held-out composite matrix must have diagonal wins row-wise and column-wise.",
+      "correct_behavior": "3x3 held-out composite matrix must have diagonal wins row-wise and column-wise.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "VOICE-02",
+      "category": "voice_separation",
+      "title": "Boris held-out separates by composite",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_voice.py",
+        "--separation"
+      ],
+      "failure_mode": "Voice scorer regression: full 3x3 matrix must keep all diagonal wins.",
+      "correct_behavior": "The 3x3 held-out composite matrix has diagonal wins row-wise and column-wise.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "VOICE-03",
+      "category": "voice_separation",
+      "title": "Celia held-out separates by composite",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_voice.py",
+        "--separation"
+      ],
+      "failure_mode": "Voice scorer regression: full 3x3 matrix must keep all diagonal wins.",
+      "correct_behavior": "The 3x3 held-out composite matrix has diagonal wins row-wise and column-wise.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "VOICE-04",
+      "category": "voice_gi",
+      "title": "GI ranks own held-out above cross authors",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_voice.py",
+        "--gi"
+      ],
+      "failure_mode": "Voice scorer regression: Own held-out GI must exceed each cross-author GI against the same profile.",
+      "correct_behavior": "Own held-out GI must exceed each cross-author GI against the same profile.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "VOICE-05",
+      "category": "voice_gaming_guard",
+      "title": "Stuffed Boris does not beat genuine Amara",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_voice.py",
+        "--gaming"
+      ],
+      "failure_mode": "Voice scorer regression: A hand-crafted Boris doc stuffed with Amara-like function words, contractions, and punctuation must score worse than genuine Amara and have lower GI.",
+      "correct_behavior": "A hand-crafted Boris doc stuffed with Amara-like function words, contractions, and punctuation must score worse than genuine Amara and have lower GI.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "VOICE-06",
+      "category": "voice_copy_gate",
+      "title": "Verbatim sample lift trips copy gate",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_voice.py",
+        "--copy-violation"
+      ],
+      "failure_mode": "Voice scorer regression: A paragraph lifted from an Amara profile sample must report copy_gate.violation true.",
+      "correct_behavior": "A paragraph lifted from an Amara profile sample must report copy_gate.violation true.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "VOICE-07",
+      "category": "voice_copy_gate",
+      "title": "Honest same-style held-out does not trip copy gate",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_voice.py",
+        "--copy-clean"
+      ],
+      "failure_mode": "Voice scorer regression: Amara held-out doc must report copy_gate.violation false.",
+      "correct_behavior": "Amara held-out doc must report copy_gate.violation false.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "VOICE-08",
+      "category": "voice_determinism",
+      "title": "Same seed yields identical composite",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_voice.py",
+        "--determinism"
+      ],
+      "failure_mode": "Voice scorer regression: Seeded GI trials must be reproducible.",
+      "correct_behavior": "Seeded GI trials must be reproducible.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "VOICE-09",
+      "category": "voice_robustness",
+      "title": "Missing profile exits 2",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/voice_score.py",
+        "--profile",
+        "evals/fixtures/voice/profiles/missing.json",
+        "--impostors",
+        "evals/fixtures/voice/impostors",
+        "--seed",
+        "1",
+        "evals/fixtures/voice/authors/amara/doc5.md"
+      ],
+      "failure_mode": "Voice scorer regression: Missing profile is a setup error and exits 2.",
+      "correct_behavior": "Missing profile is a setup error and exits 2.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 2
+        }
+      ]
+    },
+    {
+      "id": "VOICE-10",
+      "category": "voice_robustness",
+      "title": "Short candidate reports low confidence",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_voice.py",
+        "--short"
+      ],
+      "failure_mode": "Voice scorer regression: Short candidates keep measurement output but null distributional metrics and set low_confidence true.",
+      "correct_behavior": "Short candidates keep measurement output but null distributional metrics and set low_confidence true.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "VOICE-11",
+      "category": "voice_profiles",
+      "title": "Committed profiles match regenerated docs 1-4",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_voice.py",
+        "--profiles"
+      ],
+      "failure_mode": "Voice scorer regression: Profile drift gate regenerates author profiles from docs 1-4 and compares exact JSON.",
+      "correct_behavior": "Profile drift gate regenerates author profiles from docs 1-4 and compares exact JSON.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "MIMIC-01",
+      "category": "mimic_loop",
+      "title": "Refine loop accepts a DEV improvement",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_mimic.py",
+        "--acceptance"
+      ],
+      "failure_mode": "Refine loop must accept a candidate that lowers the held-out DEV composite past min-delta.",
+      "correct_behavior": "Dry-run loop accepts the improving candidate and records it as best_candidate.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "MIMIC-02",
+      "category": "mimic_loop",
+      "title": "Refine loop stops on patience",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_mimic.py",
+        "--patience"
+      ],
+      "failure_mode": "Loop must halt with stop_reason 'patience' after N non-improving iterations.",
+      "correct_behavior": "Loop halts on patience without a reward-hacking warning.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "MIMIC-03",
+      "category": "mimic_loop",
+      "title": "Refine loop halts on divergence",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_mimic.py",
+        "--divergence"
+      ],
+      "failure_mode": "Loop must halt with stop_reason 'divergence' and reward_hacking_warning when A improves while DEV worsens.",
+      "correct_behavior": "Loop detects the reward-hacking signature (A down, DEV up two rounds) and halts.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "MIMIC-04",
+      "category": "mimic_loop",
+      "title": "Copy-gate rejects verbatim candidates",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_mimic.py",
+        "--copy-gate"
+      ],
+      "failure_mode": "A candidate copying an A sample verbatim must be rejected with reason copy_gate.",
+      "correct_behavior": "Anti-verbatim-copy gate rejects the candidate for reason copy_gate.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "MIMIC-05",
+      "category": "mimic_loop",
+      "title": "Fact-gate rejects dropped constraints",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_mimic.py",
+        "--fact-gate"
+      ],
+      "failure_mode": "A candidate dropping a draft constraint must be rejected with reason preservation.",
+      "correct_behavior": "Preservation gate rejects the candidate for reason preservation.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "MIMIC-06",
+      "category": "mimic_loop",
+      "title": "Refine report is deterministic",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_mimic.py",
+        "--determinism"
+      ],
+      "failure_mode": "Two identical dry-runs must produce byte-identical report.json.",
+      "correct_behavior": "report.json is byte-identical across runs to the same output dir.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "MIMIC-07",
+      "category": "mimic_loop",
+      "title": "Paired stats separate win from null",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_mimic.py",
+        "--stats"
+      ],
+      "failure_mode": "mimic_stats must call a real improvement improved=true and a null improved=false.",
+      "correct_behavior": "BCa+sign-flip verdict is improved on the win set and not-improved on the null set.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "MIMIC-08",
+      "category": "mimic_loop",
+      "title": "Split refuses fewer than five docs",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_mimic.py",
+        "--split-refusal"
+      ],
+      "failure_mode": "The loop must exit 2 when the sample set has fewer than five documents.",
+      "correct_behavior": "Loop refuses a four-document sample set with exit 2.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "MIMIC-09",
+      "category": "mimic_loop",
+      "title": "Directives and card amendments derive",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_mimic.py",
+        "--directives"
+      ],
+      "failure_mode": "The loop must emit ranked directives, each with a paired card amendment line.",
+      "correct_behavior": "Directives derive from DEV metric deltas with metric, directive, and card_amendment fields.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "MIMIC-10",
+      "category": "mimic_loop",
+      "title": "Marker-stuffed candidate loses to honest under the GI composite",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_mimic.py",
+        "--stuffed-attack"
+      ],
+      "failure_mode": "Acceptance scored on a raw weighted distance lets a marker-stuffed candidate that clears every hard gate beat honest prose. Refine must score DEV/A with the full voice_score composite (GI + impostor z), so the stuffed attack scores worse and honest wins.",
+      "correct_behavior": "Both honest (cand01) and the punctuation/repetition-stuffed attack (cand02) pass the hard gates, but under the GI-bearing composite the stuffed candidate scores strictly worse and best_candidate is the honest one.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "MIMIC-11",
+      "category": "mimic_loop",
+      "title": "Live generation path drives the same pipeline",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_mimic.py",
+        "--live-path"
+      ],
+      "failure_mode": "The LIVE path (--generate-cmd) must actually assemble prompts, invoke the generator per beam, and run candidates through the same gate/score/accept pipeline as the dry-run, not be a dead flag.",
+      "correct_behavior": "A mock generator invoked via --generate-cmd produces the same report shape, beam width, acceptance trajectory, best_score, and final.md as the dry-run acceptance fixture.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "CARD-01",
+      "category": "voice_card",
+      "title": "Voice card is deterministic",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_mimic.py",
+        "--card-determinism"
+      ],
+      "failure_mode": "voice_card.py must produce byte-identical card.md and sheets from the same inputs.",
+      "correct_behavior": "Card core and situation sheets are byte-identical across runs.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "CARD-02",
+      "category": "voice_card",
+      "title": "Card core within budget with sections",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_mimic.py",
+        "--card-budget"
+      ],
+      "failure_mode": "card.md must stay <= 300 words and contain the required core sections and index table.",
+      "correct_behavior": "Core card is under the word budget and has rhythm, contraction, punctuation, opener, and index sections.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "CARD-03",
+      "category": "voice_card",
+      "title": "Card facts match the profile",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_mimic.py",
+        "--card-facts"
+      ],
+      "failure_mode": "The median sentence length and contraction rate stated in the card must equal the profile values.",
+      "correct_behavior": "Card-stated median and contraction rate parse and equal the profile numbers.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "CARD-04",
+      "category": "voice_card",
+      "title": "Teach layout writes profile, card, provenance",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_mimic.py",
+        "--card-layout"
+      ],
+      "failure_mode": "The teach procedure must write profile.json, card.md, and a provenance.json whose hashes verify.",
+      "correct_behavior": "Teach layout produces the three artifacts and provenance sha256 hashes match the samples.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "CARD-05",
+      "category": "voice_card",
+      "title": "Never-does claims are true of samples",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_mimic.py",
+        "--card-never-does"
+      ],
+      "failure_mode": "Every never-does punctuation claim on the card must have a zero rate in the profile.",
+      "correct_behavior": "Each claimed zero-rate feature is actually zero in the profile.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "CARD-06",
+      "category": "voice_card",
+      "title": "Coverage gap names missing dimensions",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_mimic.py",
+        "--coverage-gap"
+      ],
+      "failure_mode": "A sample set with no numeric writing must mark numbers-data uncovered in the coverage matrix.",
+      "correct_behavior": "The deterministic coverage matrix flags numbers-data as a gap when samples lack numbers.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "CARD-07",
+      "category": "voice_card",
+      "title": "Uncovered dimensions are never fabricated",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_mimic.py",
+        "--no-fabrication"
+      ],
+      "failure_mode": "An uncovered dimension must get no sheet and be listed as uncovered in card.md.",
+      "correct_behavior": "No sheet is written for an uncovered dimension and card.md names it under Uncovered.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "CARD-08",
+      "category": "voice_card",
+      "title": "Profile that does not match samples is rejected",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_mimic.py",
+        "--card-profile-mismatch"
+      ],
+      "failure_mode": "voice_card must not build a card from a --profile that does not describe the --samples. It must recompute the profile from --samples and, on disagreement, exit non-zero with a named mismatch and write no card.",
+      "correct_behavior": "A committed 4-doc Amara profile against the 5-doc Amara samples dir exits 2 with a named field mismatch and writes no card.md.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
     }
   ]
 }

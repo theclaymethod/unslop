@@ -172,6 +172,13 @@ def list_gates():
             "needs": [],
         },
         {
+            "id": "voice-scorer",
+            "command": "python3 evals/check_voice.py --separation && python3 evals/check_voice.py --gi && python3 evals/check_voice.py --gaming && python3 evals/check_voice.py --profiles",
+            "pass_criterion": "exit 0",
+            "blocking": True,
+            "needs": [],
+        },
+        {
             "id": "add-pattern-kata",
             "command": "python3 evals/kata_add_pattern.py --run",
             "pass_criterion": "exit 0",
@@ -188,6 +195,13 @@ def list_gates():
         {
             "id": "paired-fixture-hygiene",
             "command": "python3 evals/check_pairs.py",
+            "pass_criterion": "exit 0",
+            "blocking": True,
+            "needs": [],
+        },
+        {
+            "id": "mimic-logic",
+            "command": "python3 evals/run_adversarial.py --only MIMIC --only CARD",
             "pass_criterion": "exit 0",
             "blocking": True,
             "needs": [],

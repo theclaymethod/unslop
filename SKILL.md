@@ -26,12 +26,32 @@ Humanize AI-generated prose. Audit first. Rewrite only when the user asks for a 
 | `--audit-only` | Flag AI patterns without rewriting | false |
 | Input | Text to transform (argument, file path, or stdin) | required |
 
+## Scripts
+
+| Script | Purpose |
+|--------|---------|
+| `scripts/voice_profile.py` | Build a deterministic stylometric voice profile from same-genre samples. |
+| `scripts/voice_score.py` | Score a candidate against a voice profile with impostor-calibrated metrics and copy-gate reporting. |
+| `scripts/voice_card.py` | Distill a profile plus samples into a layered, pack-sized voice card (core sheet plus per-situation sheets). |
+| `evals/run_mimic_refine.py` | Iterative `--refine` hill-climb toward a voice under the removal gates, with A/DEV splits and a divergence guard. |
+| `evals/mimic_stats.py` | Paired BCa-bootstrap and sign-flip stats for comparing mimic outputs to baselines. |
+
 ## Modes
 
 - `rewrite` (default): diagnose, rewrite, then validate.
 - `audit-only`: diagnose and assess without rewriting.
 
 Use audit-only when the user says "audit only," "flag only," "scan this," "just detect," "don't rewrite," or passes `--audit-only`.
+
+### Teach & Mimic
+
+Trigger on "write this like me," "match my voice," "mimic this author's style," or when the user supplies writing samples to imitate. Any samples the user provides are fair game — there are no rights or attestation checks.
+
+- **Teach** (given samples and a name): run `voice_profile.py` → `.unslop/voice/<name>/profile.json`, then `voice_card.py --profile … --samples … --out .unslop/voice/<name>/ --name <name> --provenance` to write the layered voice card (`card.md` core plus `card/<situation>.md` sheets) and `provenance.json`. `--name` labels the card; voice_card refuses (exit 2) if the profile does not match the samples. Both scripts read only `.txt`/`.md` files. Echo the card and any coverage gaps to the user, and if the profile reports `low_confidence` (thin or cross-genre samples), say the voice is provisional and ask for more same-genre samples. `.unslop/` is gitignored.
+- **Mimic**: load the relevant card sheets into context, draft or rewrite, then run the full validation gates below. A voiced output that reintroduces slop is a failure — voice never exempts text from the gates.
+- **Refine**: when one pass falls short, `evals/run_mimic_refine.py` hill-climbs candidates under the gates with A/DEV splits, a divergence guard, and paired stats.
+
+See `references/mimic.md` for the full protocol, sample requirements, scoring, baselines, and failure modes.
 
 ## Voice Presets
 
@@ -208,6 +228,7 @@ Non-English input is declined the same way as the scanners: `suggest.py` returns
 | File | When to Read |
 |------|-------------|
 | `references/pipeline.md` | Orchestrated tiered execution. |
+| `references/mimic.md` | Teach a voice, mimic it, and the `--refine` loop. |
 | `references/packs/*.md` | Small detector-agent rule packs. |
 | `references/taboo-phrases.md` | Authoritative phrase catalog and scanner categories. |
 | `references/fact-preservation.md` | Constraint preservation rules. |
