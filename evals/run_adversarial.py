@@ -151,6 +151,13 @@ def list_gates():
             "needs": [],
         },
         {
+            "id": "mimic-logic",
+            "command": "python3 evals/run_adversarial.py --only MIMIC --only CARD",
+            "pass_criterion": "exit 0",
+            "blocking": True,
+            "needs": [],
+        },
+        {
             "id": "pack-structure",
             "command": "python3 scripts/check_packs.py",
             "pass_criterion": "exit 0",
