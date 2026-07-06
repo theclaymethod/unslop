@@ -9070,6 +9070,196 @@
           "equals": false
         }
       ]
+    },
+    {
+      "id": "CONTRIB-01",
+      "category": "contribute",
+      "title": "precheck names an already covering pattern",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_contrib.py",
+        "CONTRIB-01"
+      ],
+      "failure_mode": "The contribution pipeline loses specimen fidelity, skips red-first proof, or renders an unstable PR body.",
+      "correct_behavior": "The offline contribution helper passes this deterministic contract.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "CONTRIB-02",
+      "category": "contribute",
+      "title": "precheck accepts a genuinely uncaught tell",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_contrib.py",
+        "CONTRIB-02"
+      ],
+      "failure_mode": "The contribution pipeline loses specimen fidelity, skips red-first proof, or renders an unstable PR body.",
+      "correct_behavior": "The offline contribution helper passes this deterministic contract.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "CONTRIB-03",
+      "category": "contribute",
+      "title": "scaffold preserves post-redaction specimen bytes",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_contrib.py",
+        "CONTRIB-03"
+      ],
+      "failure_mode": "The contribution pipeline loses specimen fidelity, skips red-first proof, or renders an unstable PR body.",
+      "correct_behavior": "The offline contribution helper passes this deterministic contract.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "CONTRIB-04",
+      "category": "contribute",
+      "title": "redaction may not alter the tell",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_contrib.py",
+        "CONTRIB-04"
+      ],
+      "failure_mode": "The contribution pipeline loses specimen fidelity, skips red-first proof, or renders an unstable PR body.",
+      "correct_behavior": "The offline contribution helper passes this deterministic contract.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "CONTRIB-05",
+      "category": "contribute",
+      "title": "verify enforces red-first and refuses TODO report text",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_contrib.py",
+        "CONTRIB-05"
+      ],
+      "failure_mode": "The contribution pipeline loses specimen fidelity, skips red-first proof, or renders an unstable PR body.",
+      "correct_behavior": "The offline contribution helper passes this deterministic contract.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "CONTRIB-06",
+      "category": "contribute",
+      "title": "report rendering matches golden markdown",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_contrib.py",
+        "CONTRIB-06"
+      ],
+      "failure_mode": "The contribution pipeline loses specimen fidelity, skips red-first proof, or renders an unstable PR body.",
+      "correct_behavior": "The offline contribution helper passes this deterministic contract.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "CONTRIB-07",
+      "category": "contribute",
+      "title": "scaffold output is deterministic",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_contrib.py",
+        "CONTRIB-07"
+      ],
+      "failure_mode": "The contribution pipeline loses specimen fidelity, skips red-first proof, or renders an unstable PR body.",
+      "correct_behavior": "The offline contribution helper passes this deterministic contract.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "CONTRIB-08",
+      "category": "contribute",
+      "title": "missing bundle exits 2",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_contrib.py",
+        "CONTRIB-08"
+      ],
+      "failure_mode": "The contribution pipeline loses specimen fidelity, skips red-first proof, or renders an unstable PR body.",
+      "correct_behavior": "The offline contribution helper passes this deterministic contract.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "CONTRIB-09",
+      "category": "contribute",
+      "title": "capitalized tell assertions normalize without changing stdin",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_contrib.py",
+        "CONTRIB-09"
+      ],
+      "failure_mode": "Capitalized contributed tells cannot verify because scanner phrases are normalized differently from row assertions.",
+      "correct_behavior": "Scaffold lowercases only the assertion value and verify compares reported phrases case-insensitively.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "CONTRIB-10",
+      "category": "contribute",
+      "title": "precheck reports structure-only findings",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_contrib.py",
+        "CONTRIB-10"
+      ],
+      "failure_mode": "Precheck only reads banned-phrase violations and lets structure-only tells scaffold as clean.",
+      "correct_behavior": "Precheck reads structure flags and reports the structure metric that already covers the snippet.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
     }
   ]
 }
