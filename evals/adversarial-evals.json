@@ -10664,6 +10664,426 @@
           "equals": 0
         }
       ]
+    },
+    {
+      "id": "CAL-01",
+      "category": "calibrate",
+      "title": "Per-dimension transform correctness with constraints preserved",
+      "target": "script",
+      "command": [
+        "python3",
+        "-c",
+        "import json, re, subprocess, sys\nsys.path.insert(0, 'scripts')\nfrom extract_constraints import extract_constraints\nDIMS = {\n    'contractions': 'evals/fixtures/calibrate/base_contractions.txt',\n    'em_dash': 'evals/fixtures/calibrate/base_em_dash.txt',\n    'sentence_length': 'evals/fixtures/calibrate/base_sentence_length.txt',\n    'connectives': 'evals/fixtures/calibrate/base_connectives.txt',\n    'staccato': 'evals/fixtures/calibrate/base_staccato.txt',\n}\ndef sentence_count(s):\n    return len(re.findall(r'[^.!?]+[.!?]+', s))\nresults = {}\nfor dim, path in DIMS.items():\n    proc = subprocess.run(\n        ['python3', 'scripts/calibrate_pairs.py', 'generate', '--base', path, '--dimension', dim, '--seed', '1'],\n        capture_output=True, text=True,\n    )\n    ok = proc.returncode == 0\n    if ok:\n        data = json.loads(proc.stdout)\n        base_text = open(path).read()\n        cbefore = {c['value'] for c in extract_constraints(base_text)}\n        cafter = {c['value'] for c in extract_constraints(data['b_text'])}\n        ok = (\n            data['a_text'] != data['b_text']\n            and bool(data.get('transform_applied'))\n            and cbefore.issubset(cafter)\n        )\n        if dim == 'em_dash':\n            ok = ok and sentence_count(data['a_text']) == sentence_count(data['b_text'])\n    results[dim] = ok\nprint(json.dumps(results))"
+      ],
+      "failure_mode": "A dimension's transform silently drops a must-preserve constraint, produces no change, the CLI errors, or (em_dash specifically) changes sentence count between A and B via a lone-dash join/split path -- and it goes unnoticed because only an aggregate pass/fail is checked.",
+      "correct_behavior": "Each of the five dimensions produces a genuinely different B-variant that still contains every constraint extracted from the base passage; em_dash additionally holds sentence count stable between A and B (the dimension is restricted to the paired-dash<->comma path); a broken dimension names itself in the json path that fails.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "contractions",
+          "equals": true
+        },
+        {
+          "type": "json",
+          "path": "em_dash",
+          "equals": true
+        },
+        {
+          "type": "json",
+          "path": "sentence_length",
+          "equals": true
+        },
+        {
+          "type": "json",
+          "path": "connectives",
+          "equals": true
+        },
+        {
+          "type": "json",
+          "path": "staccato",
+          "equals": true
+        }
+      ]
+    },
+    {
+      "id": "CAL-02",
+      "category": "calibrate",
+      "title": "Inexpressible dimension exits 3 instead of forcing a bad transform",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/calibrate_pairs.py",
+        "generate",
+        "--base",
+        "evals/fixtures/calibrate/inexpressible_contractions.txt",
+        "--dimension",
+        "contractions",
+        "--seed",
+        "1"
+      ],
+      "failure_mode": "The generator forces a transform on a passage where neither pole's pattern is present, corrupting the passage instead of admitting the dimension does not apply here.",
+      "correct_behavior": "Exit code 3 and an error naming the passage as not expressible for this dimension.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 3
+        },
+        {
+          "type": "stdout_contains",
+          "value": "dimension not expressible in this passage"
+        }
+      ]
+    },
+    {
+      "id": "CAL-03",
+      "category": "calibrate",
+      "title": "Same seed produces byte-identical output",
+      "target": "script",
+      "command": [
+        "python3",
+        "-c",
+        "import subprocess, sys\ncmd = ['python3', 'scripts/calibrate_pairs.py', 'generate', '--base', 'evals/fixtures/calibrate/base_contractions.txt', '--dimension', 'contractions', '--seed', '7']\na = subprocess.run(cmd, capture_output=True, text=True)\nb = subprocess.run(cmd, capture_output=True, text=True)\nif a.stdout == b.stdout and a.returncode == 0 == b.returncode:\n    print('IDENTICAL')\nelse:\n    print('DIFFERENT')\n    sys.exit(1)"
+      ],
+      "failure_mode": "A dimension's transform depends on unseeded randomness (dict/set iteration order, wall-clock, os.urandom) so two runs with the same seed diverge, breaking reproducibility of the game log.",
+      "correct_behavior": "Two invocations with identical base file, dimension, and seed emit byte-identical stdout.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "IDENTICAL"
+        }
+      ]
+    },
+    {
+      "id": "CAL-04",
+      "category": "calibrate",
+      "title": "Canned preference stream aggregates to the expected direction and confidence",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/calibrate_score.py",
+        "--preferences",
+        "evals/fixtures/calibrate/preferences_canned.jsonl"
+      ],
+      "failure_mode": "The Wilson-lower-bound aggregation drifts (wrong tally key, wrong z, off-by-one on n vs decisive count) and a canned, hand-computed distribution stops matching its known confidence value.",
+      "correct_behavior": "The contractions dimension (7 of 8 decisive votes for 'expanded') reports preferred='expanded' with confidence 0.529, and sentence_length (9 of 9 votes for 'short') reports preferred='short' with confidence 0.701. staccato (3 of 6 for each pole, a genuine tie) reports status='tied' and preferred=null rather than an alphabetically-broken winner. connectives has two raw rows sharing the same pair_id (a replayed round); dedup collapses them so n=1, not 2.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "dimensions.contractions.preferred",
+          "equals": "expanded"
+        },
+        {
+          "type": "json",
+          "path": "dimensions.contractions.confidence",
+          "equals": 0.529
+        },
+        {
+          "type": "json",
+          "path": "dimensions.sentence_length.preferred",
+          "equals": "short"
+        },
+        {
+          "type": "json",
+          "path": "dimensions.sentence_length.confidence",
+          "equals": 0.701
+        },
+        {
+          "type": "json",
+          "path": "dimensions.staccato.status",
+          "equals": "tied"
+        },
+        {
+          "type": "json",
+          "path": "dimensions.staccato.preferred",
+          "equals": null
+        },
+        {
+          "type": "json",
+          "path": "dimensions.connectives.n",
+          "equals": 1
+        }
+      ]
+    },
+    {
+      "id": "CAL-05",
+      "category": "calibrate",
+      "title": "Below-k observations report insufficient regardless of lean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/calibrate_score.py",
+        "--preferences",
+        "evals/fixtures/calibrate/preferences_canned.jsonl"
+      ],
+      "failure_mode": "A dimension with only a handful of lopsided votes (e.g. 3 of 3 for one side) reports a confident direction instead of admitting there is not enough data yet, letting the game stop too early.",
+      "correct_behavior": "em_dash has only 3 recorded observations (k=5 floor unmet) and reports status='insufficient' with preferred=null even though all 3 lean the same way.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "dimensions.em_dash.status",
+          "equals": "insufficient"
+        },
+        {
+          "type": "json",
+          "path": "dimensions.em_dash.n",
+          "equals": 3
+        },
+        {
+          "type": "json",
+          "path": "dimensions.em_dash.preferred",
+          "equals": null
+        }
+      ]
+    },
+    {
+      "id": "CAL-06",
+      "category": "calibrate",
+      "title": "Confident preference conflicting with the measured profile is surfaced",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/calibrate_score.py",
+        "--preferences",
+        "evals/fixtures/calibrate/preferences_canned.jsonl",
+        "--profile",
+        "evals/fixtures/calibrate/profile_conflict.json"
+      ],
+      "failure_mode": "A confident stated preference for short sentences is reported alongside a profile measured from the user's own samples averaging much longer sentences, and nothing flags the contradiction — the card would silently pick one and lose the disagreement.",
+      "correct_behavior": "A conflicts[] record names the sentence_length dimension, both the stated preference ('short', confidence 0.701, provenance stated-preference) and the measured profile value (avg_sentence_length=22.4, provenance measured-from-samples).",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "conflicts.0.dimension",
+          "equals": "sentence_length"
+        },
+        {
+          "type": "json",
+          "path": "conflicts.0.preferred",
+          "equals": "short"
+        },
+        {
+          "type": "json",
+          "path": "conflicts.0.preferred_provenance",
+          "equals": "stated-preference"
+        },
+        {
+          "type": "json",
+          "path": "conflicts.0.measured_value",
+          "equals": 22.4
+        },
+        {
+          "type": "json",
+          "path": "conflicts.0.measured_provenance",
+          "equals": "measured-from-samples"
+        }
+      ]
+    },
+    {
+      "id": "CAL-07",
+      "category": "calibrate",
+      "title": "--next orders by fewest observations then a deterministic tiebreak",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/calibrate_score.py",
+        "--preferences",
+        "evals/fixtures/calibrate/preferences_canned.jsonl",
+        "--next"
+      ],
+      "failure_mode": "connectives and staccato are both entirely unplayed (n=0), a tie that non-deterministic dict/set ordering could break differently on every call, making the game's next-dimension choice unreproducible.",
+      "correct_behavior": "Both connectives and staccato have n=0; the fixed dimension order (contractions, em_dash, sentence_length, connectives, staccato) breaks the tie in favor of connectives every time.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "next_dimension",
+          "equals": "connectives"
+        },
+        {
+          "type": "json",
+          "path": "reason",
+          "equals": "fewest_observations"
+        }
+      ]
+    },
+    {
+      "id": "CAL-08",
+      "category": "calibrate",
+      "title": "Missing preferences file exits 2",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/calibrate_score.py",
+        "--preferences",
+        "evals/fixtures/calibrate/does-not-exist.jsonl"
+      ],
+      "failure_mode": "A missing or mistyped preferences path crashes with an uncaught traceback or silently reports an empty-but-successful aggregation instead of a clear I/O error.",
+      "correct_behavior": "Exit code 2 with a JSON error naming the read failure; no traceback.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 2
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        }
+      ]
+    },
+    {
+      "id": "CAL-09",
+      "category": "calibrate",
+      "title": "Contraction rewrite skips a capitalized proper noun it collides with",
+      "target": "script",
+      "command": [
+        "python3",
+        "-c",
+        "import json, subprocess\nproc = subprocess.run(\n    ['python3', 'scripts/calibrate_pairs.py', 'generate', '--base',\n     'evals/fixtures/calibrate/proper_noun_contraction.txt', '--dimension', 'contractions', '--seed', '1'],\n    capture_output=True, text=True,\n)\nresult = {'exit_code': proc.returncode, 'proper_noun_preserved': False, 'other_transform_applied': False}\nif proc.returncode == 0:\n    data = json.loads(proc.stdout)\n    needle = 'Venue Can' + chr(39) + 't Stop'\n    result['proper_noun_preserved'] = needle in data['b_text']\n    result['other_transform_applied'] = 'will not' in data['b_text']\nprint(json.dumps(result))"
+      ],
+      "failure_mode": "The 'can't' -> 'cannot' rewrite fires everywhere the pattern matches, including inside a capitalized proper noun that happens to reuse the word ('the venue Can't Stop' -> 'Cannot Stop'), corrupting a name. The old substring-based constraint guard misses the corruption because extract_constraints truncates the proper noun at the apostrophe ('Venue Can’t Stop' -> constraint value 'Venue Can'), and 'Venue Can' is still a substring of the corrupted 'Venue Cannot Stop'.",
+      "correct_behavior": "The ordinary contraction ('can't attend' -> 'cannot attend', 'won't' -> 'will not') is still rewritten, but 'Venue Can't Stop' is left untouched because the match sits inside a capitalized multi-word span.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "proper_noun_preserved",
+          "equals": true
+        },
+        {
+          "type": "json",
+          "path": "other_transform_applied",
+          "equals": true
+        }
+      ]
+    },
+    {
+      "id": "CAL-10",
+      "category": "calibrate",
+      "title": "Generated pairs are annotated with banned_phrase_scan flags instead of declining",
+      "target": "script",
+      "command": [
+        "python3",
+        "-c",
+        "import json, subprocess\ndef gen(base, dim):\n    proc = subprocess.run(\n        ['python3', 'scripts/calibrate_pairs.py', 'generate', '--base', base, '--dimension', dim, '--seed', '1'],\n        capture_output=True, text=True,\n    )\n    return proc.returncode, (json.loads(proc.stdout) if proc.returncode == 0 else None)\n\nrc1, staccato = gen('evals/fixtures/calibrate/staccato_flagged.txt', 'staccato')\nrc2, clean = gen('evals/fixtures/calibrate/contractions_clean.txt', 'contractions')\nresult = {\n    'staccato_exit': rc1,\n    'staccato_has_a_flags_field': bool(staccato) and 'a_flags' in staccato,\n    'staccato_has_b_flags_field': bool(staccato) and 'b_flags' in staccato,\n    'staccato_a_flags_empty': bool(staccato) and staccato['a_flags'] == [],\n    'staccato_b_flags_has_anti_slop_register': bool(staccato) and 'anti_slop_register' in staccato['b_flags'],\n    'clean_exit': rc2,\n    'clean_a_flags_empty': bool(clean) and clean['a_flags'] == [],\n    'clean_b_flags_empty': bool(clean) and clean['b_flags'] == [],\n}\nprint(json.dumps(result))"
+      ],
+      "failure_mode": "A generated B-variant can legitimately trip banned_phrase_scan (a staccato pole reads as anti_slop_register; a plain connective can read as filler_opener). Declining or silently dropping these pairs would make whole dimensions unplayable whenever a user's real voice sits on the flagged pole -- the product decision is to annotate, not decline, and let the voice card record 'user-preference overrides register guard' when the user picks that pole.",
+      "correct_behavior": "generate_pair's output always carries 'a_flags'/'b_flags' (category lists, empty when clean). A staccato pair generated from a comma-fragmentable base reports b_flags containing 'anti_slop_register' while a_flags is empty; a plain contractions pair reports both empty.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "staccato_exit",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "staccato_has_a_flags_field",
+          "equals": true
+        },
+        {
+          "type": "json",
+          "path": "staccato_has_b_flags_field",
+          "equals": true
+        },
+        {
+          "type": "json",
+          "path": "staccato_a_flags_empty",
+          "equals": true
+        },
+        {
+          "type": "json",
+          "path": "staccato_b_flags_has_anti_slop_register",
+          "equals": true
+        },
+        {
+          "type": "json",
+          "path": "clean_exit",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "clean_a_flags_empty",
+          "equals": true
+        },
+        {
+          "type": "json",
+          "path": "clean_b_flags_empty",
+          "equals": true
+        }
+      ]
+    },
+    {
+      "id": "CAL-11",
+      "category": "calibrate",
+      "title": "Replayed pair_id dedups to the latest row by ts, not a naive double-count",
+      "target": "script",
+      "command": [
+        "python3",
+        "-c",
+        "import json, sys\nfrom pathlib import Path\nsys.path.insert(0, 'scripts')\nfrom calibrate_score import load_preferences, dedup_by_pair_id\nrows = load_preferences(Path('evals/fixtures/calibrate/preferences_canned.jsonl'))\ndeduped = dedup_by_pair_id(rows)\nconn = [r for r in deduped if r['dimension'] == 'connectives']\nresult = {\n    'raw_row_count': sum(1 for r in rows if r['dimension'] == 'connectives'),\n    'deduped_row_count': len(conn),\n    'latest_choice': conn[0]['choice'] if conn else None,\n    'latest_ts': conn[0]['ts'] if conn else None,\n}\nprint(json.dumps(result))"
+      ],
+      "failure_mode": "A game round that gets appended to the preferences JSONL twice (e.g. a crashed/retried write) would double-count toward n and let whichever row happens to load first win the tally, instead of collapsing to one observation and honoring the user's latest choice.",
+      "correct_behavior": "The canned fixture's connectives dimension has two raw rows sharing pair_id 'connectives-00' (an earlier 'a' choice and a later 'b' choice). dedup_by_pair_id collapses them to one row: the latest by ts, choice='b'.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "raw_row_count",
+          "equals": 2
+        },
+        {
+          "type": "json",
+          "path": "deduped_row_count",
+          "equals": 1
+        },
+        {
+          "type": "json",
+          "path": "latest_choice",
+          "equals": "b"
+        },
+        {
+          "type": "json",
+          "path": "latest_ts",
+          "equals": "2026-07-06T09:00:00Z"
+        }
+      ]
     }
   ]
 }

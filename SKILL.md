@@ -215,6 +215,7 @@ Non-English input is declined the same way as the scanners: `suggest.py` returns
 | `references/edit-library.md` | Transformation examples when a pattern is unclear. |
 | `references/personality-guide.md` | Adding genuine voice without fake personality. |
 | `references/harvest.md` | Bootstrapping teach samples from transcripts and writing folders. |
+| `references/calibrate.md` | The teach A/B calibration game: dimension-controlled pairs, scoring, conflict surfacing. |
 | `references/maintenance.md` | Pattern add/list procedures and Wikipedia sync. |
 | `presets/*.md` | Voice-specific deltas. |
 | `assets/examples/*.md` | Extended before/after examples by content type (article, LinkedIn, sales). |
