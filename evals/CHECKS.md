@@ -91,6 +91,20 @@ Current gates:
     "needs": []
   },
   {
+    "id": "silhouette-scan",
+    "command": "python3 scripts/silhouette_scan.py < transformed.txt",
+    "pass_criterion": "exit 0",
+    "blocking": true,
+    "needs": []
+  },
+  {
+    "id": "silhouette-check",
+    "command": "python3 evals/check_silhouette.py",
+    "pass_criterion": "exit 0",
+    "blocking": true,
+    "needs": []
+  },
+  {
     "id": "validate-preservation",
     "command": "python3 scripts/validate_preservation.py original.txt transformed.txt",
     "pass_criterion": "exit 0",

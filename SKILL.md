@@ -58,6 +58,7 @@ Use this when you are the only executor. Follow the same tiers sequentially:
    ```bash
    python3 scripts/banned_phrase_scan.py <<< "$INPUT"
    python3 scripts/structure_scan.py <<< "$INPUT"
+   python3 scripts/silhouette_scan.py <<< "$INPUT"
    python3 scripts/readability_metrics.py <<< "$INPUT"
    ```
    Use `--genre docs` or `--genre social` only when the input truly belongs to that genre. Use `banned_phrase_scan.py --include-quoted` only when the user wants quoted examples audited too.
@@ -99,6 +100,7 @@ Run after every rewrite:
 python3 scripts/validate_preservation.py original.txt transformed.txt
 python3 scripts/banned_phrase_scan.py <<< "$OUTPUT"
 python3 scripts/structure_scan.py <<< "$OUTPUT"
+python3 scripts/silhouette_scan.py <<< "$OUTPUT"
 python3 scripts/readability_metrics.py <<< "$OUTPUT"
 python3 scripts/diff_check.py original.txt transformed.txt
 ```
@@ -108,6 +110,7 @@ Blocking output failures:
 - Any hard banned-phrase hit.
 - Any `anti_slop_register` hit, even if soft.
 - Any `structure_scan.py` flag unless the actual genre justifies `--genre docs` or `--genre social`.
+- Any `silhouette_scan.py` flag (`silhouette_penalty >= 1.0`) unless the genre justifies it: `--genre docs` retains the outline-following tell (`heading_preview`) because reference docs still should not read as a preview-then-fulfill template.
 - Preservation warnings that show a dropped or changed negation, hedge, scope word, number, date, name, quote, URL, unit, or code identifier. The default gate warns without failing; run `validate_preservation.py --strict` for legal, medical, security, or scientific text so these exit non-zero.
 - Staccato cadence in readability metrics.
 - Rubric score below 32/40 in strict mode.

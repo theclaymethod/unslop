@@ -977,6 +977,24 @@ Related deterministic metrics: `sentence_burstiness`, `bold_colon_listicle`,
 `one_line_staccato`, `connective_paragraph_openers`, `signpost_density`,
 `opener_repetition`, and `participial_closer_share`.
 
+### Silhouette (discourse-level)
+
+`scripts/silhouette_scan.py` scores idea arrangement one level above the surface
+scanner. All five tells are scanner-enforced; the composite `silhouette_penalty`
+flags at `>= 1.0` against a committed human reference.
+
+| Tell | What fires |
+|------|------------|
+| Scaffold openers | Body paragraphs opening on a discourse-cue class instead of their own claim — scanner-enforced (`scaffold_opener_share`). |
+| Recap loop | Opening vocabulary that vanishes mid-document and returns at the end — scanner-enforced (`callback_content`, strongest single tell). |
+| Rotating opener roles | Several distinct cue-opener classes rotating like a template — scanner-enforced (`role_entropy_bits`). |
+| Preview-then-fulfill | Intro content words reappearing as body-paragraph heads — scanner-enforced (`preview_fulfillment`). |
+| Heading preview | Section headings restating the intro's outline — scanner-enforced (`heading_preview`, retained under `--genre docs`). |
+
+Anti-gaming: a cue-deletion attack collapses the scaffold and role metrics, so
+silhouette must be scored jointly with `structure_scan.py` (staccato /
+opener_repetition) as the lower fence.
+
 ---
 
 ## Quick Reference: Detection Regex
