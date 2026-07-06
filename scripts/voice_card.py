@@ -406,6 +406,41 @@ def write_provenance(profile, samples_dir, out_dir):
     return prov
 
 
+def profile_mismatch(supplied, recomputed, path=""):
+    """First named field where the supplied profile disagrees with one recomputed
+    from --samples, or None. Counts (ints) compare exactly; floats within 1e-6.
+    The function-word background is a normalizer (from --background, not the
+    sample content), so it is not part of the equality check."""
+    here = path or "<root>"
+    if isinstance(supplied, bool) or isinstance(recomputed, bool):
+        return None if supplied == recomputed else here
+    if isinstance(supplied, dict):
+        if not isinstance(recomputed, dict):
+            return here
+        for k in sorted(set(supplied) | set(recomputed)):
+            if k == "function_word_background":
+                continue
+            if k not in supplied or k not in recomputed:
+                return f"{path}.{k}".lstrip(".")
+            m = profile_mismatch(supplied[k], recomputed[k], f"{path}.{k}".lstrip("."))
+            if m:
+                return m
+        return None
+    if isinstance(supplied, list):
+        if not isinstance(recomputed, list) or len(supplied) != len(recomputed):
+            return here
+        for i, (x, y) in enumerate(zip(supplied, recomputed)):
+            m = profile_mismatch(x, y, f"{path}[{i}]")
+            if m:
+                return m
+        return None
+    if isinstance(supplied, int) and isinstance(recomputed, int):
+        return None if supplied == recomputed else here
+    if isinstance(supplied, (int, float)) and isinstance(recomputed, (int, float)):
+        return None if abs(supplied - recomputed) <= 1e-6 else here
+    return None if supplied == recomputed else here
+
+
 def parse_args(argv):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--profile", required=True)
@@ -426,7 +461,21 @@ def main(argv):
     if not profile_path.exists() or not samples_dir.is_dir():
         print("missing profile or samples dir", file=sys.stderr)
         return 2
+    if not list(voice_profile.iter_docs(samples_dir)):
+        print(f"no sample documents in {samples_dir}: teach reads only .txt and .md "
+              f"files (recursively). Rename samples to .txt/.md or point --samples at "
+              f"the right directory.", file=sys.stderr)
+        return 2
     profile = json.loads(profile_path.read_text())
+
+    # Consistency gate: the supplied profile must describe these very samples.
+    recomputed = voice_profile.build_profile(samples_dir)
+    mismatch = profile_mismatch(profile, recomputed)
+    if mismatch is not None:
+        print(f"profile does not match --samples (recompute differs at '{mismatch}'); "
+              f"rebuild the profile from these samples with voice_profile.py",
+              file=sys.stderr)
+        return 2
 
     if args.coverage:
         docs = collect(samples_dir)

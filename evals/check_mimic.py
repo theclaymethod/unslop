@@ -78,6 +78,77 @@ def check_patience():
         return 0 if r["stop_reason"] == "patience" and not r["reward_hacking_warning"] else 1
 
 
+def check_stuffed_attack():
+    """A marker-stuffed candidate that clears every hard gate must still lose to
+    honest prose under the GI-bearing composite (F1 regression). cand01 is honest,
+    cand02 is the punctuation/repetition-stuffed attack that games a raw weighted
+    distance but not the full composite."""
+    with tempfile.TemporaryDirectory() as td:
+        proc = refine("stuffed", td, 1, 1)
+        if proc.returncode != 0:
+            print(proc.stderr)
+            return 1
+        r = load_report(td)
+        cands = {c["name"]: c for c in r["iterations"][0]["candidates"]}
+        honest = cands.get("cand01.md", {})
+        stuffed = cands.get("cand02.md", {})
+        both_passed = honest.get("passed") and stuffed.get("passed")
+        honest_dev = honest.get("dev_score")
+        stuffed_dev = stuffed.get("dev_score")
+        ok = (both_passed
+              and r["best_candidate"] == "cand01.md"
+              and honest_dev is not None and stuffed_dev is not None
+              and stuffed_dev > honest_dev)
+        print(json.dumps({
+            "best_candidate": r["best_candidate"],
+            "honest_passed_gates": honest.get("passed"),
+            "stuffed_passed_gates": stuffed.get("passed"),
+            "honest_composite": honest_dev,
+            "stuffed_composite": stuffed_dev,
+            "margin": (round(stuffed_dev - honest_dev, 6)
+                       if honest_dev is not None and stuffed_dev is not None else None),
+        }, sort_keys=True))
+        return 0 if ok else 1
+
+
+def check_live_path():
+    """The LIVE generation path (F3): a mock generator invoked via --generate-cmd
+    drives the same gate/score/accept pipeline as the dry-run, producing the same
+    report shape and honoring acceptance."""
+    with tempfile.TemporaryDirectory() as td:
+        td = Path(td)
+        dry = td / "dry"
+        live = td / "live"
+        p_dry = refine("accept", dry, 1, 3)
+        cmd = [
+            "python3", "evals/run_mimic_refine.py",
+            "--samples", str(SAMPLES), "--draft", str(DRAFT),
+            "--out", str(live), "--seed", "1", "--iterations", "3", "--beam", "2",
+            "--generate-cmd", "python3 evals/fixtures/mimic/mock_generator.py",
+        ]
+        p_live = run(cmd)
+        if p_dry.returncode != 0 or p_live.returncode != 0:
+            print(p_dry.stderr, p_live.stderr)
+            return 1
+        rd = load_report(dry)
+        rl = load_report(live)
+        shape_keys = {"iterations", "best_candidate", "best_score", "stop_reason",
+                      "reward_hacking_warning", "directives", "split"}
+        shape_ok = shape_keys <= set(rl)
+        beam_ok = len(rl["iterations"][0]["candidates"]) == 2
+        accept_ok = [i["accepted"] for i in rl["iterations"]] == [i["accepted"] for i in rd["iterations"]]
+        score_ok = rl["best_score"] == rd["best_score"]
+        final_ok = (live / "final.md").exists()
+        print(json.dumps({
+            "live_best_score": rl["best_score"],
+            "dry_best_score": rd["best_score"],
+            "accepted": [i["accepted"] for i in rl["iterations"]],
+            "beam_candidates": len(rl["iterations"][0]["candidates"]),
+            "final_written": final_ok,
+        }, sort_keys=True))
+        return 0 if shape_ok and beam_ok and accept_ok and score_ok and final_ok else 1
+
+
 def check_divergence():
     with tempfile.TemporaryDirectory() as td:
         proc = refine("divergence", td, 4, 3, samples=DIV_SAMPLES,
@@ -310,10 +381,30 @@ def check_no_fabrication():
         return 0 if not sheet.exists() and listed else 1
 
 
+def check_card_profile_mismatch():
+    """F2: a supplied profile that does not describe the --samples must be caught.
+    A committed 4-doc Amara profile against the 5-doc Amara samples dir is a
+    named mismatch and a non-zero exit; voice_card must not silently emit a card."""
+    with tempfile.TemporaryDirectory() as td:
+        proc = run([
+            "python3", "scripts/voice_card.py",
+            "--profile", str(ROOT / "evals" / "fixtures" / "voice" / "profiles" / "amara.json"),
+            "--samples", str(ROOT / "evals" / "fixtures" / "voice" / "authors" / "amara"),
+            "--out", td, "--name", "amara",
+        ])
+        card_written = (Path(td) / "card.md").exists()
+        named = "does not match --samples" in proc.stderr and "'" in proc.stderr
+        print(f"exit={proc.returncode} named_mismatch={named} card_written={card_written} "
+              f"stderr={proc.stderr.strip()}")
+        return 0 if proc.returncode == 2 and named and not card_written else 1
+
+
 CHECKS = {
     "acceptance": check_acceptance,
     "patience": check_patience,
     "divergence": check_divergence,
+    "stuffed-attack": check_stuffed_attack,
+    "live-path": check_live_path,
     "copy-gate": check_copy_gate,
     "fact-gate": check_fact_gate,
     "determinism": check_determinism,
@@ -327,6 +418,7 @@ CHECKS = {
     "card-never-does": check_card_never_does,
     "coverage-gap": check_coverage_gap,
     "no-fabrication": check_no_fabrication,
+    "card-profile-mismatch": check_card_profile_mismatch,
 }
 
 

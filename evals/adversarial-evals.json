@@ -5612,6 +5612,44 @@
       ]
     },
     {
+      "id": "MIMIC-10",
+      "category": "mimic_loop",
+      "title": "Marker-stuffed candidate loses to honest under the GI composite",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_mimic.py",
+        "--stuffed-attack"
+      ],
+      "failure_mode": "Acceptance scored on a raw weighted distance lets a marker-stuffed candidate that clears every hard gate beat honest prose. Refine must score DEV/A with the full voice_score composite (GI + impostor z), so the stuffed attack scores worse and honest wins.",
+      "correct_behavior": "Both honest (cand01) and the punctuation/repetition-stuffed attack (cand02) pass the hard gates, but under the GI-bearing composite the stuffed candidate scores strictly worse and best_candidate is the honest one.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "MIMIC-11",
+      "category": "mimic_loop",
+      "title": "Live generation path drives the same pipeline",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_mimic.py",
+        "--live-path"
+      ],
+      "failure_mode": "The LIVE path (--generate-cmd) must actually assemble prompts, invoke the generator per beam, and run candidates through the same gate/score/accept pipeline as the dry-run, not be a dead flag.",
+      "correct_behavior": "A mock generator invoked via --generate-cmd produces the same report shape, beam width, acceptance trajectory, best_score, and final.md as the dry-run acceptance fixture.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
       "id": "CARD-01",
       "category": "voice_card",
       "title": "Voice card is deterministic",
@@ -5737,6 +5775,25 @@
       ],
       "failure_mode": "An uncovered dimension must get no sheet and be listed as uncovered in card.md.",
       "correct_behavior": "No sheet is written for an uncovered dimension and card.md names it under Uncovered.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "CARD-08",
+      "category": "voice_card",
+      "title": "Profile that does not match samples is rejected",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_mimic.py",
+        "--card-profile-mismatch"
+      ],
+      "failure_mode": "voice_card must not build a card from a --profile that does not describe the --samples. It must recompute the profile from --samples and, on disagreement, exit non-zero with a named mismatch and write no card.",
+      "correct_behavior": "A committed 4-doc Amara profile against the 5-doc Amara samples dir exits 2 with a named field mismatch and writes no card.md.",
       "assertions": [
         {
           "type": "exit_code",

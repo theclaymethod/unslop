@@ -13,17 +13,28 @@ testable; the model is used only to generate prose, never to score itself.
    fingerprint (char 3-grams, function-word delta, sentence-length EMD,
    punctuation, contractions, MTLD, word-length, impostor z-scores, GI rank).
    This is the referee the scorer uses.
-2. `scripts/voice_card.py --profile profile.json --samples samples/ --out .`
-   — the **layered voice card** the generating model actually follows.
+2. `scripts/voice_card.py --profile profile.json --samples samples/ --out .
+   --name <name>` — the **layered voice card** the generating model actually
+   follows. `--name` labels the card (`# Voice card: <name>`); default `voice`.
+   voice_card recomputes the profile from `--samples` and refuses (exit 2, named
+   field) if the supplied `--profile` does not describe those samples, so a stale
+   profile can never silently drive a card.
 3. Add `--provenance` to write `provenance.json` (per-sample sha256, word
    counts, doc count, genre note, low-confidence flag) so a teach run is
    auditable.
 
+**Sample files.** Both scripts read only `.txt` and `.md` files, recursively,
+under the samples directory (nothing else — a directory of `.docx` or extensionless
+files reads as empty and both scripts exit 2 with a diagnostic naming the
+requirement). Convert samples to `.txt`/`.md` first.
+
 **Sample requirements.** Use at least 5 documents, 2-3k words total, in the
-**same genre** as the target. Fewer words or cross-genre samples set
+**same genre** as the target. Fewer than ~2000 words or cross-genre samples set
 `low_confidence` in the profile and provenance; the card still builds but its
-claims are noisier. Cross-domain style attribution degrades sharply, so do not
-teach on blog posts and score legal memos.
+claims are noisier. **Surface `low_confidence` to the user** — tell them the voice
+is provisional and ask for more same-genre samples before trusting a mimic.
+Cross-domain style attribution degrades sharply, so do not teach on blog posts
+and score legal memos.
 
 ## The voice card (layered)
 
@@ -53,6 +64,24 @@ claim, because claims come from measured facts and verbatim snippets. So
 misclassification is low-stakes by construction. A sample set missing numeric
 writing, for instance, leaves `numbers-data` uncovered and named as a gap.
 
+**Coverage → prompt procedure.** When a dimension the target writing will need is
+uncovered, ask the user for a short sample that exercises it. **Only ask for
+dimensions the task requires** — do not fish for all ten. Templates:
+
+| Dimension | Prompt to the user |
+|-----------|--------------------|
+| explaining-technical | "Share something you wrote that explains how a thing works or why it behaves the way it does." |
+| anecdote | "Share a few sentences where you tell a small story about something that happened to you." |
+| argument | "Share something you wrote that argues a position — a claim you defended." |
+| disagreement | "Share something where you pushed back on or disagreed with an idea." |
+| praise | "Share something where you praised or recommended something you liked." |
+| hedging-uncertainty | "Share something where you were unsure and said so — thinking out loud." |
+| numbers-data | "Share something you wrote that works with numbers, quantities, or measurements." |
+| addressing-reader | "Share something written directly to a reader — instructions or a note to someone." |
+
+`openings` and `closings` are structural (first/last sentence of every document)
+and are covered as soon as there is one document, so they need no prompt.
+
 The card is pack-sized (~1-2k tokens loaded) so it rides in the generation
 context cheaply. Same inputs give byte-identical files.
 
@@ -76,15 +105,28 @@ Protocol (climb on A, accept on DEV, report on a sealed split):
 
 - Split samples by document (seeded): **A** (~60%, retrieval/context pool) and
   **DEV** (~40%, acceptance). Fewer than 5 docs → refuse (exit 2).
-- Each iteration generates B candidates (draft + card + nearest-A samples +
-  current directives). Dry-run mode reads canned candidates from
-  `--candidates-dir DIR/iter<i>/` so the loop logic runs with no model calls.
+- **LIVE (default):** each iteration assembles B prompts — the draft, the
+  A-split voice card, the k=2 nearest-A samples by char-3gram cosine, and the
+  current directives — and invokes `--generate-cmd` (default `claude -p`) once
+  per beam, piping the prompt on stdin and reading the candidate on stdout.
+  `--baseline zero|few|retrieval` selects which samples ride in the prompt (none
+  / first-k / k nearest-A) and generates its candidate set through this same
+  path, so the honest retrieval-few-shot competitor and the refine loop share
+  one pipeline.
+- **DRY-RUN:** pass `--candidates-dir DIR` and the loop reads
+  `DIR/iter<i>/*.md` as that iteration's batch instead of generating them, so
+  the loop logic runs with no model calls (this is how the MIMIC-* rows exercise
+  it; the LIVE path is covered by a mock generator).
 - **Hard gates** discard a candidate regardless of score: banned-phrase clean,
   structure clean, draft→candidate preservation, no copy-gate violation against
   A, and a 150-word floor.
-- Survivors are scored by the frozen deterministic composite against DEV (and
-  recorded against A for the divergence guard). The generator never scores
-  itself.
+- Survivors are scored against DEV (and recorded against A for the divergence
+  guard) with the **full `voice_score` composite** — `0.5·(1−GI) + 0.5·` clipped
+  weighted impostor-z distance against a same-genre impostor pool (`--impostors`,
+  default the committed pool), seeded. This is deliberately NOT a raw weighted
+  distance: a marker-stuffed candidate can minimize a raw distance and clear
+  every hard gate yet be exposed by GI, so raw-distance acceptance would accept
+  it over honest prose. The generator never scores itself.
 - Accept an iteration only if the DEV composite improves by ≥ `min-delta`; the
   best-so-far never regresses.
 
@@ -105,12 +147,20 @@ candidate is copied to `OUT/final.md` and the amended card to
 
 ## Scoring
 
-Three axes, kept separate (never blended into one trusted number): style
-similarity (char 3-grams + function-word delta), impostor-calibrated
-verification (GI rank + z-distance vs a same-genre impostor pool), and meaning
-preservation vs the original draft. The `composite` is a **guide, not an
-oracle** — even strong authorship verification tops out near a 93-94% ceiling,
-so treat per-candidate deltas as the signal and under-claim.
+The `voice_score` **composite** the refine loop accepts on is
+`0.5·(1−GI) + 0.5·zsum` (lower = more author-like), where `GI` is the General
+Impostors rank — the fraction of random feature-subset trials in which the
+candidate beats every sampled impostor at looking like the profile — and `zsum`
+is the clipped, weighted **impostor-z** distance (each per-feature distance
+normalized by the impostor pool's mean/std, clipped to ±3, weighted by the WP10a
+research weights). Both halves are calibrated against a same-genre **impostor
+pool**, so the number rewards *beating plausible other authors*, not merely
+matching aggregate surface stats. That is what defeats a marker-stuffed
+candidate: it can drive a raw weighted distance down and still be far worse under
+GI. Meaning preservation vs the original draft is a **separate** hard gate, never
+blended into the composite. The composite is a **guide, not an oracle** — even
+strong authorship verification tops out near a 93-94% ceiling, so treat
+per-candidate deltas as the signal and under-claim.
 
 ## Baselines
 

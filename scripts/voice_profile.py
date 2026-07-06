@@ -178,6 +178,11 @@ def main(argv):
     if not root.is_dir():
         print(f"missing samples dir: {root}", file=sys.stderr)
         return 2
+    if not list(iter_docs(root)):
+        print(f"no sample documents in {root}: only .txt and .md files are read "
+              f"(recursively). Rename samples to .txt/.md or point at the right "
+              f"directory.", file=sys.stderr)
+        return 2
     profile = build_profile(root, args.background)
     if profile["metadata"]["low_confidence"]:
         print(profile["metadata"]["genre_warning"], file=sys.stderr)

@@ -47,7 +47,7 @@ Use audit-only when the user says "audit only," "flag only," "scan this," "just 
 
 Trigger on "write this like me," "match my voice," "mimic this author's style," or when the user supplies writing samples to imitate. Any samples the user provides are fair game — there are no rights or attestation checks.
 
-- **Teach** (given samples and a name): run `voice_profile.py` → `.unslop/voice/<name>/profile.json`, then `voice_card.py --out .unslop/voice/<name>/ --provenance` to write the layered voice card (`card.md` core plus `card/<situation>.md` sheets) and `provenance.json`. Echo the card and any coverage gaps to the user. `.unslop/` is gitignored.
+- **Teach** (given samples and a name): run `voice_profile.py` → `.unslop/voice/<name>/profile.json`, then `voice_card.py --profile … --samples … --out .unslop/voice/<name>/ --name <name> --provenance` to write the layered voice card (`card.md` core plus `card/<situation>.md` sheets) and `provenance.json`. `--name` labels the card; voice_card refuses (exit 2) if the profile does not match the samples. Both scripts read only `.txt`/`.md` files. Echo the card and any coverage gaps to the user, and if the profile reports `low_confidence` (thin or cross-genre samples), say the voice is provisional and ask for more same-genre samples. `.unslop/` is gitignored.
 - **Mimic**: load the relevant card sheets into context, draft or rewrite, then run the full validation gates below. A voiced output that reintroduces slop is a failure — voice never exempts text from the gates.
 - **Refine**: when one pass falls short, `evals/run_mimic_refine.py` hill-climbs candidates under the gates with A/DEV splits, a divergence guard, and paired stats.
 

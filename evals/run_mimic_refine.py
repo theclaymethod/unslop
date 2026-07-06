@@ -5,19 +5,31 @@ author's stylometric profile under hard removal gates, accepting only DEV-split
 improvements and halting on patience or on the reward-hacking divergence
 signature.
 
-Every scrap of LOOP LOGIC is deterministic and runnable WITHOUT an LLM: pass
-``--candidates-dir DIR`` and the loop reads ``DIR/iter<i>/*.md`` as that
-iteration's candidate batch instead of generating them. That dry-run mode is
-what the MIMIC-* eval rows exercise.
+Two candidate sources, both driving the identical gate/score/accept path:
 
-The composite here is the frozen, deterministic weighted distance to a profile
-(lower = more author-like); the generator never scores itself. Climb on A,
-accept on DEV, watch for divergence between the two.
+* LIVE (default): each iteration assembles B prompts (draft + the A-split voice
+  card + the k nearest-A samples + the current directives) and invokes
+  ``--generate-cmd`` once per prompt, feeding the prompt on stdin and reading the
+  candidate on stdout. ``--baseline zero|few|retrieval`` selects which samples
+  ride in the prompt (none / first-k / k nearest-A). Deterministic when the
+  generator is deterministic.
+* DRY-RUN: pass ``--candidates-dir DIR`` and the loop reads ``DIR/iter<i>/*.md``
+  as that iteration's batch instead of generating them. The MIMIC-* eval rows
+  exercise both paths (the live path via a mock generator).
+
+Acceptance and the divergence guard both use the FULL ``voice_score`` composite
+(``0.5*(1-GI) + 0.5*`` clipped weighted impostor z-distance) against a same-genre
+impostor pool, not a raw weighted distance — a marker-stuffed candidate that
+clears every hard gate must still lose to honest prose. The generator never
+scores itself. Climb on A, accept on DEV, watch for divergence between the two.
 """
 
 import argparse
 import json
+import os
 import random
+import shlex
+import subprocess
 import sys
 from pathlib import Path
 
@@ -33,6 +45,8 @@ import validate_preservation  # noqa: E402
 
 LENGTH_FLOOR = 150
 PRECISION = 12
+DEFAULT_IMPOSTORS = ROOT / "evals" / "fixtures" / "voice" / "impostors"
+NEAREST_K = 2
 
 DIRECTIVE_TEXT = {
     "char3": ("Shift vocabulary and letter texture toward the samples; you are "
@@ -86,8 +100,27 @@ def profile_from_paths(paths, background=None):
     return profile
 
 
-def composite(profile, feats):
-    return voice_score.weighted_sum(voice_score.distances(profile, feats))
+def make_scorer(profile, impostor_rows, seed):
+    """Full voice_score composite (GI + clipped weighted z-distance) closure.
+
+    Lower is more author-like. Impostor z-distances are precomputed per profile;
+    GI is reseeded per call so the whole loop is reproducible.
+    """
+    imp_dist = [voice_score.distances(profile, f) for _, f in impostor_rows]
+
+    def score(feats):
+        dist = voice_score.distances(profile, feats)
+        zs = voice_score.zscores(dist, imp_dist)
+        zsum = sum(
+            voice_score.WEIGHTS[k]
+            * max(-3.0, min(3.0, zs[k] if zs[k] is not None else 0.0))
+            for k in voice_score.WEIGHTS
+        )
+        gi = (voice_score.gi_score(profile, feats, impostor_rows, seed)
+              if impostor_rows else 0.0)
+        return round12(0.5 * (1 - gi) + 0.5 * zsum)
+
+    return score
 
 
 def copy_gate_vs_paths(cand_text, a_paths):
@@ -131,6 +164,84 @@ def load_iteration_candidates(candidates_dir, index):
     return out
 
 
+# --------------------------- live generation ---------------------------
+
+def char3_cosine(a_text, b_text):
+    ga = voice_profile.char3_counts(a_text)
+    gb = voice_profile.char3_counts(b_text)
+    return voice_score.cosine_distance(ga, gb)
+
+
+def nearest_samples(draft_text, a_paths, k=NEAREST_K):
+    scored = []
+    for p in a_paths:
+        text = p.read_text(errors="replace")
+        scored.append((char3_cosine(draft_text, text), p.name, text))
+    scored.sort(key=lambda x: (x[0], x[1]))
+    return [(name, text) for _, name, text in scored[:k]]
+
+
+def select_samples(baseline, draft_text, a_paths, k=NEAREST_K):
+    """Which A samples ride in the prompt, per baseline mode."""
+    if baseline == "zero":
+        return []
+    if baseline == "few":
+        ordered = sorted(a_paths, key=lambda p: p.name)[:k]
+        return [(p.name, p.read_text(errors="replace")) for p in ordered]
+    return nearest_samples(draft_text, a_paths, k)  # retrieval (default)
+
+
+def build_prompt(draft_text, card_text, samples, directives, beam_index):
+    parts = ["# Voice card\n" + card_text.strip()]
+    for name, text in samples:
+        parts.append(f"# Sample: {name}\n{text.strip()}")
+    if directives:
+        parts.append("# Directives\n" + "\n".join(
+            f"- {d['directive']}" for d in directives))
+    parts.append("# Draft to rewrite in this voice\n" + draft_text.strip())
+    parts.append(f"# Variant {beam_index}")
+    return "\n\n".join(parts) + "\n"
+
+
+def generate_candidate(generate_cmd, prompt, iter_index):
+    env = dict(os.environ, MOCK_ITER=str(iter_index))
+    proc = subprocess.run(
+        shlex.split(generate_cmd), input=prompt, text=True,
+        capture_output=True, env=env,
+    )
+    if proc.returncode != 0:
+        raise RuntimeError(f"generate-cmd failed ({proc.returncode}): {proc.stderr}")
+    return proc.stdout
+
+
+def make_live_source(args, a_paths, profile_a, draft_text):
+    """Build the card once, then generate a beam per iteration through the CLI."""
+    docs_a = []
+    for p in a_paths:
+        sents = voice_card.split_sentences_text(p.read_text(errors="replace"))
+        if sents:
+            docs_a.append(sents)
+    matrix_a, _ = voice_card.coverage_matrix(docs_a)
+    card_text = voice_card.build_card(profile_a, docs_a, matrix_a, args.name)
+    samples = select_samples(args.baseline, draft_text, a_paths)
+
+    def get_batch(index, directives):
+        batch = []
+        for b in range(args.beam):
+            prompt = build_prompt(draft_text, card_text, samples, directives, b)
+            text = generate_candidate(args.generate_cmd, prompt, index)
+            batch.append((f"cand{b + 1:02d}.md", text))
+        return batch
+
+    return get_batch
+
+
+def make_dry_run_source(candidates_dir):
+    def get_batch(index, directives):
+        return load_iteration_candidates(candidates_dir, index)
+    return get_batch
+
+
 def derive_directives(profile_dev, best_feats):
     dists = voice_score.distances(profile_dev, best_feats)
     weighted = sorted(
@@ -151,7 +262,8 @@ def derive_directives(profile_dev, best_feats):
     return out
 
 
-def build_report(args, a_paths, dev_paths, profile_a, profile_dev, candidates_dir):
+def build_report(args, a_paths, dev_paths, profile_a, profile_dev,
+                 score_a, score_dev, get_batch):
     genre = args.genre
     draft_text = Path(args.draft).read_text(errors="replace")
 
@@ -159,26 +271,28 @@ def build_report(args, a_paths, dev_paths, profile_a, profile_dev, candidates_di
     best_name = None
     best_score = None
     best_feats = None
+    best_text = None
     stop_reason = None
     reward_hacking = False
     since_accept = 0
     divergence_run = 0
     prev_best_a = None
     prev_best_dev = None
+    directives = []
 
     for i in range(args.iterations):
-        batch = load_iteration_candidates(candidates_dir, i)
+        batch = get_batch(i, directives)
         if batch is None:
             stop_reason = "candidates_exhausted"
             break
         cand_records = []
         rejections = []
-        survivors = []  # (name, dev_score, a_score, feats)
+        survivors = []  # (name, dev_score, a_score, feats, text)
         for name, text in batch:
             passed, reason, gates = run_gates(text, draft_text, a_paths, genre)
             feats = voice_profile.feature_bundle(text)
-            dev_score = round12(composite(profile_dev, feats))
-            a_score = round12(composite(profile_a, feats))
+            dev_score = score_dev(feats)
+            a_score = score_a(feats)
             cand_records.append({
                 "name": name,
                 "words": feats["total_words"],
@@ -188,7 +302,7 @@ def build_report(args, a_paths, dev_paths, profile_a, profile_dev, candidates_di
                 "a_score": a_score if passed else None,
             })
             if passed:
-                survivors.append((name, dev_score, a_score, feats))
+                survivors.append((name, dev_score, a_score, feats, text))
             else:
                 rejections.append({"name": name, "reason": reason})
 
@@ -207,6 +321,7 @@ def build_report(args, a_paths, dev_paths, profile_a, profile_dev, candidates_di
                 best_score = iter_best_dev
                 best_name = iter_best
                 best_feats = iter_feats
+                best_text = survivors[0][4]
 
         # Divergence: best-survivor A improves while DEV worsens, 2 rounds running.
         if (iter_best_dev is not None and prev_best_dev is not None
@@ -251,6 +366,7 @@ def build_report(args, a_paths, dev_paths, profile_a, profile_dev, candidates_di
         "seed": args.seed,
         "baseline": args.baseline,
         "genre": genre,
+        "impostors": str(args.impostors),
         "split": {
             "A": [p.name for p in a_paths],
             "DEV": [p.name for p in dev_paths],
@@ -263,10 +379,10 @@ def build_report(args, a_paths, dev_paths, profile_a, profile_dev, candidates_di
         "directives": final_directives,
         "card_path": str(Path(args.out) / "voice-card.refined.md"),
     }
-    return report, draft_text
+    return report, best_text
 
 
-def write_outputs(args, report, a_paths, profile_a, candidates_dir):
+def write_outputs(args, report, a_paths, profile_a, best_text):
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     (out / "report.json").write_text(
@@ -284,14 +400,9 @@ def write_outputs(args, report, a_paths, profile_a, candidates_dir):
     for d in report["directives"]:
         amend_lines.append(f"- {d['card_amendment']}")
     (out / "voice-card.refined.md").write_text(base + "\n".join(amend_lines) + "\n")
-    # Best candidate copied to final.md when the loop found and re-read one.
-    best = report["best_candidate"]
-    if best is not None:
-        for i in range(args.iterations):
-            src = Path(candidates_dir) / f"iter{i}" / best
-            if src.exists():
-                (out / "final.md").write_text(src.read_text(errors="replace"))
-                break
+    # Best candidate text (captured from whichever source produced it).
+    if best_text is not None:
+        (out / "final.md").write_text(best_text)
 
 
 def parse_args(argv):
@@ -306,6 +417,7 @@ def parse_args(argv):
     p.add_argument("--min-delta", type=float, default=0.01)
     p.add_argument("--generate-cmd", default="claude -p")
     p.add_argument("--candidates-dir")
+    p.add_argument("--impostors", default=str(DEFAULT_IMPOSTORS))
     p.add_argument("--baseline", choices=["zero", "few", "retrieval"], default="retrieval")
     p.add_argument("--genre", choices=["prose", "docs", "social"], default="prose")
     p.add_argument("--name", default="voice")
@@ -318,13 +430,12 @@ def main(argv):
     if not samples.is_dir() or not Path(args.draft).exists():
         print("missing samples dir or draft", file=sys.stderr)
         return 2
+    if not Path(args.impostors).is_dir():
+        print(f"missing impostor pool: {args.impostors}", file=sys.stderr)
+        return 2
     paths = list(voice_profile.iter_docs(samples))
     if len(paths) < 5:
         print(f"need at least 5 sample documents to split; found {len(paths)}",
-              file=sys.stderr)
-        return 2
-    if args.candidates_dir is None:
-        print("live generation not available in this harness; pass --candidates-dir",
               file=sys.stderr)
         return 2
 
@@ -334,9 +445,20 @@ def main(argv):
         return 2
     profile_a = profile_from_paths(a_paths)
     profile_dev = profile_from_paths(dev_paths)
-    report, _ = build_report(args, a_paths, dev_paths, profile_a, profile_dev,
-                             args.candidates_dir)
-    write_outputs(args, report, a_paths, profile_a, args.candidates_dir)
+
+    impostor_rows = voice_score.impostor_features(args.impostors)
+    score_a = make_scorer(profile_a, impostor_rows, args.seed)
+    score_dev = make_scorer(profile_dev, impostor_rows, args.seed)
+
+    if args.candidates_dir is not None:
+        get_batch = make_dry_run_source(args.candidates_dir)
+    else:
+        get_batch = make_live_source(args, a_paths, profile_a,
+                                     Path(args.draft).read_text(errors="replace"))
+
+    report, best_text = build_report(args, a_paths, dev_paths, profile_a,
+                                     profile_dev, score_a, score_dev, get_batch)
+    write_outputs(args, report, a_paths, profile_a, best_text)
     print(json.dumps({
         "best_candidate": report["best_candidate"],
         "best_score": report["best_score"],
