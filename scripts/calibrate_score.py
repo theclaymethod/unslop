@@ -102,7 +102,29 @@ def load_preferences(path: Path) -> list[dict]:
     return rows
 
 
+def dedup_by_pair_id(rows: list[dict]) -> list[dict]:
+    """Keep one row per `pair_id`: the LATEST by `ts` (ISO 8601, so a plain
+    string comparison orders correctly). A game round replayed twice (e.g. the
+    agent crashed mid-write and re-ran the round) must count once toward `n`
+    and resolve to whatever the user most recently chose, not double-count or
+    let an earlier write win. Rows without a `pair_id` can't be deduped
+    against anything, so each is kept as-is.
+    """
+    by_pair_id: dict[str, dict] = {}
+    passthrough: list[dict] = []
+    for row in rows:
+        pid = row.get("pair_id")
+        if not pid:
+            passthrough.append(row)
+            continue
+        existing = by_pair_id.get(pid)
+        if existing is None or row.get("ts", "") >= existing.get("ts", ""):
+            by_pair_id[pid] = row
+    return list(by_pair_id.values()) + passthrough
+
+
 def aggregate(rows: list[dict]) -> dict[str, dict]:
+    rows = dedup_by_pair_id(rows)
     result = {dim: {"n": 0, "tally": {}, "neither": 0} for dim in DIMENSIONS}
 
     for row in rows:
@@ -131,10 +153,21 @@ def aggregate(rows: list[dict]) -> dict[str, dict]:
                 "confidence": 0.0,
             }
             continue
-        preferred_label, preferred_count = max(
-            data["tally"].items(), key=lambda kv: (kv[1], kv[0])
-        )
-        confidence = wilson_lower_bound(preferred_count, decisive)
+        max_count = max(data["tally"].values())
+        top_labels = [label for label, count in data["tally"].items() if count == max_count]
+        if len(top_labels) > 1:
+            # A genuine tie between the top two (or more) tallies: there is no
+            # lean to report, so `preferred` must be null rather than
+            # silently picking whichever label happens to sort last.
+            dimensions[dim] = {
+                "n": n,
+                "status": "tied",
+                "preferred": None,
+                "confidence": 0.0,
+            }
+            continue
+        preferred_label = top_labels[0]
+        confidence = wilson_lower_bound(max_count, decisive)
         dimensions[dim] = {
             "n": n,
             "status": "confident",

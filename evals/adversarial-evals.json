@@ -9317,10 +9317,10 @@
       "command": [
         "python3",
         "-c",
-        "import json, subprocess, sys\nsys.path.insert(0, 'scripts')\nfrom extract_constraints import extract_constraints\nDIMS = {\n    'contractions': 'evals/fixtures/calibrate/base_contractions.txt',\n    'em_dash': 'evals/fixtures/calibrate/base_em_dash.txt',\n    'sentence_length': 'evals/fixtures/calibrate/base_sentence_length.txt',\n    'connectives': 'evals/fixtures/calibrate/base_connectives.txt',\n    'staccato': 'evals/fixtures/calibrate/base_staccato.txt',\n}\nresults = {}\nfor dim, path in DIMS.items():\n    proc = subprocess.run(\n        ['python3', 'scripts/calibrate_pairs.py', 'generate', '--base', path, '--dimension', dim, '--seed', '1'],\n        capture_output=True, text=True,\n    )\n    ok = proc.returncode == 0\n    if ok:\n        data = json.loads(proc.stdout)\n        base_text = open(path).read()\n        cbefore = {c['value'] for c in extract_constraints(base_text)}\n        cafter = {c['value'] for c in extract_constraints(data['b_text'])}\n        ok = (\n            data['a_text'] != data['b_text']\n            and bool(data.get('transform_applied'))\n            and cbefore.issubset(cafter)\n        )\n    results[dim] = ok\nprint(json.dumps(results))"
+        "import json, re, subprocess, sys\nsys.path.insert(0, 'scripts')\nfrom extract_constraints import extract_constraints\nDIMS = {\n    'contractions': 'evals/fixtures/calibrate/base_contractions.txt',\n    'em_dash': 'evals/fixtures/calibrate/base_em_dash.txt',\n    'sentence_length': 'evals/fixtures/calibrate/base_sentence_length.txt',\n    'connectives': 'evals/fixtures/calibrate/base_connectives.txt',\n    'staccato': 'evals/fixtures/calibrate/base_staccato.txt',\n}\ndef sentence_count(s):\n    return len(re.findall(r'[^.!?]+[.!?]+', s))\nresults = {}\nfor dim, path in DIMS.items():\n    proc = subprocess.run(\n        ['python3', 'scripts/calibrate_pairs.py', 'generate', '--base', path, '--dimension', dim, '--seed', '1'],\n        capture_output=True, text=True,\n    )\n    ok = proc.returncode == 0\n    if ok:\n        data = json.loads(proc.stdout)\n        base_text = open(path).read()\n        cbefore = {c['value'] for c in extract_constraints(base_text)}\n        cafter = {c['value'] for c in extract_constraints(data['b_text'])}\n        ok = (\n            data['a_text'] != data['b_text']\n            and bool(data.get('transform_applied'))\n            and cbefore.issubset(cafter)\n        )\n        if dim == 'em_dash':\n            ok = ok and sentence_count(data['a_text']) == sentence_count(data['b_text'])\n    results[dim] = ok\nprint(json.dumps(results))"
       ],
-      "failure_mode": "A dimension's transform silently drops a must-preserve constraint, produces no change, or the CLI errors, and it goes unnoticed because only an aggregate pass/fail is checked.",
-      "correct_behavior": "Each of the five dimensions produces a genuinely different B-variant that still contains every constraint extracted from the base passage; a broken dimension names itself in the json path that fails.",
+      "failure_mode": "A dimension's transform silently drops a must-preserve constraint, produces no change, the CLI errors, or (em_dash specifically) changes sentence count between A and B via a lone-dash join/split path -- and it goes unnoticed because only an aggregate pass/fail is checked.",
+      "correct_behavior": "Each of the five dimensions produces a genuinely different B-variant that still contains every constraint extracted from the base passage; em_dash additionally holds sentence count stable between A and B (the dimension is restricted to the paired-dash<->comma path); a broken dimension names itself in the json path that fails.",
       "assertions": [
         {
           "type": "exit_code",
@@ -9417,7 +9417,7 @@
         "evals/fixtures/calibrate/preferences_canned.jsonl"
       ],
       "failure_mode": "The Wilson-lower-bound aggregation drifts (wrong tally key, wrong z, off-by-one on n vs decisive count) and a canned, hand-computed distribution stops matching its known confidence value.",
-      "correct_behavior": "The contractions dimension (7 of 8 decisive votes for 'expanded') reports preferred='expanded' with confidence 0.529, and sentence_length (9 of 9 votes for 'short') reports preferred='short' with confidence 0.701.",
+      "correct_behavior": "The contractions dimension (7 of 8 decisive votes for 'expanded') reports preferred='expanded' with confidence 0.529, and sentence_length (9 of 9 votes for 'short') reports preferred='short' with confidence 0.701. staccato (3 of 6 for each pole, a genuine tie) reports status='tied' and preferred=null rather than an alphabetically-broken winner. connectives has two raw rows sharing the same pair_id (a replayed round); dedup collapses them so n=1, not 2.",
       "assertions": [
         {
           "type": "exit_code",
@@ -9442,6 +9442,21 @@
           "type": "json",
           "path": "dimensions.sentence_length.confidence",
           "equals": 0.701
+        },
+        {
+          "type": "json",
+          "path": "dimensions.staccato.status",
+          "equals": "tied"
+        },
+        {
+          "type": "json",
+          "path": "dimensions.staccato.preferred",
+          "equals": null
+        },
+        {
+          "type": "json",
+          "path": "dimensions.connectives.n",
+          "equals": 1
         }
       ]
     },
@@ -9579,6 +9594,138 @@
         {
           "type": "stderr_not_contains",
           "value": "Traceback"
+        }
+      ]
+    },
+    {
+      "id": "CAL-09",
+      "category": "calibrate",
+      "title": "Contraction rewrite skips a capitalized proper noun it collides with",
+      "target": "script",
+      "command": [
+        "python3",
+        "-c",
+        "import json, subprocess\nproc = subprocess.run(\n    ['python3', 'scripts/calibrate_pairs.py', 'generate', '--base',\n     'evals/fixtures/calibrate/proper_noun_contraction.txt', '--dimension', 'contractions', '--seed', '1'],\n    capture_output=True, text=True,\n)\nresult = {'exit_code': proc.returncode, 'proper_noun_preserved': False, 'other_transform_applied': False}\nif proc.returncode == 0:\n    data = json.loads(proc.stdout)\n    needle = 'Venue Can' + chr(39) + 't Stop'\n    result['proper_noun_preserved'] = needle in data['b_text']\n    result['other_transform_applied'] = 'will not' in data['b_text']\nprint(json.dumps(result))"
+      ],
+      "failure_mode": "The 'can't' -> 'cannot' rewrite fires everywhere the pattern matches, including inside a capitalized proper noun that happens to reuse the word ('the venue Can't Stop' -> 'Cannot Stop'), corrupting a name. The old substring-based constraint guard misses the corruption because extract_constraints truncates the proper noun at the apostrophe ('Venue Can’t Stop' -> constraint value 'Venue Can'), and 'Venue Can' is still a substring of the corrupted 'Venue Cannot Stop'.",
+      "correct_behavior": "The ordinary contraction ('can't attend' -> 'cannot attend', 'won't' -> 'will not') is still rewritten, but 'Venue Can't Stop' is left untouched because the match sits inside a capitalized multi-word span.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "proper_noun_preserved",
+          "equals": true
+        },
+        {
+          "type": "json",
+          "path": "other_transform_applied",
+          "equals": true
+        }
+      ]
+    },
+    {
+      "id": "CAL-10",
+      "category": "calibrate",
+      "title": "Generated pairs are annotated with banned_phrase_scan flags instead of declining",
+      "target": "script",
+      "command": [
+        "python3",
+        "-c",
+        "import json, subprocess\ndef gen(base, dim):\n    proc = subprocess.run(\n        ['python3', 'scripts/calibrate_pairs.py', 'generate', '--base', base, '--dimension', dim, '--seed', '1'],\n        capture_output=True, text=True,\n    )\n    return proc.returncode, (json.loads(proc.stdout) if proc.returncode == 0 else None)\n\nrc1, staccato = gen('evals/fixtures/calibrate/staccato_flagged.txt', 'staccato')\nrc2, clean = gen('evals/fixtures/calibrate/contractions_clean.txt', 'contractions')\nresult = {\n    'staccato_exit': rc1,\n    'staccato_has_a_flags_field': bool(staccato) and 'a_flags' in staccato,\n    'staccato_has_b_flags_field': bool(staccato) and 'b_flags' in staccato,\n    'staccato_a_flags_empty': bool(staccato) and staccato['a_flags'] == [],\n    'staccato_b_flags_has_anti_slop_register': bool(staccato) and 'anti_slop_register' in staccato['b_flags'],\n    'clean_exit': rc2,\n    'clean_a_flags_empty': bool(clean) and clean['a_flags'] == [],\n    'clean_b_flags_empty': bool(clean) and clean['b_flags'] == [],\n}\nprint(json.dumps(result))"
+      ],
+      "failure_mode": "A generated B-variant can legitimately trip banned_phrase_scan (a staccato pole reads as anti_slop_register; a plain connective can read as filler_opener). Declining or silently dropping these pairs would make whole dimensions unplayable whenever a user's real voice sits on the flagged pole -- the product decision is to annotate, not decline, and let the voice card record 'user-preference overrides register guard' when the user picks that pole.",
+      "correct_behavior": "generate_pair's output always carries 'a_flags'/'b_flags' (category lists, empty when clean). A staccato pair generated from a comma-fragmentable base reports b_flags containing 'anti_slop_register' while a_flags is empty; a plain contractions pair reports both empty.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "staccato_exit",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "staccato_has_a_flags_field",
+          "equals": true
+        },
+        {
+          "type": "json",
+          "path": "staccato_has_b_flags_field",
+          "equals": true
+        },
+        {
+          "type": "json",
+          "path": "staccato_a_flags_empty",
+          "equals": true
+        },
+        {
+          "type": "json",
+          "path": "staccato_b_flags_has_anti_slop_register",
+          "equals": true
+        },
+        {
+          "type": "json",
+          "path": "clean_exit",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "clean_a_flags_empty",
+          "equals": true
+        },
+        {
+          "type": "json",
+          "path": "clean_b_flags_empty",
+          "equals": true
+        }
+      ]
+    },
+    {
+      "id": "CAL-11",
+      "category": "calibrate",
+      "title": "Replayed pair_id dedups to the latest row by ts, not a naive double-count",
+      "target": "script",
+      "command": [
+        "python3",
+        "-c",
+        "import json, sys\nfrom pathlib import Path\nsys.path.insert(0, 'scripts')\nfrom calibrate_score import load_preferences, dedup_by_pair_id\nrows = load_preferences(Path('evals/fixtures/calibrate/preferences_canned.jsonl'))\ndeduped = dedup_by_pair_id(rows)\nconn = [r for r in deduped if r['dimension'] == 'connectives']\nresult = {\n    'raw_row_count': sum(1 for r in rows if r['dimension'] == 'connectives'),\n    'deduped_row_count': len(conn),\n    'latest_choice': conn[0]['choice'] if conn else None,\n    'latest_ts': conn[0]['ts'] if conn else None,\n}\nprint(json.dumps(result))"
+      ],
+      "failure_mode": "A game round that gets appended to the preferences JSONL twice (e.g. a crashed/retried write) would double-count toward n and let whichever row happens to load first win the tally, instead of collapsing to one observation and honoring the user's latest choice.",
+      "correct_behavior": "The canned fixture's connectives dimension has two raw rows sharing pair_id 'connectives-00' (an earlier 'a' choice and a later 'b' choice). dedup_by_pair_id collapses them to one row: the latest by ts, choice='b'.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "raw_row_count",
+          "equals": 2
+        },
+        {
+          "type": "json",
+          "path": "deduped_row_count",
+          "equals": 1
+        },
+        {
+          "type": "json",
+          "path": "latest_choice",
+          "equals": "b"
+        },
+        {
+          "type": "json",
+          "path": "latest_ts",
+          "equals": "2026-07-06T09:00:00Z"
         }
       ]
     }

@@ -34,6 +34,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 from extract_constraints import extract_constraints  # noqa: E402
+from banned_phrase_scan import scan_for_violations  # noqa: E402
 
 DIMENSIONS = ["contractions", "em_dash", "sentence_length", "connectives", "staccato"]
 
@@ -102,6 +103,37 @@ def _lower_first_word(s: str) -> str:
     return s
 
 
+_WORD_BEFORE_RE = re.compile(r"([A-Za-z']+)\s*$")
+_WORD_AFTER_RE = re.compile(r"^\s*([A-Za-z']+)")
+
+
+def _is_title_case(word: str) -> bool:
+    return bool(word) and word[0].isupper() and word[1:].islower()
+
+
+def _in_capitalized_span(m: "re.Match[str]") -> bool:
+    """True if this contraction/expansion match sits inside a capitalized
+    multi-word span (e.g. "Venue Can't Stop") that looks like a proper noun,
+    rather than an ordinary sentence-level contraction.
+
+    A contraction rewrite is only skipped when the match ITSELF is
+    capitalized (so an ordinary sentence-initial "Can't you..." is untouched)
+    AND an immediately adjacent word is also Title Case, forming a >= 2-word
+    capitalized run. "Maria Chen can't attend" is not skipped (the match is
+    lowercase); "the Venue Can't Stop" is skipped (both "Venue" and "Can't"
+    are capitalized and adjacent).
+    """
+    matched = m.group(0)
+    if not matched[0].isupper():
+        return False
+    text = m.string
+    before_m = _WORD_BEFORE_RE.search(text[: m.start()])
+    after_m = _WORD_AFTER_RE.match(text[m.end() :])
+    before_word = before_m.group(1) if before_m else ""
+    after_word = after_m.group(1) if after_m else ""
+    return _is_title_case(before_word) or _is_title_case(after_word)
+
+
 def _apply_contractions(text: str) -> tuple[str, str]:
     contract_hits = []
     expand_hits = []
@@ -122,9 +154,15 @@ def _apply_contractions(text: str) -> tuple[str, str]:
         out = text
         for expanded, contracted in contract_hits:
             if expanded in _HARD_CAPITAL:
-                out = re.sub(re.escape(contracted), expanded, out)
+                def repl_hard(m, _expanded=expanded):
+                    if _in_capitalized_span(m):
+                        return m.group(0)
+                    return _expanded
+                out = re.sub(re.escape(contracted), repl_hard, out)
             else:
                 def repl(m, _expanded=expanded):
+                    if _in_capitalized_span(m):
+                        return m.group(0)
                     return _case_like(_expanded, m.group(0)[0])
                 out = re.sub(r"\b" + re.escape(contracted) + r"\b", repl, out, flags=re.IGNORECASE)
         return out, "expanded"
@@ -133,48 +171,63 @@ def _apply_contractions(text: str) -> tuple[str, str]:
         out = text
         for expanded, contracted in expand_hits:
             if expanded in _HARD_CAPITAL:
-                out = re.sub(re.escape(expanded), contracted, out)
+                def repl_hard2(m, _contracted=contracted):
+                    if _in_capitalized_span(m):
+                        return m.group(0)
+                    return _contracted
+                out = re.sub(re.escape(expanded), repl_hard2, out)
             else:
-                def repl(m, _contracted=contracted):
+                def repl2(m, _contracted=contracted):
+                    if _in_capitalized_span(m):
+                        return m.group(0)
                     return _case_like(_contracted, m.group(0)[0])
-                out = re.sub(r"\b" + re.escape(expanded) + r"\b", repl, out, flags=re.IGNORECASE)
+                out = re.sub(r"\b" + re.escape(expanded) + r"\b", repl2, out, flags=re.IGNORECASE)
         return out, "contracted"
 
     raise NotExpressible("no contraction or expandable phrase found")
 
 
 # --------------------------------------------------------------------------
-# em_dash: em-dash parentheticals/joiners <-> comma or period constructions.
+# em_dash: paired em-dash parentheticals <-> paired-comma parentheticals ONLY.
+#
+# Only the paired-dash<->paired-comma path is expressible for this dimension.
+# A lone joiner dash (" — nobody objected") has no comma-pair equivalent that
+# preserves sentence count: turning it into a period (the old behavior) split
+# one sentence into two, silently changing sentence count between A and B.
+# Passages with only a lone dash (no paired construction) are declined rather
+# than forced through a transform that shifts sentence count.
 # --------------------------------------------------------------------------
 
 _PAIRED_DASH_RE = re.compile(r"\s—\s(.+?)\s—\s")
-_LONE_DASH_RE = re.compile(r"\s*—\s*([a-zA-Z])")
+_PAIRED_COMMA_RE = re.compile(r",\s+(.+?),\s+")
 
 
 def _apply_em_dash(text: str) -> tuple[str, str]:
-    if "—" in text:
+    if _PAIRED_DASH_RE.search(text):
         out = _PAIRED_DASH_RE.sub(lambda m: ", " + m.group(1) + ", ", text)
         if "—" in out:
-            out = _LONE_DASH_RE.sub(lambda m: ". " + m.group(1).upper(), out)
+            # A lone dash survived alongside the paired one -- the restricted
+            # paired-dash<->comma path can't fully express this passage
+            # without also touching the lone dash (and changing sentence
+            # count), so decline rather than ship a half-converted pair.
+            raise NotExpressible(
+                "passage mixes a paired em dash with a lone em dash; "
+                "the paired-dash<->comma path can't resolve the lone dash "
+                "without changing sentence count"
+            )
         return out, "plain"
 
-    sentences = re.findall(r"[^.!?]+[.!?]+", text)
-    for i in range(len(sentences) - 1):
-        second_words = sentences[i + 1].strip().split()
-        if len(second_words) <= 6:
-            first = sentences[i].rstrip()
-            first_no_period = re.sub(r"[.!?]+\s*$", "", first)
-            second = sentences[i + 1].strip()
-            second_body = re.sub(r"[.!?]+\s*$", "", second)
-            end_punct = second[len(second_body):].strip() or "."
-            joined = first_no_period + " — " + _lower_first_word(second_body) + end_punct
-            prefix = "".join(sentences[:i])
-            suffix = "".join(sentences[i + 2:])
-            out = (prefix + " " + joined + " " + suffix).strip()
-            out = re.sub(r"\s+", " ", out)
-            return out, "dashed"
+    if "—" in text:
+        raise NotExpressible(
+            "only a lone em dash found; the em_dash dimension is restricted "
+            "to the paired-dash<->comma path so sentence count stays stable"
+        )
 
-    raise NotExpressible("no dash or joinable short-sentence pair found")
+    if _PAIRED_COMMA_RE.search(text):
+        out = _PAIRED_COMMA_RE.sub(lambda m: " — " + m.group(1) + " — ", text)
+        return out, "dashed"
+
+    raise NotExpressible("no paired em dash or comma-bounded parenthetical found")
 
 
 # --------------------------------------------------------------------------
@@ -238,7 +291,11 @@ _PLAIN_RE = re.compile(
 def _apply_connectives(text: str) -> tuple[str, str]:
     if _FORMAL_RE.search(text):
         def repl(m):
-            return _FORMAL_TO_PLAIN[m.group(1).lower()] + ", "
+            # No comma after the plain form: "But " reads as ordinary speech;
+            # "But, " is stilted, and "So, " specifically trips the scanner's
+            # filler_opener structural pattern. Dropping the comma across the
+            # board keeps every plain form clean of that tell.
+            return _FORMAL_TO_PLAIN[m.group(1).lower()] + " "
         out = _FORMAL_RE.sub(repl, text)
         return out, "plain"
 
@@ -345,7 +402,9 @@ _EXAMPLES = {
         "b": "The rollout isn't finished, and I'm not confident it'll ship Friday.",
     },
     "em_dash": {
-        "description": "Em-dash parentheticals/joiners <-> comma or period constructions.",
+        "description": "Paired em-dash parentheticals <-> paired-comma parentheticals only "
+                        "(a lone joiner dash has no comma-pair equivalent that preserves "
+                        "sentence count, so it is declined rather than converted).",
         "a": "The plan — untested and rushed — still shipped on time.",
         "b": "The plan, untested and rushed, still shipped on time.",
     },
@@ -356,9 +415,11 @@ _EXAMPLES = {
     },
     "connectives": {
         "description": "Formal <-> plain connective swap via a fixed table "
-                        "(However -> But, Additionally -> Also, Therefore -> So, ...).",
+                        "(However -> But, Additionally -> Also, Therefore -> So, ...). "
+                        "Plain forms drop the comma after the connective (\"But \", not "
+                        "\"But, \") so they read as ordinary speech, not a filler-opener tell.",
         "a": "However, the numbers slipped in March.",
-        "b": "But, the numbers slipped in March.",
+        "b": "But the numbers slipped in March.",
     },
     "staccato": {
         "description": "Fragment runs <-> flowing clauses.",
@@ -368,18 +429,70 @@ _EXAMPLES = {
 }
 
 
+def _is_word_char(ch: str) -> bool:
+    return ch.isalnum()
+
+
+def _has_whole_occurrence(value: str, text: str) -> bool:
+    """True if `value` occurs in `text` as a standalone span rather than as a
+    substring straddling the edge of a longer, different word.
+
+    Plain substring containment is not enough: expanding "Can't" to "Cannot"
+    still contains the literal characters "Can", so a naive `"Can" in
+    "Cannot"` check reports a corrupted proper noun as "preserved". At each
+    edge of a candidate match, this only counts as a clash (disqualifying the
+    match) when BOTH the value's own boundary character and the adjacent text
+    character are alphanumeric -- i.e. when `value` could be glued onto a
+    longer token. Values that start/end with punctuation (currency signs,
+    quotes) never clash on that edge, since punctuation can't be silently
+    swallowed into a bigger word the way a letter/digit can.
+    """
+    if not value:
+        return False
+    start = 0
+    while True:
+        idx = text.find(value, start)
+        if idx == -1:
+            return False
+        left_clash = idx > 0 and _is_word_char(text[idx - 1]) and _is_word_char(value[0])
+        end = idx + len(value)
+        right_clash = end < len(text) and _is_word_char(text[end]) and _is_word_char(value[-1])
+        if not left_clash and not right_clash:
+            return True
+        start = idx + 1
+
+
 def _verify_constraints_preserved(base_text: str, transformed_text: str) -> list[str]:
-    """Return constraint values from base_text missing from transformed_text."""
+    """Return constraint values from base_text missing from transformed_text.
+
+    Uses whole-occurrence (token-boundary) comparison rather than plain
+    substring containment -- see `_has_whole_occurrence` for why a substring
+    check is unsafe here.
+    """
     missing = []
     for c in extract_constraints(base_text):
         value = c["value"]
-        if value in transformed_text:
+        if _has_whole_occurrence(value, transformed_text):
             continue
         # Allow whitespace-normalized matches (transforms may collapse spacing).
-        if re.sub(r"\s+", " ", value) in re.sub(r"\s+", " ", transformed_text):
+        normalized_value = re.sub(r"\s+", " ", value)
+        normalized_text = re.sub(r"\s+", " ", transformed_text)
+        if normalized_value != value and _has_whole_occurrence(normalized_value, normalized_text):
             continue
         missing.append(value)
     return missing
+
+
+def _scan_flags(text: str) -> list[str]:
+    """Category names banned_phrase_scan raises on `text`, deduped and sorted.
+
+    Empty when the text scans clean. Generated B-variants can legitimately
+    trip the scanner (e.g. a staccato pole reads as anti_slop_register; see
+    references/calibrate.md "Voice overrides defaults") -- that is surfaced
+    here, not treated as a reason to decline the pair.
+    """
+    categories = {v["category"] for v in scan_for_violations(text)}
+    return sorted(categories)
 
 
 def generate_pair(base_text: str, dimension: str, seed: int) -> dict:
@@ -408,6 +521,8 @@ def generate_pair(base_text: str, dimension: str, seed: int) -> dict:
         "a_text": base_text,
         "b_text": transformed,
         "transform_applied": f"{dimension}:{pole}",
+        "a_flags": _scan_flags(base_text),
+        "b_flags": _scan_flags(transformed),
     }
 
 

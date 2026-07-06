@@ -30,9 +30,23 @@ guarantees this script gives for free.
    base passage still vary. If the command exits 3 ("dimension not expressible in this
    passage"), pick a different base passage or move to the next dimension — do not force
    a transform through.
+
+   The output also carries `a_flags`/`b_flags`: the `banned_phrase_scan.py` category names
+   each variant trips (empty when clean). A generated variant tripping the scanner is not a
+   reason to decline the pair — see "Voice overrides defaults" below.
 3. Present `a_text` and `b_text` to the user as "is A or B closer to how you'd write
    this?" without naming the dimension or which side is which pole (avoid anchoring).
    Accept "neither" as a valid answer.
+
+   Randomize which pole is shown as "A" and which as "B" each round — a seeded
+   shuffle keyed on the round (e.g. `pair_id`) so it is reproducible, not a fresh
+   coin flip you can't reconstruct later. Always displaying `calibrate_pairs.py`'s
+   own `a_text` as "A" would let the user learn the game's fixed pole ordering
+   after a few rounds, reintroducing the anchoring this step is trying to avoid.
+   Record the mapping — which of the script's `a_text`/`b_text` was actually shown
+   as "A" this round — alongside the round so the recorded `choice` and
+   `a_label`/`b_label` in step 4 resolve to the correct pole regardless of what
+   was displayed on screen.
 4. Append one line to `.unslop/voice/<name>/preferences.jsonl`:
    ```json
    {"pair_id": "...", "dimension": "...", "choice": "a|b|neither", "ts": "...",
@@ -49,7 +63,12 @@ guarantees this script gives for free.
    Stop playing a dimension once its `confidence >= 0.7` OR it has reached `k >= 9`
    observations, whichever comes first. Below `k = 5` observations a dimension is always
    reported `"insufficient"` regardless of how lopsided the tally looks — five is the
-   floor before a lean means anything.
+   floor before a lean means anything. A dimension can also come back `"tied"` with
+   `preferred: null` when its top two tallies are exactly equal at `k >= 5` — that's a
+   real "no lean yet" result, not insufficient data, and not a coin flip the aggregator
+   should silently resolve one way. Play it a couple more rounds. Replaying the same
+   round (same `pair_id`) is safe: the aggregator dedups by `pair_id`, keeping only the
+   latest row by `ts`, so a retried write never double-counts or lets a stale choice win.
 6. Use `--next` to pick which dimension to play next:
    ```bash
    python3 scripts/calibrate_score.py --preferences preferences.jsonl --next
@@ -70,6 +89,28 @@ guarantees this script gives for free.
 8. Hand the final per-dimension summary to the teach-card step. Every claim on the card
    sourced from this game carries provenance `"stated-preference"`, distinct from
    `"measured-from-samples"` values pulled from the profile directly.
+
+## Voice overrides defaults
+
+A generated variant can legitimately trip `banned_phrase_scan.py` — a staccato pole reads
+as `anti_slop_register` (three short fragments in a row is the scanner's own AI-cadence
+tell), a plain connective can occasionally read as `filler_opener`. Do not decline these
+pairs or quietly steer the user away from the flagged pole; the scanner encodes a default
+register guard, and this game exists specifically to find out when a user's real voice
+sits outside that default.
+
+When a user's choices consistently land on a pole that `a_flags`/`b_flags` marks as
+flagged (e.g. they keep picking the staccato side even though it trips
+`anti_slop_register`), record the preference together with its flags. Surface the tension
+to the user once, not on every round — something like: "you prefer staccato; the default
+register guard flags it as an AI cadence tell — your voice wins in your profile." Do not
+re-litigate it every round once the user has answered.
+
+On the final per-dimension summary (step 8), mark that dimension's provenance
+`"user-preference overrides register guard"` instead of a bare `"stated-preference"`, so
+the teach-card step (and anyone reading the card later) can see that the scanner's default
+was deliberately overridden, not silently ignored. This is the same conflict-surfacing
+philosophy as the profile conflicts below: voice beats defaults, but only visibly.
 
 ## Provenance discipline
 
