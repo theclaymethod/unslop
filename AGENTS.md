@@ -15,6 +15,8 @@ start with evals, then update the skill or scripts until the suite passes.
      proving the jargon use still flags.
    - Agent behavior change: add a `skill` row only when the behavior is rewrite,
      preserve, decline, or route.
+   - Context-heavy or literal-sense pattern: prefer an `evals/fixtures/pairs/`
+     minimal pair plus PAIR rows, then run `python3 evals/check_pairs.py`.
 3. If a `skill` row is added, update `evals/build_shared_benchmark.py` with its split
    and domain, then regenerate `evals/shared-benchmark.json`.
 4. Update `scripts/banned_phrase_scan.py`, `SKILL.md`, `presets/`, or `references/`

@@ -718,6 +718,7 @@ without making the claim itself. (Signal adapted from `stop-slop`.)
 |--------|--------------|
 | "the numbers speak for themselves" | The writer should say what they show |
 | "the data tells a (clear) story" | Data doesn't narrate; state the finding |
+| "tells a story" | Data or artifacts do not narrate; state the finding |
 | "the results speak for themselves" | Dodges the actual interpretation |
 | "X paints a clear picture" | Inflated stand-in for "X shows" |
 
