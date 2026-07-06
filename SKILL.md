@@ -47,7 +47,7 @@ Use audit-only when the user says "audit only," "flag only," "scan this," "just 
 
 Trigger on "teach my voice," "write this like me," "match my voice," "mimic this author's style," or when the user supplies writing samples to imitate. Any samples the user provides are fair game — there are no rights or attestation checks.
 
-- **Teach** is agent-driven end to end: the user supplies only approvals and answers, never commands or directories. When the user has no samples ready, default to bootstrapping: harvest their transcripts and writing folders per `references/harvest.md`, present ranked candidates with sources and flags, and let them approve or reject (treat `suspect_ai` candidates skeptically — that review is the contamination defense). Then create `.unslop/voice/<name>/` yourself and run `voice_profile.py` → `profile.json`, then `voice_card.py --profile … --samples … --out … --name <name> --provenance` for the layered card (`card.md` plus `card/<situation>.md` sheets) and `provenance.json`. voice_card refuses (exit 2) if the profile does not match the samples; both scripts read only `.txt`/`.md` files. Show the user `card.md`; if `low_confidence` (thin or cross-genre samples), say the voice is provisional; for Uncovered dimensions the task will need, ask using the prompt templates in `references/mimic.md` — only those. Close the loop with a short scored demo: mimic one paragraph, run `voice_score.py` and the scanners, show the results. `.unslop/` is gitignored.
+- **Teach** is agent-driven end to end: the user supplies only approvals and answers, never commands or directories. When the user has no samples ready, default to bootstrapping: harvest their transcripts and writing folders per `references/harvest.md`, present ranked candidates with sources and flags, and let them approve or reject (treat `suspect_ai` candidates skeptically; that review is the contamination defense). Then create `.unslop/voice/<name>/` yourself and run `voice_profile.py` → `profile.json`, then `voice_card.py --profile … --samples … --out … --name <name> --provenance` for the layered card (`card.md` plus `card/<situation>.md` sheets) and `provenance.json`. voice_card refuses (exit 2) if the profile does not match the samples; both scripts read only `.txt`/`.md` files. Show the user `card.md`; if `low_confidence` (thin or cross-genre samples), say the voice is provisional; for Uncovered dimensions the task will need, ask using the prompt templates in `references/mimic.md`, and only those. Close the loop with a short scored demo: mimic one paragraph, run `voice_score.py` and the scanners, show the results. `.unslop/` is gitignored.
 - **Mimic**: load the relevant card sheets into context, draft or rewrite, then run the full validation gates below. A voiced output that reintroduces slop is a failure — voice never exempts text from the gates.
 - **Refine**: when one pass falls short, `evals/run_mimic_refine.py` hill-climbs candidates under the gates with A/DEV splits, a divergence guard, and paired stats.
 
@@ -198,11 +198,11 @@ Split of labor:
 `check_suggestions.py` is the blocking contract. Every proposed replacement must
 clear all four gates or it is rejected:
 
-- `span-minimality` — the edit changes only its span (no shared leading/trailing
+- `span-minimality`: the edit changes only its span (no shared leading/trailing
   whole words; a whole-sentence rewrite fails).
-- `replacement-scanner` — each replacement passes both scanners in isolation and
+- `replacement-scanner`: each replacement passes both scanners in isolation and
   introduces no new violation in context.
-- `accept-all` — applying every suggestion yields a document that passes both
+- `accept-all`: applying every suggestion yields a document that passes both
   scanners with `validate_preservation` exit 0 versus the original.
 - `span-overlap` — spans must not overlap.
 
