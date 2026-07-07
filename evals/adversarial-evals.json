@@ -11972,6 +11972,62 @@
           "value": "false_agency"
         }
       ]
+    },
+    {
+      "id": "SLUG-01",
+      "category": "contribute",
+      "title": "Pattern-name traversal is rejected before any path join or write",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/contribute.py",
+        "scaffold",
+        "--snippet",
+        "evals/fixtures/contrib/uncaught-snippet.txt",
+        "--tell",
+        "durable bridge",
+        "--category",
+        "significance_inflation",
+        "--pattern-name",
+        "../evil",
+        "--date",
+        "2026-07-06"
+      ],
+      "failure_mode": "contribute.py joins --pattern-name into a filesystem path (CONTRIB_ROOT / args.pattern_name) before validating it; '../evil' escapes .unslop/contrib/ and writes row_fn.json, manifest.json, snippet.txt, and report.md outside the intended bundle before the only containment check (bundle.relative_to(ROOT)) ever runs.",
+      "correct_behavior": "An invalid pattern name is rejected with exit code 2 and a JSON error naming the bad value, before any file is written; no traceback.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 2
+        },
+        {
+          "type": "stdout_contains",
+          "value": "invalid pattern name"
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        }
+      ]
+    },
+    {
+      "id": "REGX-01",
+      "category": "robustness",
+      "title": "exclamation_overuse regex does not backtrack quadratically on a long unclosed run",
+      "target": "script",
+      "command": [
+        "python3",
+        "-c",
+        "import sys,time,re; sys.path.insert(0,'scripts'); import banned_phrase_scan as bps; pat=next(p for p in bps.STRUCTURAL_PATTERNS if p['category']=='exclamation_overuse'); c=re.compile(pat['pattern']); s='! '+' '*32000+'x'; t=time.time(); list(c.finditer(s)); dt=time.time()-t; print(round(dt,3)); sys.exit(0 if dt<2.0 else 1)"
+      ],
+      "failure_mode": "The exclamation_overuse pattern's adjacent (?:(?!\\n\\n)\\s)+ and (?:(?!\\n\\n)[^.])* runs overlap (\\s is a subset of [^.]), so a lone '!' followed by a long run with no closing '!' backtracks quadratically; harvest tripwire and refine gates call the scanner in-process with no timeout and can hang for minutes on adversarial input.",
+      "correct_behavior": "Matching a ~32k-character span containing a single unclosed '!' completes in well under 2 seconds.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
     }
   ]
 }
