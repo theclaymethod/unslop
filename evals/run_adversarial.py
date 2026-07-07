@@ -16,8 +16,15 @@ skill root:  python3 evals/run_adversarial.py
 Behavioral (target=="skill") cases are skipped here; they require an agent/LLM
 judge. List them with --list-skill.
 """
+import contextlib
+import importlib.util
+import inspect
+import io
 import json
 import argparse
+import math
+import os
+import signal
 import subprocess
 import sys
 from pathlib import Path
@@ -25,6 +32,33 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SUITE = Path(__file__).resolve().parent / "adversarial-evals.json"
 EXPECTED_XFAIL = {"FP-06"}
+
+# Scanners dispatched in-process instead of via subprocess. Chosen as the
+# highest-census command shapes (see plans/011 census) that are dual-mode
+# importable with no observed module-level mutable state (constants only:
+# dicts/lists read via .get/.values/.items, never mutated after import).
+# A scanner needing source changes to be dispatchable is a plan STOP — do not
+# add one here without re-auditing it per the plan's Global-state hazard note.
+DISPATCHABLE = {
+    "scripts/banned_phrase_scan.py",
+    "scripts/structure_scan.py",
+    "scripts/validate_preservation.py",
+    "scripts/silhouette_scan.py",
+    "scripts/readability_metrics.py",
+    "scripts/diff_check.py",
+    "scripts/harvest_samples.py",
+    "scripts/calibrate_score.py",
+    "scripts/check_suggestions.py",
+    "scripts/extract_constraints.py",
+    "scripts/suggest.py",
+    "scripts/harvest_classify.py",
+    "scripts/calibrate_pairs.py",
+    "scripts/voice_score.py",
+}
+
+_MODULE_CACHE = {}
+_TIMEOUT_FALLBACK = set()  # rel_paths permanently routed to subprocess after a timeout
+STATS = {"inprocess": 0, "subprocess": 0, "dispatch_fallback": 0, "fallback_reasons": []}
 
 if sys.stdout.isatty():
     GREEN, RED, YELLOW, BLUE, DIM, RESET = (
@@ -92,20 +126,139 @@ class _Failed:
         self.stderr = stderr
 
 
-def run_case(ev, timeout=30):
+class _ProcResult:
+    """Stand-in for subprocess.CompletedProcess, populated by an in-process dispatch."""
+    def __init__(self, returncode, stdout, stderr):
+        self.returncode = returncode
+        self.stdout = stdout
+        self.stderr = stderr
+
+
+class _DispatchTimeout(Exception):
+    pass
+
+
+@contextlib.contextmanager
+def _alarm_timeout(seconds):
+    """POSIX signal.alarm-based guard. No-op (relies on the outer subprocess
+    timeout instead) on platforms without SIGALRM."""
+    if not hasattr(signal, "SIGALRM"):
+        yield
+        return
+
+    def _handler(signum, frame):
+        raise _DispatchTimeout(f"timed out after {seconds}s")
+
+    old_handler = signal.signal(signal.SIGALRM, _handler)
+    old_alarm = signal.alarm(max(1, math.ceil(seconds)))
     try:
-        proc = subprocess.run(
-            ev["command"],
-            input=ev.get("stdin", ""),
-            capture_output=True,
-            text=True,
-            cwd=ROOT,
-            timeout=timeout,
-        )
-    except subprocess.TimeoutExpired:
-        return False, f"timed out after {timeout}s"
-    except (FileNotFoundError, OSError) as e:
-        proc = _Failed(127, str(e))
+        yield
+    finally:
+        signal.alarm(0)
+        signal.signal(signal.SIGALRM, old_handler)
+        if old_alarm:
+            signal.alarm(old_alarm)
+
+
+def _load_module(rel_path):
+    """Import scripts/<name>.py once and cache it. Raises on failure — caller
+    treats any exception as a signal to fall back to subprocess."""
+    if rel_path not in _MODULE_CACHE:
+        mod_name = "_run_adversarial_inproc__" + rel_path.replace("/", "_")[:-3]
+        spec = importlib.util.spec_from_file_location(mod_name, ROOT / rel_path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        _MODULE_CACHE[rel_path] = module
+    return _MODULE_CACHE[rel_path]
+
+
+def _inprocess_case(ev, timeout):
+    """Try to run a script-target case in-process. Returns a _ProcResult on
+    success, or None if it should fall back to subprocess (not allowlisted,
+    previously timed out, or any dispatch exception)."""
+    command = ev["command"]
+    if len(command) < 2 or command[0] != "python3":
+        return None
+    rel_path = command[1]
+    if rel_path not in DISPATCHABLE or rel_path in _TIMEOUT_FALLBACK:
+        return None
+
+    args = command[2:]
+
+    old_argv = sys.argv
+    old_stdin = sys.stdin
+    old_cwd = os.getcwd()
+    stdout_buf = io.StringIO()
+    stderr_buf = io.StringIO()
+    try:
+        module = _load_module(rel_path)
+        if not hasattr(module, "main"):
+            return None
+
+        sys.argv = [Path(rel_path).name] + list(args)
+        sys.stdin = io.StringIO(ev.get("stdin", ""))
+        os.chdir(ROOT)
+
+        sig = inspect.signature(module.main)
+        returncode = 0
+        with _alarm_timeout(timeout), \
+                contextlib.redirect_stdout(stdout_buf), \
+                contextlib.redirect_stderr(stderr_buf):
+            try:
+                if len(sig.parameters) >= 1:
+                    result = module.main(list(args))
+                else:
+                    result = module.main()
+                if isinstance(result, int):
+                    returncode = result
+            except SystemExit as e:
+                code = e.code
+                if code is None:
+                    returncode = 0
+                elif isinstance(code, int):
+                    returncode = code
+                else:
+                    stderr_buf.write(str(code))
+                    returncode = 1
+    except _DispatchTimeout as e:
+        # Any timeout permanently routes this scanner to subprocess for the
+        # rest of the run — a signal-based guard that fires once is not
+        # trustworthy enough to keep retrying in-process.
+        _TIMEOUT_FALLBACK.add(rel_path)
+        STATS["dispatch_fallback"] += 1
+        STATS["fallback_reasons"].append((ev["id"], str(e)))
+        return None
+    except Exception as e:  # noqa: BLE001 - any dispatch failure -> transparent fallback
+        STATS["dispatch_fallback"] += 1
+        STATS["fallback_reasons"].append((ev["id"], f"{type(e).__name__}: {e}"))
+        return None
+    finally:
+        sys.argv = old_argv
+        sys.stdin = old_stdin
+        os.chdir(old_cwd)
+
+    return _ProcResult(returncode, stdout_buf.getvalue(), stderr_buf.getvalue())
+
+
+def run_case(ev, timeout=30, use_subprocess=False):
+    proc = None if use_subprocess else _inprocess_case(ev, timeout)
+    if proc is not None:
+        STATS["inprocess"] += 1
+    else:
+        STATS["subprocess"] += 1
+        try:
+            proc = subprocess.run(
+                ev["command"],
+                input=ev.get("stdin", ""),
+                capture_output=True,
+                text=True,
+                cwd=ROOT,
+                timeout=timeout,
+            )
+        except subprocess.TimeoutExpired:
+            return False, f"timed out after {timeout}s"
+        except (FileNotFoundError, OSError) as e:
+            proc = _Failed(127, str(e))
 
     results = [check_assertion(a, proc) for a in ev["assertions"]]
     ok = all(r[0] for r in results)
@@ -314,7 +467,92 @@ def parse_args(argv):
         metavar="ID",
         help="run only this exact case ID; repeatable",
     )
+    parser.add_argument(
+        "--subprocess",
+        action="store_true",
+        help="escape hatch: run every case via subprocess (the pre-dispatcher path)",
+    )
+    parser.add_argument(
+        "--repeat",
+        type=int,
+        default=1,
+        help=argparse.SUPPRESS,  # isolation-audit tool: rerun N times, diff results
+    )
     return parser.parse_args(argv)
+
+
+def _execute(script_cases, skill_cases, strict_xfail, use_subprocess, quiet=False):
+    """Run one full pass over script_cases. Returns (rc, per_case) where
+    per_case is an ordered list of (id, status) for equivalence/repeat diffing."""
+    counts = {"PASS": 0, "FAIL": 0, "XFAIL": 0, "XPASS": 0}
+    observed_xfail = set()
+    observed_xpass = set()
+    per_case = []
+    if not quiet:
+        print(f"\n{BLUE}unslop adversarial suite — {len(script_cases)} script cases "
+              f"({len(skill_cases)} skill cases skipped; --list-skill to see them){RESET}\n")
+
+    for ev in script_cases:
+        ok, details = run_case(ev, use_subprocess=use_subprocess)
+        xfail = ev.get("xfail", False)
+        if ok and not xfail:
+            status, color = "PASS", GREEN
+        elif ok and xfail:
+            status, color = "XPASS", YELLOW
+        elif not ok and xfail:
+            status, color = "XFAIL", DIM
+        else:
+            status, color = "FAIL", RED
+        if status == "XFAIL":
+            observed_xfail.add(ev["id"])
+        if status == "XPASS":
+            observed_xpass.add(ev["id"])
+        counts[status] += 1
+        per_case.append((ev["id"], status))
+        if not quiet:
+            print(f"  {color}{status:6}{RESET} {ev['id']:14} {ev['title']}")
+            if status in ("FAIL", "XPASS"):
+                print(f"         {DIM}{details}{RESET}")
+
+    if not quiet:
+        print(f"\n  {GREEN}PASS {counts['PASS']}{RESET}  "
+              f"{DIM}XFAIL {counts['XFAIL']} (known bugs){RESET}  "
+              f"{YELLOW}XPASS {counts['XPASS']} (fixed — remove xfail){RESET}  "
+              f"{RED}FAIL {counts['FAIL']} (regressions){RESET}\n")
+
+    xfail_ok = True
+    if strict_xfail and observed_xfail != EXPECTED_XFAIL:
+        xfail_ok = False
+        if not quiet:
+            print(
+                f"{RED}Unexpected XFAIL set: observed {sorted(observed_xfail)}, "
+                f"expected {sorted(EXPECTED_XFAIL)}. New xfail requires updating "
+                f"EXPECTED_XFAIL and CRITIQUE.md.{RESET}"
+            )
+    if observed_xpass and not quiet:
+        print(
+            f"{RED}Unexpected XPASS: {sorted(observed_xpass)}. "
+            f"Remove the xfail flag.{RESET}"
+        )
+
+    rc = 1 if counts["FAIL"] or observed_xpass or not xfail_ok else 0
+    return rc, per_case
+
+
+def _print_dispatch_stats():
+    total = STATS["inprocess"] + STATS["subprocess"]
+    if total == 0:
+        return
+    print(
+        f"{DIM}dispatch: {STATS['inprocess']} in-process, {STATS['subprocess']} subprocess "
+        f"({STATS['dispatch_fallback']} dispatch fallbacks){RESET}"
+    )
+    if STATS["fallback_reasons"]:
+        for case_id, reason in STATS["fallback_reasons"]:
+            print(f"{DIM}  fallback: {case_id}: {reason}{RESET}")
+    if _TIMEOUT_FALLBACK:
+        print(f"{DIM}  permanently routed to subprocess (timed out once): "
+              f"{sorted(_TIMEOUT_FALLBACK)}{RESET}")
 
 
 def main(argv):
@@ -341,53 +579,38 @@ def main(argv):
         wanted = set(args.case)
         script_cases = [e for e in script_cases if e["id"] in wanted]
 
-    counts = {"PASS": 0, "FAIL": 0, "XFAIL": 0, "XPASS": 0}
-    observed_xfail = set()
-    observed_xpass = set()
-    print(f"\n{BLUE}unslop adversarial suite — {len(script_cases)} script cases "
-          f"({len(skill_cases)} skill cases skipped; --list-skill to see them){RESET}\n")
-
-    for ev in script_cases:
-        ok, details = run_case(ev)
-        xfail = ev.get("xfail", False)
-        if ok and not xfail:
-            status, color = "PASS", GREEN
-        elif ok and xfail:
-            status, color = "XPASS", YELLOW
-        elif not ok and xfail:
-            status, color = "XFAIL", DIM
-        else:
-            status, color = "FAIL", RED
-        if status == "XFAIL":
-            observed_xfail.add(ev["id"])
-        if status == "XPASS":
-            observed_xpass.add(ev["id"])
-        counts[status] += 1
-        print(f"  {color}{status:6}{RESET} {ev['id']:14} {ev['title']}")
-        if status in ("FAIL", "XPASS"):
-            print(f"         {DIM}{details}{RESET}")
-
-    print(f"\n  {GREEN}PASS {counts['PASS']}{RESET}  "
-          f"{DIM}XFAIL {counts['XFAIL']} (known bugs){RESET}  "
-          f"{YELLOW}XPASS {counts['XPASS']} (fixed — remove xfail){RESET}  "
-          f"{RED}FAIL {counts['FAIL']} (regressions){RESET}\n")
-
     strict_xfail = not args.only and not args.case
-    xfail_ok = True
-    if strict_xfail and observed_xfail != EXPECTED_XFAIL:
-        xfail_ok = False
-        print(
-            f"{RED}Unexpected XFAIL set: observed {sorted(observed_xfail)}, "
-            f"expected {sorted(EXPECTED_XFAIL)}. New xfail requires updating "
-            f"EXPECTED_XFAIL and CRITIQUE.md.{RESET}"
-        )
-    if observed_xpass:
-        print(
-            f"{RED}Unexpected XPASS: {sorted(observed_xpass)}. "
-            f"Remove the xfail flag.{RESET}"
-        )
 
-    return 1 if counts["FAIL"] or observed_xpass or not xfail_ok else 0
+    if args.repeat > 1:
+        # Isolation audit: rerun the full pass N times in one process and
+        # diff per-case results. Any drift means a scanner is leaking
+        # module-level state across cases.
+        passes = []
+        rc = 0
+        for i in range(args.repeat):
+            pass_rc, per_case = _execute(
+                script_cases, skill_cases, strict_xfail, args.subprocess, quiet=True
+            )
+            passes.append(per_case)
+            rc = rc or pass_rc
+            print(f"{DIM}--repeat pass {i + 1}/{args.repeat}: rc={pass_rc}{RESET}")
+        identical = all(p == passes[0] for p in passes[1:])
+        if identical:
+            print(f"{GREEN}--repeat {args.repeat}: identical results every pass{RESET}")
+        else:
+            print(f"{RED}--repeat {args.repeat}: results DIFFER across passes "
+                  f"(leaking module-level state){RESET}")
+            for i, p in enumerate(passes[1:], start=2):
+                diff = [(a, b) for a, b in zip(passes[0], p) if a != b]
+                if diff:
+                    print(f"{RED}  pass 1 vs pass {i}: {diff}{RESET}")
+            rc = 1
+        _print_dispatch_stats()
+        return rc
+
+    rc, _ = _execute(script_cases, skill_cases, strict_xfail, args.subprocess)
+    _print_dispatch_stats()
+    return rc
 
 
 if __name__ == "__main__":
