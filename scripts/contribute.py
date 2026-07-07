@@ -15,6 +15,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 CONTRIB_ROOT = ROOT / ".unslop" / "contrib"
 TODO_MARKER = "TODO:"
+SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
 
 GATE_COMMANDS = [
     ["python3", "evals/run_adversarial.py", "--only", "CONTRIB"],
@@ -203,6 +204,15 @@ def cmd_precheck(args: argparse.Namespace) -> int:
 
 
 def cmd_scaffold(args: argparse.Namespace) -> int:
+    if not SLUG_RE.match(args.pattern_name):
+        print(
+            json.dumps(
+                {
+                    "error": f"invalid pattern name: {args.pattern_name!r}; use lowercase letters, digits, - or _",
+                }
+            )
+        )
+        return 2
     source = Path(args.snippet)
     snippet = read_text(source)
     if args.tell not in snippet:

@@ -965,7 +965,7 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
 
     # Excessive exclamation marks
     {
-        "pattern": r"!(?:(?!\n\n)\s)+(?:(?!\n\n)[^.])*!",
+        "pattern": r"!(?:(?!\n\n)[^.!])*!",
         "category": "exclamation_overuse",
         "severity": "soft",
         "suggestion": "Multiple exclamation marks signal AI enthusiasm. Use sparingly."
