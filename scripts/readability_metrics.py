@@ -15,6 +15,7 @@ Usage:
 
 from __future__ import annotations
 
+import argparse
 import sys
 import re
 import json
@@ -257,11 +258,21 @@ def calculate_metrics(text: str) -> ReadabilityMetrics:
     }
 
 
+def parse_args(argv: list[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Calculate readability metrics for transformed text."
+    )
+    parser.add_argument("path", nargs="?", help="Path to input text file (default: read stdin)")
+    return parser.parse_args(argv)
+
+
 def main() -> None:
+    args = parse_args(sys.argv[1:])
+
     # Read input
-    if len(sys.argv) > 1:
+    if args.path:
         try:
-            with open(sys.argv[1], 'r', errors="replace") as f:
+            with open(args.path, 'r', errors="replace") as f:
                 text = f.read()
         except OSError as e:
             print(json.dumps({"error": f"Could not read input: {e}"}))

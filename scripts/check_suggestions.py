@@ -28,6 +28,7 @@ Usage:
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -179,9 +180,18 @@ def check(document: str, suggestions: list[dict]) -> list[dict]:
     return failures
 
 
+def parse_args(argv: list[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Contract gates for co-writer suggestions.")
+    parser.add_argument(
+        "path", nargs="?", help="Path to a suggestions JSON file (default: read stdin)"
+    )
+    return parser.parse_args(argv)
+
+
 def main(argv: list[str]) -> int:
-    if argv:
-        path = Path(argv[0])
+    args = parse_args(argv)
+    if args.path:
+        path = Path(args.path)
         if not path.exists():
             print(f"Missing file: {path}", file=sys.stderr)
             return 2
