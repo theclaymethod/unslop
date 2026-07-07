@@ -31,8 +31,22 @@ load that command file and proceed as if invoked.
 | `mimic` | Voiced drafting or rewriting under the full gates; refine loop when one pass falls short. | [references/commands/mimic.md](references/commands/mimic.md) |
 | _maintenance_ | Turn a wild AI-ism into an eval row and a PR (not a top-level verb). | [references/commands/contribute.md](references/commands/contribute.md) |
 
-The shared doctrine below — register guards, validation gates and blocking
-semantics, output formats, the script and reference tables — applies to every
+### Routing by phrase
+
+Sub-flows are reachable by their natural names without being top-level verbs.
+When the user says any of these, load the named file and jump to the flow:
+
+| The user says | Go to |
+|---------------|-------|
+| `audit` / "just flag it" / "don't change anything" | [references/commands/cleanup.md](references/commands/cleanup.md#report-only) |
+| `harvest` / "what writing of mine do you have?" | [references/commands/teach.md](references/commands/teach.md#1-gather-samples-harvest) |
+| `calibrate` / "the A/B game" / "quiz me on my voice" | [references/commands/teach.md](references/commands/teach.md#calibrate) |
+| `refine` / "keep pushing until it sounds like me" | [references/commands/mimic.md](references/commands/mimic.md#refine) |
+| voice check / "does this sound like me?" | [references/commands/mimic.md](references/commands/mimic.md#voice-check) |
+| "found a new AI-ism" / "add this tell" | [references/commands/contribute.md](references/commands/contribute.md) |
+
+The shared doctrine below (register guards, validation gates and blocking
+semantics, output formats, the script and reference tables) applies to every
 command. The command files hold the flows; this file holds the constitution.
 
 ## When to Use

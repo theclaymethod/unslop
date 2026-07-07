@@ -53,3 +53,14 @@ never regresses. The **divergence guard** halts and sets
 iterations — the reward-hacking signature. Confirm a win only when
 `mimic_stats.py` shows the CI lower bound > 0 and p < 0.05. Internals, baselines,
 and the failure table are in `references/mimic.md`.
+
+## Voice check
+
+"Does this sound like me?" — score only, change nothing. Run
+`python3 scripts/voice_score.py --profile .unslop/voice/<name>/profile.json
+--impostors evals/fixtures/voice/impostors --seed 7 <draft>` and report the
+composite (lower is more them), the GI rank, and the two or three metric
+deltas that explain the score, in plain words ("your sentences run longer than
+usual; contractions match"). No rewrite unless asked. This is the cheapest
+voice interaction and the usual one after teach: check drafts often, commission
+rewrites rarely.

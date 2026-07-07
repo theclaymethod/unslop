@@ -96,13 +96,30 @@ def main() -> int:
         if first.strip() != expected_first:
             problems.append(f"{path.name} first line is {first!r}, expected {expected_first!r}")
 
+    # Synonym routing: the "Routing by phrase" table must exist, cover the
+    # demoted flows, and every target must be a real command file (optionally
+    # with a #section anchor).
+    REQUIRED_SYNONYMS = {"audit", "harvest", "calibrate", "refine", "voice check"}
+    skill_text = (ROOT / "SKILL.md").read_text()
+    import re as _re
+    syn_rows = _re.findall(r"^\| *([^|]+?) *\| *\[?references/commands/([a-z]+)\.md(#[a-z-]+)?",
+                           skill_text[skill_text.find("Routing by phrase"):], _re.M) \
+        if "Routing by phrase" in skill_text else []
+    covered = {name.strip().strip('`').lower() for name, _, _ in syn_rows}
+    for req in sorted(REQUIRED_SYNONYMS):
+        if not any(req in c for c in covered):
+            problems.append(f"synonym routing missing an entry covering {req!r}")
+    for name, cmd, _ in syn_rows:
+        if not (COMMANDS_DIR / f"{cmd}.md").exists():
+            problems.append(f"synonym {name.strip()!r} routes to missing file {cmd}.md")
+
     if problems:
         print("command router parity FAILED:")
         for p in problems:
             print(f"  - {p}")
         return 1
 
-    print(f"command router parity ok: {len(files)} files, "
+    print(f"command router parity ok: {len(files)} files, {len(syn_rows)} synonyms, "
           f"top-level {sorted(EXPECTED_TOPLEVEL)}, maintenance {sorted(extras)}")
     return 0
 
