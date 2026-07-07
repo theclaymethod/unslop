@@ -88,8 +88,12 @@ Tiering is measured, not assumed; `evals/run_model_parity.py` re-measures it and
   preservation gate.
 - Full rewrites of register-sensitive text erode hedges, absolutes, and legal negations
   on cheap tiers. That work belongs to frontier models, re-scanned afterward.
-- Macro structure defeated every model tested. No model self-checks document shape from
-  prose instructions; structure is always machine-detected and machine-gated.
+- Macro structure defeated every model tested in a single pass. No model self-checks document
+  shape from prose instructions; structure is always machine-detected and machine-gated. It is
+  also machine-*correctable*: fed the scanners' findings as targeted directives in a
+  scan-regenerate loop (`evals/run_structure_climb.py`), the frontier converges to clean and
+  the cheap tier partially recovers, with a preservation guard so climbing never eats a fact
+  (`references/pipeline.md`, "Macro structure under the climb").
 
 Touching a model-dependent feature means re-running the parity evals across
 both the GPT and Anthropic spectrums.

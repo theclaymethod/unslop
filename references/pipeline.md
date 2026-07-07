@@ -49,7 +49,7 @@ Send one strong-enough rewriter the original text, merged Tier 0/Tier 1 findings
 | Detection packs | cheapest tier (see Model Parity) | JSON is malformed or pack scope is violated |
 | Span replacement / short rewrite | cheapest tier; gates carry safety (parity 2026-07-06: 8/8) | output fails a blocking gate twice |
 | Full rewrite of register-sensitive text (legal, medical, security, load-bearing hedges) | strongest practical model + mandatory Tier-0 re-scan | start here; cheap tiers erode register |
-| Macro structure (restructuring, coda/preview removal) | machine-gated, never self-checked — surface via Tier-0 scan | never trust a model's own macro self-check |
+| Macro structure (restructuring, coda/preview removal) | machine-gated AND machine-corrected via the structure climb (generate→scan→directive→regenerate); frontier converges, cheap tiers partially recover | never trust a model's own macro self-check — feed the scanners' directives back and re-scan (see Macro structure under the climb) |
 | Judge/eval | model specified by `evals/BEHAVIORAL-EVALS.md` | benchmark protocol changes |
 
 The model-dependent rows above are not set by taste. They are set by
@@ -142,9 +142,11 @@ from prose. The cheap-tier misses were register and fact erosion in full rewrite
 - **Full rewrites of register-sensitive text = frontier.** Legal, medical, security, or any
   text with load-bearing hedges/negation goes to the strongest practical model with a
   mandatory Tier-0 re-scan; cheap models erode register in unsupervised full rewrites.
-- **Macro structure = always machine-gated, never self-checked.** A Tier-0 scan surfaces it
-  as an explicit directive, because no model, flagship included, reliably catches it from
-  prose instructions.
+- **Macro structure = always machine-gated, never self-checked — but machine-correctable.**
+  A Tier-0 scan surfaces it as an explicit directive, because no model, flagship included,
+  reliably catches it from prose instructions. Fed those directives back in a scan-regenerate
+  loop (`evals/run_structure_climb.py`), the frontier converges to clean and the cheap tier
+  partially recovers; see "Macro structure under the climb" for the recorded before/after.
 
 ### Open-weights spot check — 2026-07-07
 
@@ -164,6 +166,73 @@ six replacement fixtures (Task B) per model. Models file:
 All three clear the span-replacement contract at 6/6, and the only detection misses were
 one seeded voice span apiece (fixture A4) for DeepSeek and Kimi; on both model-dependent
 surfaces the open-weights flagships sit level with the recorded GPT and Anthropic ladders.
+
+## Macro structure under the climb — 2026-07-07
+
+The recorded parity matrix above closed on a flat verdict: single-pass macro-structure
+self-checking failed on every model. Told in prose to drop the coda / connective scaffold /
+outline echo, each one shipped it anyway. But the deterministic scanners SEE those failures
+precisely, so the failure is correctable even when it is not self-checkable. `evals/run_structure_climb.py`
+closes that loop:
+
+    generate -> scan (structure_scan + silhouette_scan) -> if clean, done
+             -> else turn each finding into a TARGETED directive that names WHERE and
+                WHAT -> feed the directives + current draft back -> regenerate, capped at
+                N rounds (default 4).
+
+The core is the **directive builder** (`build_directives`): a deterministic map from scanner
+findings to instructions that locate the tell, because the model cannot see it. It re-reads
+the draft with the scanners' own helpers, so a `conclusion_coda` flag becomes *"the final
+paragraph (\"Ultimately, ...\") restates the opening; end on a new fact"*, a
+`connective_paragraph_openers` flag names the offending paragraph numbers and their opener
+words, and a silhouette `callback_content` flag names the exact opening vocabulary the ending
+loops back to. Every macro flag both scanners can emit maps to a directive (gated by
+`CLIMB-06`). A preservation guard (`validate_preservation`, anchored to `--source-file` when
+given) validates every round, so climbing toward clean structure can never eat a fact; a
+regression aborts the climb. Honest terminal states (`converged` / `capped` /
+`preservation_violation`) carry distinct exit codes. The mock path (`CLIMB-*` rows,
+`evals/fixtures/climb/`) exercises all of this offline; the live path drives real models via
+`--generate-cmd`.
+
+Live run on the same `SKILL-MACRO-01` robotics-essay fixture as Task C, `--max-rounds 4`,
+preservation anchored to the source essay:
+
+| Model | Tier | Single pass (round 0) | Climbed | Rounds | Terminal | Facts |
+|---|---|---|---|---:|---|---|
+| claude-sonnet-4-5 | frontier | dirty: `signpost_density`, `callback_content` (penalty 7.5) | both scanners clean | 3 | converged | preserved every round |
+| claude-haiku-4-5 | cheap | dirty: `callback_content` (penalty 2.5) | 1 residual structure flag | 4 | capped | preserved every round |
+| gpt-5.5 | frontier | pending | pending | n/a | pending (OpenRouter HTTP 402) | pending |
+| glm-5.2 | open-weights | pending | pending | n/a | pending (OpenRouter HTTP 402) | pending |
+
+Read honestly:
+
+- **Single pass ships macro tells on both Claude tiers**, reconfirming the thesis: told to
+  remove macro tells, the model does not catch its own document shape.
+- **The climb recovers macro on the frontier model where the single pass failed.** Sonnet
+  converged to both-scanners-clean in three rounds (violation trajectory 2 → 1 → 0) with every
+  fact preserved. This is the doctrine headline: with the loop, macro structure becomes
+  machine-*corrected*, a step past machine-*gated*.
+- **On the cheap tier the recovery is partial, not full.** haiku-4-5 consumed the silhouette
+  recap loop on the first directive and held silhouette clean from round 1 on, but it
+  oscillated on surface structure (re-introducing a coda, then a uniform cadence) and did not
+  converge within four rounds, capping at one residual structure flag. The loop improves the
+  cheap tier but does not guarantee it at cap 4; a residual macro flag on a cheap model still
+  routes to a stronger model or another round, not to shipping.
+- **The preservation guard held live throughout** (source-anchored): no round on either model
+  eroded a fact.
+- **The OpenRouter spectrum (GPT + open-weights) is pending on account billing** (HTTP 402
+  Payment Required at run time), not on the harness. Exact reproduction commands:
+
+  ```bash
+  # Anthropic spectrum (native claude -p; run above):
+  python3 evals/run_structure_climb.py --prompt-file <macro-prompt> --source-file <essay> \
+    --out out/haiku --generate-cmd "claude -p --model claude-haiku-4-5" --max-rounds 4
+  # OpenRouter spectrum (needs OPENROUTER_API_KEY credit):
+  python3 evals/run_structure_climb.py --prompt-file <macro-prompt> --source-file <essay> \
+    --out out/gpt --generate-cmd "python3 evals/model_generate.py --kind openrouter --model openai/gpt-5.5" --max-rounds 4
+  python3 evals/run_structure_climb.py --prompt-file <macro-prompt> --source-file <essay> \
+    --out out/glm --generate-cmd "python3 evals/model_generate.py --kind openrouter --model z-ai/glm-5.2" --max-rounds 4
+  ```
 
 ## Cost Note
 

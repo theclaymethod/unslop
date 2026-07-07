@@ -11904,6 +11904,120 @@
       ]
     },
     {
+      "id": "CLIMB-01",
+      "category": "structure_climb",
+      "title": "Climb converges where a single pass cannot",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_climb.py",
+        "--converge"
+      ],
+      "failure_mode": "Macro-structure loop must climb a dirty draft to clean, consuming scanner violations monotonically.",
+      "correct_behavior": "generate->scan->directive->regenerate reaches both scanners clean; violation count falls each round; exit 0 (converged).",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "CLIMB-02",
+      "category": "structure_climb",
+      "title": "Capped-still-dirty is an honest terminal state",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_climb.py",
+        "--capped"
+      ],
+      "failure_mode": "A loop that never cleans must report it, not fake success.",
+      "correct_behavior": "Loop that never reaches clean halts at the round cap with terminal_state capped and a nonzero exit; final violations > 0.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "CLIMB-03",
+      "category": "structure_climb",
+      "title": "Single pass stays dirty; the loop is load-bearing",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_climb.py",
+        "--control"
+      ],
+      "failure_mode": "One generation of the same scenario the loop solves must remain dirty, proving the loop (not the generator) recovers macro.",
+      "correct_behavior": "max-rounds 1 stays capped/dirty on the very scenario max-rounds 4 converges on.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "CLIMB-04",
+      "category": "structure_climb",
+      "title": "Preservation regression mid-climb aborts",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_climb.py",
+        "--preservation"
+      ],
+      "failure_mode": "A round that drops a must-keep fact must abort the climb, not ship the lossy draft.",
+      "correct_behavior": "validate_preservation catches the dropped constraint; loop exits preservation_violation and names the missing fact.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "CLIMB-05",
+      "category": "structure_climb",
+      "title": "Directives name where and what",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_climb.py",
+        "--directives"
+      ],
+      "failure_mode": "Directives must locate the offending paragraph/opener/vocabulary, since the model cannot see the tell.",
+      "correct_behavior": "conclusion_coda names the final paragraph, connective names the paragraph numbers, callback names the recapped words.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "CLIMB-06",
+      "category": "structure_climb",
+      "title": "Directive builder covers every macro flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_climb.py",
+        "--coverage"
+      ],
+      "failure_mode": "Every flag both scanners can emit must map to a directive; a new scanner metric with no directive is a hole.",
+      "correct_behavior": "STRUCTURE/SILHOUETTE directive registries cover every scanner flag metric and realize 1:1 flag->directive coverage on the fixture.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
       "id": "LANG-3a",
       "category": "scanner_false_negative",
       "title": "Imperative headline stack is English slop, not a foreign language",

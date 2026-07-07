@@ -109,6 +109,13 @@ Current gates:
     "needs": []
   },
   {
+    "id": "structure-climb",
+    "command": "python3 evals/run_adversarial.py --only CLIMB",
+    "pass_criterion": "exit 0",
+    "blocking": true,
+    "needs": []
+  },
+  {
     "id": "pack-structure",
     "command": "python3 scripts/check_packs.py",
     "pass_criterion": "exit 0",

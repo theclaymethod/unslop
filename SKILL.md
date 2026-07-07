@@ -147,6 +147,12 @@ Blocking output failures:
 - Staccato cadence in readability metrics.
 - Rubric score below 32/40 in strict mode.
 
+When a `structure_scan.py` or `silhouette_scan.py` flag persists after a rewrite,
+don't re-prompt with vague "fix the structure" — no model self-checks macro shape.
+Feed the scanners' findings back as targeted directives and regenerate with
+`evals/run_structure_climb.py` (generate→scan→directive→regenerate, preservation-guarded;
+see `references/pipeline.md`, "Macro structure under the climb").
+
 Validation scripts are necessary but not enough. Re-read negations, conditionals,
 scope, certainty, and party relationships yourself.
 
