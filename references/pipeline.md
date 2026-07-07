@@ -49,7 +49,7 @@ Send one strong-enough rewriter the original text, merged Tier 0/Tier 1 findings
 | Detection packs | cheapest tier (see Model Parity) | JSON is malformed or pack scope is violated |
 | Span replacement / short rewrite | cheapest tier; gates carry safety (parity 2026-07-06: 8/8) | output fails a blocking gate twice |
 | Full rewrite of register-sensitive text (legal, medical, security, load-bearing hedges) | strongest practical model + mandatory Tier-0 re-scan | start here; cheap tiers erode register |
-| Macro structure (restructuring, coda/preview removal) | machine-gated AND machine-corrected via the structure climb (generate→scan→directive→regenerate); frontier converges, cheap tiers partially recover | never trust a model's own macro self-check — feed the scanners' directives back and re-scan (see Macro structure under the climb) |
+| Macro structure (restructuring, coda/preview removal) | machine-gated AND machine-corrected via the structure climb (generate→scan→directive→regenerate); both frontier tiers converge fast, cheapest-that-converges is model-dependent (Anthropic haiku-4-5 at a slightly larger round cap; OpenAI's cheap tier not yet shown to converge) | never trust a model's own macro self-check — feed the scanners' directives back and re-scan (see Macro structure under the climb) |
 | Judge/eval | model specified by `evals/BEHAVIORAL-EVALS.md` | benchmark protocol changes |
 
 The model-dependent rows above are not set by taste. They are set by
@@ -145,8 +145,10 @@ from prose. The cheap-tier misses were register and fact erosion in full rewrite
 - **Macro structure = always machine-gated, never self-checked — but machine-correctable.**
   A Tier-0 scan surfaces it as an explicit directive, because no model, flagship included,
   reliably catches it from prose instructions. Fed those directives back in a scan-regenerate
-  loop (`evals/run_structure_climb.py`), the frontier converges to clean and the cheap tier
-  partially recovers; see "Macro structure under the climb" for the recorded before/after.
+  loop (`evals/run_structure_climb.py`), both frontier tiers converge to clean fast; whether
+  the cheap tier converges is model-dependent, not a uniform "cheap tier" property -- see
+  "Macro structure under the climb" for the recorded before/after and the follow-up
+  experiments.
 
 ### Open-weights spot check — 2026-07-07
 
@@ -233,6 +235,92 @@ Read honestly:
   python3 evals/run_structure_climb.py --prompt-file <macro-prompt> --source-file <essay> \
     --out out/glm --generate-cmd "python3 evals/model_generate.py --kind openrouter --model z-ai/glm-5.2" --max-rounds 4
   ```
+
+### Two follow-up experiments — 2026-07-07
+
+The OpenRouter 402 blocked the GPT spectrum above, and the cap-4 haiku row left one open
+question (does the cheap tier ever converge, or does it just stall). Two follow-ups, both run
+against the identical `SKILL-MACRO-01` fixture and source-anchored preservation:
+
+**A. A local alternative to OpenRouter for the GPT side.** The `codex` CLI (OpenAI's agentic
+coding CLI) is installed locally and can drive one model call per round the same way
+`claude -p` does, sidestepping the billing block. `codex exec` is an AGENT CLI, though: its
+stdout is an interleaved transcript (tool calls, hook lines, token counts), not a clean
+document, so it cannot be piped straight into the climb loop. Its `-o/--output-last-message
+FILE` flag writes only the agent's final text turn with no wrapping -- verified by hand against
+this fixture before wiring it in. `evals/model_generate.py` gained a `codex` kind
+(`call_codex`) that runs `codex exec --sandbox read-only --ephemeral --skip-git-repo-check -o
+FILE -m <model> -`, reads that file, and discards the transcript. KNOWN RISK: `codex exec` has
+been observed to hang silently in this environment; `call_codex` runs it in its own process
+group with a hard wall-clock timeout (180s default) and SIGKILLs the whole group on expiry, so
+a hang surfaces as an honest failed round instead of blocking the climb forever. `CLIMB-07`
+exercises this offline against a fake `codex` binary (success, nonzero-exit, empty-output, and
+hang paths; the hang case is SIGKILLed in about a second against a 1s test timeout).
+
+**B. Does the cheap Anthropic tier ever converge, or does cap 4 just cut it off early.**
+`claude-haiku-4-5` re-run with `--max-rounds 8` (same fixture, same generator) to see whether
+the one residual flag at cap 4 was a hard ceiling or a round short.
+
+Results, same fixture and settings as the recorded matrix above except where noted:
+
+| Model | Tier | Kind | Single pass (round 0) | Climbed | Rounds (cap) | Terminal | Facts |
+|---|---|---|---|---|---:|---|---|
+| gpt-5.5 | frontier | codex exec (default model) | dirty: `sentence_burstiness`, `conclusion_coda`, `preview_fulfillment`, `callback_content` (4 flags) | both scanners clean | 4 (4) | converged | preserved every round |
+| gpt-5.4-mini | cheap | codex exec | dirty: `sentence_burstiness`, `opener_repetition`, `preview_fulfillment`, `callback_content` (4 flags) | 2 residual flags, oscillating (4 → 1 → 5 → 2) | 4 (4) | capped | preserved every round |
+| gpt-5.4-mini | cheap | codex exec, retried | dirty: `sentence_burstiness`, `preview_fulfillment`, `callback_content` (3 flags) | 5 residual flags, oscillating (3 → 3 → 2 → 1 → 6 → 2 → 1 → 5) | 8 (8) | capped | preserved every round |
+| claude-haiku-4-5 | cheap | claude-cli, retried | dirty: `callback_content` (1 flag) | both scanners clean | 5 (8) | converged | preserved every round |
+
+Read honestly:
+
+- **The `-o` extraction is clean and codex is a real generator for this loop.** No stray
+  transcript text ever reached the scanners; every round's draft was bare prose. `gpt-5.5`
+  through `codex exec` converged in the same 4-round budget sonnet used (3 rounds), matching
+  the frontier-converges finding on the Anthropic side.
+- **Codex's cheap tier does not converge, even given double the round budget.** `gpt-5.4-mini`
+  was run twice -- once at the recorded cap of 4, once at cap 8 -- and never reached clean
+  either time. Its violation trajectory does not fall monotonically the way sonnet's or
+  haiku's did; it swings between 1 and 6 flags round to round. The loop still holds every fact
+  (preservation passed all 12 rounds across the two runs), but macro structure on this model
+  is not machine-*correctable* at any round budget tested here, only machine-*gated*.
+- **The cheap Anthropic tier was one round short of converging, not permanently capped.**
+  `claude-haiku-4-5` re-run at `--max-rounds 8` converged in 5 rounds (violation trajectory
+  1 → 1 → 1 → 1 → 0), the same residual `callback_content` flag from the cap-4 run finally
+  clearing once the loop got one more pass. Every round preserved every fact.
+- **This changes the doctrine.** "Cheap tiers partially recover" (the prior wording) was true
+  of the one cheap model measured so far, but it is not a property of "cheap" in general --
+  it is model-dependent. `claude-haiku-4-5` fully recovers with a slightly larger round cap;
+  `gpt-5.4-mini` does not recover with an even larger one. Read the two model families
+  separately, not as one "cheap tier" line.
+- **Cheapest model that does this well: `claude-haiku-4-5`, with `--max-rounds` raised from 4
+  to 6** (5 rounds measured to converge here; 6 gives one round of margin). On the GPT side,
+  the floor that has actually been shown to converge is `gpt-5.5` (frontier) via codex, not
+  `gpt-5.4-mini` -- the OpenAI cheap tier is not yet a substitute for this task on this
+  evidence.
+- **The OpenRouter spectrum itself (`gpt-5.5` via API, and `glm-5.2`) is still pending on
+  account billing** (HTTP 402), not on the harness. Codex gave a working local alternative for
+  measuring OpenAI's frontier and cheap models on this task, but it drives the model through
+  Codex's own agent scaffolding and system prompt, not the raw chat-completions endpoint --
+  read the codex-CLI numbers above as "the GPT models, as codex CLI calls them," not as an
+  exact stand-in for a raw OpenRouter measurement once billing clears. `glm-5.2` has no local
+  CLI alternative and remains unmeasured.
+
+Exact reproduction commands:
+
+```bash
+# Anthropic spectrum, cheap tier, extended round cap:
+python3 evals/run_structure_climb.py --prompt-file <macro-prompt> --source-file <essay> \
+  --out out/haiku8 --generate-cmd "claude -p --model claude-haiku-4-5" --max-rounds 8
+# Codex CLI, GPT spectrum (frontier default, then cheapest):
+python3 evals/run_structure_climb.py --prompt-file <macro-prompt> --source-file <essay> \
+  --out out/codex-gpt5.5 --generate-cmd "python3 evals/model_generate.py --kind codex --model gpt-5.5" --max-rounds 4
+python3 evals/run_structure_climb.py --prompt-file <macro-prompt> --source-file <essay> \
+  --out out/codex-mini --generate-cmd "python3 evals/model_generate.py --kind codex --model gpt-5.4-mini" --max-rounds 8
+# OpenRouter spectrum (still needs OPENROUTER_API_KEY credit; unchanged from above):
+python3 evals/run_structure_climb.py --prompt-file <macro-prompt> --source-file <essay> \
+  --out out/gpt --generate-cmd "python3 evals/model_generate.py --kind openrouter --model openai/gpt-5.5" --max-rounds 4
+python3 evals/run_structure_climb.py --prompt-file <macro-prompt> --source-file <essay> \
+  --out out/glm --generate-cmd "python3 evals/model_generate.py --kind openrouter --model z-ai/glm-5.2" --max-rounds 4
+```
 
 ## Cost Note
 

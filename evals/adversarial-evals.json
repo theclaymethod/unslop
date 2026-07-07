@@ -12018,6 +12018,25 @@
       ]
     },
     {
+      "id": "CLIMB-07",
+      "category": "structure_climb",
+      "title": "Codex adapter extracts cleanly and survives a hang",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_climb.py",
+        "--codex-adapter"
+      ],
+      "failure_mode": "codex exec is an agent CLI whose stdout is an interleaved transcript, and it has been observed to hang silently; the adapter must extract only the --output-last-message file and must not block past its hard timeout.",
+      "correct_behavior": "model_generate.call_codex returns clean text on success, a (None, error) tuple on nonzero exit and on an empty output file, and on a hung process is SIGKILLed and returns a timeout error in under 5s -- offline, against a fake codex binary.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        }
+      ]
+    },
+    {
       "id": "LANG-3a",
       "category": "scanner_false_negative",
       "title": "Imperative headline stack is English slop, not a foreign language",

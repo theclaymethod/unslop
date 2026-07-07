@@ -91,8 +91,11 @@ Tiering is measured, not assumed; `evals/run_model_parity.py` re-measures it and
 - Macro structure defeated every model tested in a single pass. No model self-checks document
   shape from prose instructions; structure is always machine-detected and machine-gated. It is
   also machine-*correctable*: fed the scanners' findings as targeted directives in a
-  scan-regenerate loop (`evals/run_structure_climb.py`), the frontier converges to clean and
-  the cheap tier partially recovers, with a preservation guard so climbing never eats a fact
+  scan-regenerate loop (`evals/run_structure_climb.py`), both frontier tiers converge to clean
+  fast. Whether a cheap model converges is model-dependent, not a property of "cheap" in
+  general: Anthropic's cheap tier (haiku-4-5) converges given a slightly larger round cap;
+  OpenAI's cheap tier (gpt-5.4-mini) did not converge even at double the round budget in the
+  measured run. A preservation guard means climbing never eats a fact either way
   (`references/pipeline.md`, "Macro structure under the climb").
 
 Touching a model-dependent feature means re-running the parity evals across

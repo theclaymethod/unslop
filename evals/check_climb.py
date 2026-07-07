@@ -13,13 +13,18 @@ builder's location-naming, and returns 0 on the expected behavior, 1 otherwise.
   --preservation  a round that eats a fact aborts, naming the missing constraint
   --directives    directives name WHERE and WHAT for a known fixture
   --coverage      every macro flag both scanners can emit maps to a directive
+  --codex-adapter model_generate.call_codex extraction/timeout logic (offline,
+                  drives a fake ``codex`` binary -- no real CLI, no network)
 """
 
 import argparse
 import json
+import os
+import stat
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 from _check_support import ROOT
@@ -27,10 +32,12 @@ from _check_support import ROOT
 FIX = ROOT / "evals" / "fixtures" / "climb"
 PROMPT = FIX / "task_prompt.txt"
 MOCK = FIX / "mock_generate.py"
+FAKE_CODEX = FIX / "fake_codex.py"
 
 sys.path.insert(0, str(ROOT / "scripts"))
 sys.path.insert(0, str(ROOT / "evals"))
 import run_structure_climb as climb  # noqa: E402
+import model_generate  # noqa: E402
 
 
 def run_climb(scenario, out, max_rounds=4):
@@ -190,6 +197,58 @@ def check_coverage():
     return 0 if ok else 1
 
 
+def _fake_codex_bin(tmp_dir):
+    """A directory containing an executable ``codex`` that dispatches to
+    fake_codex.py, so it can be prepended onto PATH."""
+    bin_dir = Path(tmp_dir) / "bin"
+    bin_dir.mkdir(exist_ok=True)
+    wrapper = bin_dir / "codex"
+    wrapper.write_text(f"#!/bin/sh\nexec python3 {FAKE_CODEX} \"$@\"\n")
+    wrapper.chmod(wrapper.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
+    return bin_dir
+
+
+def check_codex_adapter():
+    """Offline test of model_generate.call_codex against a fake codex binary:
+    clean extraction via --output-last-message, a nonzero-exit failure surfaced
+    as (None, err), an empty-output failure surfaced as (None, err), and a
+    HANG that the hard timeout must SIGKILL rather than block on."""
+    with tempfile.TemporaryDirectory() as td:
+        bin_dir = _fake_codex_bin(td)
+        old_path = os.environ.get("PATH", "")
+        os.environ["PATH"] = f"{bin_dir}{os.pathsep}{old_path}"
+        try:
+            os.environ["FAKE_CODEX_MODE"] = "success"
+            text, err = model_generate.call_codex("fake-model", "hello prompt", timeout=10)
+            success_ok = err is None and text is not None and "hello prompt" in text
+
+            os.environ["FAKE_CODEX_MODE"] = "fail"
+            text2, err2 = model_generate.call_codex("fake-model", "x", timeout=10)
+            fail_ok = text2 is None and err2 is not None and "exit 2" in err2
+
+            os.environ["FAKE_CODEX_MODE"] = "empty"
+            text3, err3 = model_generate.call_codex("fake-model", "x", timeout=10)
+            empty_ok = text3 is None and err3 is not None and "empty" in err3.lower()
+
+            os.environ["FAKE_CODEX_MODE"] = "hang"
+            t0 = time.monotonic()
+            text4, err4 = model_generate.call_codex("fake-model", "x", timeout=1)
+            elapsed = time.monotonic() - t0
+            hang_ok = (text4 is None and err4 is not None
+                       and "timed out" in err4.lower() and elapsed < 5)
+        finally:
+            os.environ["PATH"] = old_path
+            os.environ.pop("FAKE_CODEX_MODE", None)
+
+        ok = success_ok and fail_ok and empty_ok and hang_ok
+        print(json.dumps({
+            "success_ok": success_ok, "fail_ok": fail_ok,
+            "empty_ok": empty_ok, "hang_ok": hang_ok,
+            "hang_elapsed_s": round(elapsed, 2),
+        }, sort_keys=True))
+        return 0 if ok else 1
+
+
 CHECKS = {
     "converge": check_converge,
     "capped": check_capped,
@@ -197,6 +256,7 @@ CHECKS = {
     "preservation": check_preservation,
     "directives": check_directives,
     "coverage": check_coverage,
+    "codex-adapter": check_codex_adapter,
 }
 
 
@@ -206,7 +266,7 @@ def main(argv):
         parser.add_argument(f"--{name}", action="store_true")
     args = parser.parse_args(argv)
     for name, fn in CHECKS.items():
-        if getattr(args, name):
+        if getattr(args, name.replace("-", "_")):
             return fn()
     parser.error("choose a check")
 
