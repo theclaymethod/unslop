@@ -259,6 +259,9 @@ pipeline offline until you approve publication.
 
 Yesterday's miss becomes tomorrow's regression test, and nothing rides on good habits.
 
+Caught a specimen but working outside an agent? [CONTRIBUTING.md](CONTRIBUTING.md) links the
+fast path and the manual path.
+
 ## The Eval Suite Is the Product
 
 Every behavior worth having is pinned by a row that fails without it. The suite is
