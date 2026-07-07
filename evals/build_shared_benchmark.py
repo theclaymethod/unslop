@@ -22,6 +22,8 @@ Run:  python3 evals/build_shared_benchmark.py        # writes shared-benchmark.j
       python3 evals/build_shared_benchmark.py --check # verify it is up to date
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 import sys

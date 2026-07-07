@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Scan prose for macro-structure AI-writing patterns."""
 
+from __future__ import annotations
+
 import argparse
 import json
 import math

@@ -46,6 +46,8 @@ ships the generic-human reference only.
 stdlib only. JSON to stdout. Exit 1 on flag, 0 clean, 2 on a missing file.
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 import math

@@ -11,6 +11,8 @@ Usage:
     echo "Text here" | python extract_constraints.py
 """
 
+from __future__ import annotations
+
 import sys
 import re
 import json

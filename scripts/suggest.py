@@ -35,6 +35,8 @@ Usage:
     python3 scripts/suggest.py document.md --apply-replacements replacements.json
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 import re

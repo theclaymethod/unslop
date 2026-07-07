@@ -15,6 +15,8 @@ Usage:
     python banned_phrase_scan.py input.txt --include-quoted
 """
 
+from __future__ import annotations
+
 import argparse
 import sys
 import re

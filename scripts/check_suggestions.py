@@ -26,6 +26,8 @@ Usage:
     python3 scripts/check_suggestions.py < suggestions.json
 """
 
+from __future__ import annotations
+
 import json
 import sys
 from pathlib import Path

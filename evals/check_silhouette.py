@@ -18,6 +18,8 @@ Exit 0 on success, 1 on drift / separation failure, 2 on a missing input.
 stdlib only.
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 import statistics as st
