@@ -11994,6 +11994,167 @@
           "value": "false_agency"
         }
       ]
+    },
+    {
+      "id": "ENC-01",
+      "category": "robustness",
+      "title": "banned_phrase_scan: bad-bytes stdin still scans instead of tracebacking",
+      "target": "script",
+      "command": [
+        "sh",
+        "-c",
+        "printf '\\xff\\xfeIt is a testament to progress' | python3 scripts/banned_phrase_scan.py"
+      ],
+      "failure_mode": "sys.stdin.read() raises an uncaught UnicodeDecodeError on non-UTF-8 stdin, so a host agent piping raw bytes gets a Python traceback instead of a JSON reply.",
+      "correct_behavior": "Decode with errors=\"replace\" and keep scanning; the surviving text still trips the hard-severity phrase.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 1
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        },
+        {
+          "type": "violation_phrase_contains",
+          "value": "testament"
+        }
+      ]
+    },
+    {
+      "id": "ENC-02",
+      "category": "robustness",
+      "title": "structure_scan: bad-bytes stdin still scans instead of tracebacking",
+      "target": "script",
+      "command": [
+        "sh",
+        "-c",
+        "printf '\\xff\\xfeThe launch went well. Priya checked the dashboards early. Retention held steady through the quarter. Nobody expected the numbers to move this fast, but they did.' | python3 scripts/structure_scan.py"
+      ],
+      "failure_mode": "sys.stdin.read() raises an uncaught UnicodeDecodeError on non-UTF-8 stdin instead of decoding leniently.",
+      "correct_behavior": "Decode with errors=\"replace\" and keep scanning; valid JSON with prose_sentences counted comes back, no traceback.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        },
+        {
+          "type": "json",
+          "path": "prose_sentences",
+          "gte": 1
+        }
+      ]
+    },
+    {
+      "id": "ENC-03",
+      "category": "robustness",
+      "title": "silhouette_scan: bad-bytes stdin still scans instead of tracebacking",
+      "target": "script",
+      "command": [
+        "sh",
+        "-c",
+        "printf '\\xff\\xfeThe launch went well. Priya checked the dashboards early. Retention held steady through the quarter. Nobody expected the numbers to move this fast, but they did.' | python3 scripts/silhouette_scan.py"
+      ],
+      "failure_mode": "sys.stdin.read() raises an uncaught UnicodeDecodeError on non-UTF-8 stdin instead of decoding leniently.",
+      "correct_behavior": "Decode with errors=\"replace\" and keep scanning; valid JSON comes back with the genre field set, no traceback.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        },
+        {
+          "type": "json",
+          "path": "genre",
+          "equals": "prose"
+        }
+      ]
+    },
+    {
+      "id": "ENC-04",
+      "category": "robustness",
+      "title": "suggest: bad-bytes stdin still scans instead of tracebacking",
+      "target": "script",
+      "command": [
+        "sh",
+        "-c",
+        "printf '\\xff\\xfeIt is a testament to progress' | python3 scripts/suggest.py"
+      ],
+      "failure_mode": "sys.stdin.read() raises an uncaught UnicodeDecodeError on non-UTF-8 stdin instead of decoding leniently.",
+      "correct_behavior": "Decode with errors=\"replace\" and keep scanning; the surviving text still yields a hard suggestion, no traceback.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        },
+        {
+          "type": "json",
+          "path": "counts.hard",
+          "equals": 1
+        }
+      ]
+    },
+    {
+      "id": "ENC-05",
+      "category": "robustness",
+      "title": "harvest_samples: one non-UTF-8 sibling file must not abort the whole batch",
+      "target": "script",
+      "command": [
+        "sh",
+        "-c",
+        "d=$(mktemp -d) && cp evals/fixtures/harvest/fixture_bad_encoding/good.md \"$d/good.md\" && printf '\\xff\\xfeBad bytes here in a sibling file' > \"$d/bad.txt\" && python3 scripts/harvest_samples.py \"$d\" -o -"
+      ],
+      "failure_mode": "iter_text_file's unguarded path.read_text() raises an uncaught UnicodeDecodeError on one bad file, crashing collect_sources and losing every candidate from the run, not just the bad file's.",
+      "correct_behavior": "Decode with errors=\"replace\" (and guard per-file dispatch) so the batch completes; the well-formed sibling file's marker still reaches candidates.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "ENC_HARVEST_GOOD_MARKER_COBALT_LANTERN"
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        }
+      ]
+    },
+    {
+      "id": "ENC-06",
+      "category": "robustness",
+      "title": "run_local: missing claude CLI degrades instead of tracebacking",
+      "target": "script",
+      "command": [
+        "sh",
+        "-c",
+        "d=$(mktemp -d) && mkdir -p \"$d/bin\" && ln -s $(command -v python3) \"$d/bin/python3\" && printf '{\"case_id\":\"enc\",\"variant\":\"without_skill\",\"prompt\":\"hi\",\"run_dir\":\"enc/without_skill\"}\\n' > \"$d/tasks.jsonl\" && PATH=\"$d/bin\" python3 evals/run_local.py \"$d/tasks.jsonl\" --jobs 1 --timeout 5"
+      ],
+      "failure_mode": "subprocess.run(cmd) only catches subprocess.TimeoutExpired, so a missing `claude` binary raises an uncaught FileNotFoundError inside the thread pool and tracebacks instead of degrading the one task.",
+      "correct_behavior": "Catch (FileNotFoundError, OSError) and return a failed-but-labeled result; the runner finishes and reports the failure instead of crashing.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 1
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        }
+      ]
     }
   ]
 }

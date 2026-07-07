@@ -163,13 +163,13 @@ def main() -> None:
     # Read input
     if len(sys.argv) > 1:
         try:
-            with open(sys.argv[1], 'r') as f:
+            with open(sys.argv[1], 'r', errors="replace") as f:
                 text = f.read()
         except OSError as e:
             print(json.dumps({"error": f"Could not read input: {e}", "constraints": []}))
             sys.exit(2)
     else:
-        text = sys.stdin.read()
+        text = sys.stdin.buffer.read().decode("utf-8", errors="replace")
 
     if not text.strip():
         print(json.dumps({"error": "No input provided", "constraints": []}))

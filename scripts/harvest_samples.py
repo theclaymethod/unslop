@@ -136,7 +136,7 @@ def detect_jsonl_adapter(path: Path) -> str:
     Falls back to claude-jsonl (which itself warns and skips truly unknown
     schemas) when neither shape is recognized in any line.
     """
-    for line in path.read_text().splitlines():
+    for line in path.read_text(errors="replace").splitlines():
         if not line.strip():
             continue
         try:
@@ -219,7 +219,7 @@ def iter_claude_jsonl(path: Path, warnings: list[str]) -> tuple[list[dict[str, A
     candidates = []
     stats = {"authorship": 0}
     saw_known_schema = False
-    for idx, line in enumerate(path.read_text().splitlines(), start=1):
+    for idx, line in enumerate(path.read_text(errors="replace").splitlines(), start=1):
         if not line.strip():
             continue
         try:
@@ -271,7 +271,7 @@ def iter_codex_jsonl(path: Path, warnings: list[str]) -> tuple[list[dict[str, An
     candidates = []
     stats = {"authorship": 0, "instruction-injection": 0}
     saw_known_schema = False
-    for idx, line in enumerate(path.read_text().splitlines(), start=1):
+    for idx, line in enumerate(path.read_text(errors="replace").splitlines(), start=1):
         if not line.strip():
             continue
         try:
@@ -348,7 +348,7 @@ def iter_codex_jsonl(path: Path, warnings: list[str]) -> tuple[list[dict[str, An
 
 def iter_text_file(path: Path) -> list[dict[str, Any]]:
     return [{
-        "text": path.read_text(),
+        "text": path.read_text(errors="replace"),
         "source": {
             "path": str(path),
             "offset": 0,
@@ -376,17 +376,21 @@ def collect_sources(paths: list[Path], warnings: list[str]) -> tuple[list[dict[s
         else:
             files = [source]
         for file in files:
-            if file.suffix.lower() == ".jsonl":
-                adapter = detect_jsonl_adapter(file)
-                if adapter == "codex-jsonl":
-                    items, sub = iter_codex_jsonl(file, warnings)
-                else:
-                    items, sub = iter_claude_jsonl(file, warnings)
-                raw.extend(items)
-                for key, value in sub.items():
-                    stats[key] = stats.get(key, 0) + value
-            elif file.suffix.lower() in {".md", ".txt"}:
-                raw.extend(iter_text_file(file))
+            try:
+                if file.suffix.lower() == ".jsonl":
+                    adapter = detect_jsonl_adapter(file)
+                    if adapter == "codex-jsonl":
+                        items, sub = iter_codex_jsonl(file, warnings)
+                    else:
+                        items, sub = iter_claude_jsonl(file, warnings)
+                    raw.extend(items)
+                    for key, value in sub.items():
+                        stats[key] = stats.get(key, 0) + value
+                elif file.suffix.lower() in {".md", ".txt"}:
+                    raw.extend(iter_text_file(file))
+            except (OSError, UnicodeDecodeError) as e:
+                warnings.append(f"{file}: unreadable ({e}); skipping")
+                stats["unreadable"] = stats.get("unreadable", 0) + 1
     return raw, stats, missing
 
 
