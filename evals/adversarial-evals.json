@@ -10886,6 +10886,28 @@
       ]
     },
     {
+      "id": "DOC-24",
+      "category": "scanner_detection",
+      "title": "Eval suite rows pass the schema gate",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_evals_schema.py"
+      ],
+      "failure_mode": "adversarial-evals.json is hand-merged and hand-numbered with no validation: a duplicate id runs twice silently and collapses in the EXPECTED_XFAIL id-set comparison, and a malformed row (missing keys, wrong assertion type) crashes at runtime instead of failing a gate cleanly.",
+      "correct_behavior": "Exit 0: every row id is unique and matches the pinned shape, every row has id/title/target with target in {script, skill}, every script row has a non-empty command list and assertions whose types check_assertion() understands, and every skill row has the keys build_shared_benchmark.py's loader consumes.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        }
+      ]
+    },
+    {
       "id": "CAL-01",
       "category": "calibrate",
       "title": "Per-dimension transform correctness with constraints preserved",
