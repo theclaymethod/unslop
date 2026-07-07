@@ -24,8 +24,8 @@ import statistics as st
 import sys
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent
-ROOT = HERE.parent
+from _check_support import ROOT  # noqa: E402
+
 sys.path.insert(0, str(ROOT))
 
 from scripts.silhouette_scan import (  # noqa: E402
