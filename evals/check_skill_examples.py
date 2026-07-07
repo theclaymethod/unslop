@@ -3,9 +3,9 @@
 import re
 import subprocess
 import sys
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+from _check_support import ROOT  # noqa: E402
+
 SKILL = ROOT / "SKILL.md"
 
 

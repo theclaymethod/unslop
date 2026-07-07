@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Check that scanner dictionary phrases are documented in taboo-phrases.md."""
 
-from pathlib import Path
 import sys
 
-ROOT = Path(__file__).resolve().parent.parent
+from _check_support import ROOT  # noqa: E402
+
 sys.path.insert(0, str(ROOT))
 
 from scripts.banned_phrase_scan import BANNED_PHRASES  # noqa: E402

@@ -8,12 +8,12 @@ import re
 import sys
 from pathlib import Path
 
+from _check_support import ROOT  # noqa: E402
+
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 from run_adversarial import list_gates  # noqa: E402
-
-ROOT = HERE.parent
 
 
 def missing_command_files(gates: list[dict]) -> list[str]:

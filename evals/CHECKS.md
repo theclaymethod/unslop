@@ -207,3 +207,24 @@ Run them last, after every deterministic gate passes — the behavioral split vi
 
 The JSON matrix above must stay byte-equal to `--list-gates` output; DOC-03
 enforces this, so update both together.
+
+## Writing a New Check
+
+New `evals/check_*.py` scripts pull `ROOT` and the shared helpers from
+`evals/_check_support.py`. Skip that. Two patterns disappear once you import
+from `_check_support` instead of writing your own copy by hand: a private
+`ROOT = Path(__file__).resolve().parent.parent` line, and a local subprocess
+`run()` wrapper that quietly drifts from the one every other check already
+trusts. Here is the seam.
+
+```python
+from _check_support import ROOT, run, load_evals  # noqa: E402
+sys.path.insert(0, str(ROOT))          # only when importing scripts.* directly
+from scripts.banned_phrase_scan import scan_for_violations  # noqa: E402
+```
+
+`run()` shells out. `load_evals()` loads rows. Exit 0. Exit 1 on a finding.
+Exit 2 means setup broke — a missing fixture, a bad flag, something the
+caller needs to fix before the check can even run its assertions. Wire the
+check into the gate list in `run_adversarial.py`, then refresh the matrix
+pinned near the top of this file.
