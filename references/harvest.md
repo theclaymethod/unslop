@@ -5,10 +5,20 @@ declares as their own writing. The routed flow (harvest → classify → approve
 copy) is step 1 of `references/commands/teach.md`; this file holds the adapter
 internals, the contamination tripwire, and the privacy rules that flow links to.
 
-The transcript adapter only accepts entries with explicit user authorship. Assistant
+The transcript adapters only accept entries with explicit user authorship. Assistant
 turns are dropped before candidate filtering, and unknown JSONL schemas are skipped with
 a warning rather than guessed. This authorship separation is the product requirement:
 assistant-authored transcript text must never enter candidates.
+
+The `codex-jsonl` adapter reads Codex CLI/Desktop sessions, stored under
+`~/.codex/sessions/YYYY/MM/DD/rollout-*.jsonl` and auto-detected by shape alongside
+`claude-jsonl`. It harvests `event_msg` user_message text and user-role
+`response_item` message content, and drops assistant/developer-role turns, tool
+and reasoning plumbing, and `session_meta.base_instructions` outright. Codex also
+injects non-user content into user-role turns: a repo's AGENTS.md dumped verbatim,
+an `<environment_context>` banner, and similar wrapper tags. The adapter filters
+those by structural marker, never by guessing at content, and counts them under
+the `instruction-injection` drop reason instead of silently discarding them.
 
 The contamination tripwire runs each kept candidate through `banned_phrase_scan` and
 `structure_scan`. A hard violation, or two or more distinct scanner categories, marks

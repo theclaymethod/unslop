@@ -4,8 +4,18 @@
 Adapters:
 - claude-jsonl: JSONL transcript files with explicit user/assistant roles. Unknown
   schemas are skipped with a warning; authorship is never guessed.
+- codex-jsonl: Codex CLI/Desktop session JSONL (~/.codex/sessions/YYYY/MM/DD/
+  rollout-*.jsonl). Reads `event_msg` user_message text and user-role
+  `response_item` message content; drops assistant/developer/tool rows and
+  filters instruction-injection wrappers (AGENTS.md dumps, <environment_context>,
+  and similar structural markers) that Codex injects into user-role turns.
 - text-folder: directories containing .md/.txt files. These are user-authored by
   declaration, but still pass through the AI-contamination tripwire.
+
+Adapter detection for .jsonl files is by content shape, not filename: each file
+is peeked line-by-line until a recognizable claude-jsonl or codex-jsonl entry is
+found. Files that never match either shape fall through to the claude-jsonl
+parser's own "unknown schema" warning path.
 """
 
 from __future__ import annotations
@@ -89,6 +99,57 @@ def message_text(entry: dict[str, Any]) -> str:
     if isinstance(msg, dict):
         return extract_text(msg.get("content"))
     return extract_text(entry.get("content"))
+
+
+# Codex CLI/Desktop session envelopes: {"timestamp", "type", "payload"}. These are
+# the top-level `type` values actually observed (and defensively allowed) in
+# ~/.codex/sessions/YYYY/MM/DD/rollout-*.jsonl. `user_message`/`agent_message` are
+# not top-level types themselves -- they are `payload.type` values nested inside
+# an `event_msg` envelope.
+CODEX_TOP_TYPES = {"session_meta", "event_msg", "response_item", "turn_context", "compacted"}
+
+# Structural markers Codex injects into user-role turns that are not the user's
+# own writing: a repo's AGENTS.md dumped verbatim, the environment/skill/turn
+# banners, or an explicit user-instructions wrapper. Filtering is by these
+# prefixes (structure), never by guessing at content.
+CODEX_INJECTION_PREFIXES = (
+    "# AGENTS.md instructions for",
+    "<environment_context>",
+    "<user_instructions>",
+    "<INSTRUCTIONS>",
+    "<skill>",
+    "<turn_aborted>",
+)
+
+
+def is_codex_envelope(entry: dict[str, Any]) -> bool:
+    return entry.get("type") in CODEX_TOP_TYPES and isinstance(entry.get("payload"), dict)
+
+
+def is_injection_wrapper(text: str) -> bool:
+    return text.strip().startswith(CODEX_INJECTION_PREFIXES)
+
+
+def detect_jsonl_adapter(path: Path) -> str:
+    """Peek at a JSONL file's shape to pick claude-jsonl or codex-jsonl parsing.
+
+    Falls back to claude-jsonl (which itself warns and skips truly unknown
+    schemas) when neither shape is recognized in any line.
+    """
+    for line in path.read_text().splitlines():
+        if not line.strip():
+            continue
+        try:
+            entry = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(entry, dict):
+            continue
+        if is_codex_envelope(entry):
+            return "codex-jsonl"
+        if role_from_entry(entry) is not None:
+            return "claude-jsonl"
+    return "claude-jsonl"
 
 
 def strip_transcript_noise(text: str) -> str:
@@ -192,6 +253,99 @@ def iter_claude_jsonl(path: Path, warnings: list[str]) -> tuple[list[dict[str, A
     return candidates, stats
 
 
+def codex_message_texts(payload: dict[str, Any]) -> list[str]:
+    """Text of a response_item message's content parts, keyed on the caller
+    already having confirmed role=="user" -- the role check, not the content
+    item's own `type` (input_text/output_text/...), is what gates authorship."""
+    content = payload.get("content")
+    if not isinstance(content, list):
+        return []
+    return [
+        item["text"]
+        for item in content
+        if isinstance(item, dict) and isinstance(item.get("text"), str)
+    ]
+
+
+def iter_codex_jsonl(path: Path, warnings: list[str]) -> tuple[list[dict[str, Any]], dict[str, int]]:
+    candidates = []
+    stats = {"authorship": 0, "instruction-injection": 0}
+    saw_known_schema = False
+    for idx, line in enumerate(path.read_text().splitlines(), start=1):
+        if not line.strip():
+            continue
+        try:
+            entry = json.loads(line)
+        except json.JSONDecodeError:
+            warnings.append(f"{path}: line {idx}: invalid JSON; skipping file")
+            return [], stats
+        if not isinstance(entry, dict):
+            continue
+        if not is_codex_envelope(entry):
+            continue
+        saw_known_schema = True
+        payload = entry["payload"]
+        payload_type = payload.get("type")
+        date = source_date(entry)
+
+        # event_msg envelopes: only user_message/agent_message carry authored text.
+        if entry.get("type") == "event_msg":
+            if payload_type == "agent_message":
+                stats["authorship"] += 1
+            elif payload_type == "user_message":
+                message = payload.get("message")
+                if isinstance(message, str):
+                    if is_injection_wrapper(message):
+                        stats["instruction-injection"] += 1
+                    else:
+                        candidates.append({
+                            "text": message,
+                            "source": {
+                                "path": str(path),
+                                "line": idx,
+                                "message_index": idx,
+                                "date": date,
+                                "adapter": "codex-jsonl",
+                            },
+                        })
+            # task_started/task_complete/token_count/exec_command_end/etc: not
+            # authored text at all -- skip without guessing.
+            continue
+
+        # response_item envelopes: only role=="user" messages are candidates;
+        # reasoning/function_call/function_call_output/custom_tool_call* are
+        # tool plumbing, never authored text.
+        if entry.get("type") == "response_item" and payload_type == "message":
+            role = payload.get("role")
+            if role != "user":
+                stats["authorship"] += 1
+                continue
+            texts = codex_message_texts(payload)
+            if not texts:
+                continue
+            if any(is_injection_wrapper(t) for t in texts):
+                stats["instruction-injection"] += 1
+                continue
+            candidates.append({
+                "text": "\n".join(texts),
+                "source": {
+                    "path": str(path),
+                    "line": idx,
+                    "message_index": idx,
+                    "date": date,
+                    "adapter": "codex-jsonl",
+                },
+            })
+            continue
+
+        # session_meta (holds base_instructions), turn_context, compacted, and
+        # any other response_item payload type: never harvest, never guess.
+    if not saw_known_schema:
+        warnings.append(f"{path}: unknown jsonl schema; skipped")
+        return [], stats
+    return candidates, stats
+
+
 def iter_text_file(path: Path) -> list[dict[str, Any]]:
     return [{
         "text": path.read_text(),
@@ -223,9 +377,14 @@ def collect_sources(paths: list[Path], warnings: list[str]) -> tuple[list[dict[s
             files = [source]
         for file in files:
             if file.suffix.lower() == ".jsonl":
-                items, sub = iter_claude_jsonl(file, warnings)
+                adapter = detect_jsonl_adapter(file)
+                if adapter == "codex-jsonl":
+                    items, sub = iter_codex_jsonl(file, warnings)
+                else:
+                    items, sub = iter_claude_jsonl(file, warnings)
                 raw.extend(items)
-                stats["authorship"] += sub.get("authorship", 0)
+                for key, value in sub.items():
+                    stats[key] = stats.get(key, 0) + value
             elif file.suffix.lower() in {".md", ".txt"}:
                 raw.extend(iter_text_file(file))
     return raw, stats, missing
@@ -324,7 +483,8 @@ def harvest(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
     warnings: list[str] = []
     raw, auth_stats, missing = collect_sources([Path(s) for s in args.sources], warnings)
     candidates, stats = apply_filters(raw, args.min_words, parse_since(args.since))
-    stats["authorship"] += auth_stats.get("authorship", 0)
+    for key, value in auth_stats.items():
+        stats[key] = stats.get(key, 0) + value
     output = {
         "candidates": rank_candidates(candidates, args.max_candidates),
         "drop_stats": {k: v for k, v in stats.items() if v},

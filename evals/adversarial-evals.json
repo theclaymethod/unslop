@@ -9072,6 +9072,204 @@
       ]
     },
     {
+      "id": "HARV-12",
+      "category": "harvest",
+      "title": "Codex session contamination never reaches candidates",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/harvest_samples.py",
+        "evals/fixtures/harvest/fixture_codex_session.jsonl",
+        "-o",
+        "-"
+      ],
+      "failure_mode": "Codex assistant turns, base_instructions, developer-role permission text, tool plumbing, or injected AGENTS.md/environment_context wrappers leak into the teach candidate set.",
+      "correct_behavior": "No assistant, base_instructions, developer-role, reasoning, tool-call, turn_context, compacted, unknown-type, or instruction-injection marker appears anywhere in candidates JSON.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_not_contains",
+          "value": "CODEX_ASSISTANT_CONTAMINATION_MARKER_ORCHID_TUNNEL"
+        },
+        {
+          "type": "stdout_not_contains",
+          "value": "CODEX_ASSISTANT_RESPONSE_ITEM_MARKER_BRASS_KETTLE"
+        },
+        {
+          "type": "stdout_not_contains",
+          "value": "CODEX_BASE_INSTRUCTIONS_MARKER_SLATE_ANCHOR"
+        },
+        {
+          "type": "stdout_not_contains",
+          "value": "CODEX_DEVELOPER_ROLE_MARKER_IVORY_HATCH"
+        },
+        {
+          "type": "stdout_not_contains",
+          "value": "CODEX_REASONING_MARKER_SHOULD_NEVER_APPEAR"
+        },
+        {
+          "type": "stdout_not_contains",
+          "value": "CODEX_TOOL_CALL_MARKER_SHOULD_NEVER_APPEAR"
+        },
+        {
+          "type": "stdout_not_contains",
+          "value": "CODEX_TOOL_OUTPUT_MARKER_SHOULD_NEVER_APPEAR"
+        },
+        {
+          "type": "stdout_not_contains",
+          "value": "CODEX_TURN_CONTEXT_MARKER_SHOULD_NEVER_APPEAR"
+        },
+        {
+          "type": "stdout_not_contains",
+          "value": "CODEX_COMPACTED_MARKER_SHOULD_NEVER_APPEAR"
+        },
+        {
+          "type": "stdout_not_contains",
+          "value": "CODEX_UNKNOWN_TYPE_MARKER_SHOULD_NEVER_APPEAR"
+        },
+        {
+          "type": "stdout_not_contains",
+          "value": "CODEX_INJECTION_TRAP_MARKER_PEWTER_LOOM"
+        },
+        {
+          "type": "stdout_not_contains",
+          "value": "CODEX_ENV_CONTEXT_MARKER_QUARTZ_FIELD"
+        }
+      ]
+    },
+    {
+      "id": "HARV-13",
+      "category": "harvest",
+      "title": "Codex substantive user prose is harvested",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/harvest_samples.py",
+        "evals/fixtures/harvest/fixture_codex_session.jsonl",
+        "-o",
+        "-"
+      ],
+      "failure_mode": "The codex-jsonl adapter drops real user turns along with the injected wrappers it must filter.",
+      "correct_behavior": "The substantive user-role response_item marker appears in candidates JSON with the codex-jsonl adapter tag.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "CODEX_USER_PROSE_MARKER_HOLLOW_CEDAR"
+        },
+        {
+          "type": "json",
+          "path": "candidates.0.source.adapter",
+          "equals": "codex-jsonl"
+        }
+      ]
+    },
+    {
+      "id": "HARV-14",
+      "category": "harvest",
+      "title": "Codex instruction-injection wrappers are dropped with a named reason",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/harvest_samples.py",
+        "evals/fixtures/harvest/fixture_codex_session.jsonl",
+        "-o",
+        "-"
+      ],
+      "failure_mode": "AGENTS.md dumps and <environment_context> banners injected into user-role turns are treated as user authorship, or dropped silently with no accounting.",
+      "correct_behavior": "Both injected markers are absent from candidates and drop_stats names the reason instruction-injection with count 2.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_not_contains",
+          "value": "CODEX_INJECTION_TRAP_MARKER_PEWTER_LOOM"
+        },
+        {
+          "type": "stdout_not_contains",
+          "value": "CODEX_ENV_CONTEXT_MARKER_QUARTZ_FIELD"
+        },
+        {
+          "type": "json",
+          "path": "drop_stats.instruction-injection",
+          "equals": 2
+        }
+      ]
+    },
+    {
+      "id": "HARV-15",
+      "category": "harvest",
+      "title": "Mixed claude/codex/text-folder run produces candidates from all three sources",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/harvest_samples.py",
+        "evals/fixtures/harvest/fixture_session.jsonl",
+        "evals/fixtures/harvest/fixture_codex_session.jsonl",
+        "evals/fixtures/harvest/text-folder",
+        "-o",
+        "-"
+      ],
+      "failure_mode": "A single invocation across multiple source types drops one adapter's candidates or mislabels provenance.",
+      "correct_behavior": "Candidates from the claude-jsonl, codex-jsonl, and text-folder adapters all appear with correct per-source provenance paths.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "CODEX_USER_PROSE_MARKER_HOLLOW_CEDAR"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "blue kiln notebook"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "TEXT_FOLDER_AI_TELL_MARKER"
+        },
+        {
+          "type": "json",
+          "path": "candidates.0.source.adapter",
+          "equals": "codex-jsonl"
+        },
+        {
+          "type": "json",
+          "path": "candidates.0.source.path",
+          "equals": "evals/fixtures/harvest/fixture_codex_session.jsonl"
+        },
+        {
+          "type": "json",
+          "path": "candidates.4.source.adapter",
+          "equals": "claude-jsonl"
+        },
+        {
+          "type": "json",
+          "path": "candidates.4.source.path",
+          "equals": "evals/fixtures/harvest/fixture_session.jsonl"
+        },
+        {
+          "type": "json",
+          "path": "candidates.5.source.adapter",
+          "equals": "text-folder"
+        },
+        {
+          "type": "json",
+          "path": "candidates.5.source.path",
+          "equals": "evals/fixtures/harvest/text-folder/ai_tell.txt"
+        }
+      ]
+    },
+    {
       "id": "SIL-01",
       "category": "scanner_detection",
       "title": "silhouette_scan flags a templated preview-then-fulfill essay",
