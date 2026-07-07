@@ -47,7 +47,7 @@ Send one strong-enough rewriter the original text, merged Tier 0/Tier 1 findings
 |---|---|---|
 | Tier 0 scripts | local deterministic | never; fix the script or input |
 | Detection packs | cheapest tier (see Model Parity) | JSON is malformed or pack scope is violated |
-| Span replacement / short rewrite | cheapest tier — gates carry safety (parity 2026-07-06: 8/8) | output fails a blocking gate twice |
+| Span replacement / short rewrite | cheapest tier; gates carry safety (parity 2026-07-06: 8/8) | output fails a blocking gate twice |
 | Full rewrite of register-sensitive text (legal, medical, security, load-bearing hedges) | strongest practical model + mandatory Tier-0 re-scan | start here; cheap tiers erode register |
 | Macro structure (restructuring, coda/preview removal) | machine-gated, never self-checked — surface via Tier-0 scan | never trust a model's own macro self-check |
 | Judge/eval | model specified by `evals/BEHAVIORAL-EVALS.md` | benchmark protocol changes |
@@ -143,8 +143,27 @@ from prose. The cheap-tier misses were register and fact erosion in full rewrite
   text with load-bearing hedges/negation goes to the strongest practical model with a
   mandatory Tier-0 re-scan; cheap models erode register in unsupervised full rewrites.
 - **Macro structure = always machine-gated, never self-checked.** A Tier-0 scan surfaces it
-  as an explicit directive, because no model — flagship included — reliably catches it from
+  as an explicit directive, because no model, flagship included, reliably catches it from
   prose instructions.
+
+### Open-weights spot check — 2026-07-07
+
+Live matrix run against the current open-weights flagships of three Chinese labs, each the
+newest general chat release of its family on OpenRouter: DeepSeek V4 Pro
+(`deepseek/deepseek-v4-pro`), Kimi K2.6 (`moonshotai/kimi-k2.6`), and GLM 5.2
+(`z-ai/glm-5.2`). Same harness and contracts as above; six detection fixtures (Task A) and
+six replacement fixtures (Task B) per model. Models file:
+`evals/fixtures/parity/models_openweights.json`.
+
+| Model | Kind | Task A mean recall | Task A false findings | Task B pass rate |
+|---|---|---:|---:|---:|
+| glm-5.2 | openrouter | 1.00 | 0 | 6/6 |
+| deepseek-v4-pro | openrouter | 0.92 | 1 | 6/6 |
+| kimi-k2.6 | openrouter | 0.92 | 0 | 6/6 |
+
+All three clear the span-replacement contract at 6/6, and the only detection misses were
+one seeded voice span apiece (fixture A4) for DeepSeek and Kimi; on both model-dependent
+surfaces the open-weights flagships sit level with the recorded GPT and Anthropic ladders.
 
 ## Cost Note
 
