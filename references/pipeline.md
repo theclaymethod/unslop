@@ -183,7 +183,7 @@ closes that loop:
 The core is the **directive builder** (`build_directives`): a deterministic map from scanner
 findings to instructions that locate the tell, because the model cannot see it. It re-reads
 the draft with the scanners' own helpers, so a `conclusion_coda` flag becomes *"the final
-paragraph (\"Ultimately, ...\") restates the opening; end on a new fact"*, a
+paragraph (`Ultimately, ...`) restates the opening; end on a new fact"*, a
 `connective_paragraph_openers` flag names the offending paragraph numbers and their opener
 words, and a silhouette `callback_content` flag names the exact opening vocabulary the ending
 loops back to. Every macro flag both scanners can emit maps to a directive (gated by
