@@ -85,3 +85,6 @@ Syncs pattern rules with Wikipedia's
 
 Only adopt phrases that are genuine AI tells in general prose. Skip
 Wikipedia-specific patterns (broken wikitext, DOI formatting, citation graffiti).
+
+For the full agent-runnable refresh procedure, including the staleness
+reporter and the parity-bench cadence, see `references/refresh.md`.

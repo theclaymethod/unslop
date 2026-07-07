@@ -100,3 +100,4 @@ Detection catalogs decay as generators evolve. Growth comes from adversarial ref
 live bench outputs supply fresh specimens, contribute turns each specimen into a
 red-first row, and coverage enforcement keeps every new pattern exercised. Yesterday's
 miss becomes tomorrow's regression test, and nothing relies on anyone's good habits.
+The agent-runnable procedure and its staleness signal live in `references/refresh.md`.
