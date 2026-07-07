@@ -13,6 +13,8 @@ Usage:
     python readability_metrics.py input.txt
 """
 
+from __future__ import annotations
+
 import sys
 import re
 import json

@@ -264,7 +264,7 @@ Yesterday's miss becomes tomorrow's regression test, and nothing rides on good h
 Every behavior worth having is pinned by a row that fails without it. The suite is
 constitutional, and it's built to resist gaming.
 
-- **439 deterministic cases** in `evals/adversarial-evals.json`, run by
+- **440 deterministic script cases (439 pass, 1 documented xfail)** in `evals/adversarial-evals.json`, run by
   `python3 evals/run_adversarial.py`. Each detection carries a false-negative row (the tell
   gets caught), a false-positive row (the literal sense survives), and a recall row (gating
   didn't gut detection).
@@ -371,7 +371,7 @@ unslop/
 ├── presets/                       # crisp / warm / expert / story voice deltas
 ├── scripts/                       # Scanners, voice tools, preservation, suggest, harvest
 ├── evals/
-│   ├── adversarial-evals.json     # Source of truth: 439 cases
+│   ├── adversarial-evals.json     # Source of truth: 440 script cases
 │   ├── run_adversarial.py         # Deterministic runner (--only, --case, --list-gates)
 │   ├── shared-benchmark.json      # Generated behavioral manifest (never hand-edit)
 │   ├── build_shared_benchmark.py  # Regenerates the behavioral manifest

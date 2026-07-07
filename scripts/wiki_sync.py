@@ -17,6 +17,8 @@ Usage:
     python wiki_sync.py prompt | claude -p --allowedTools Edit,Read,Grep,Glob,Bash
 """
 
+from __future__ import annotations
+
 import hashlib
 import json
 import re

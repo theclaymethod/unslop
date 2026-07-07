@@ -5,6 +5,8 @@ Lower composite means more user-like. The composite is half GI-rank penalty and
 half clipped, weighted impostor z-distance using the WP10a research weights.
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 import math

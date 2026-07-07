@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Validate tiered detector pack integrity."""
 
+from __future__ import annotations
+
 import json
 import sys
 from pathlib import Path

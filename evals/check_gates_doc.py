@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Check that the gate matrix embedded in evals/CHECKS.md matches --list-gates."""
 
+from __future__ import annotations
+
 import json
 import re
 import sys

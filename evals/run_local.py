@@ -22,6 +22,8 @@ Usage:
     python3 evals/run_local.py runs/tune/tasks.jsonl --dry-run
 """
 
+from __future__ import annotations
+
 import argparse
 import concurrent.futures
 import json
