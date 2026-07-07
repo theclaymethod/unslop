@@ -259,6 +259,44 @@ pipeline offline until you approve publication.
 
 Yesterday's miss becomes tomorrow's regression test, and nothing rides on good habits.
 
+### Worked example
+
+The maintainer caught `"Four presets, one input."` on his own marketing page: a standalone
+section header in slogan cadence. Precheck against the catalog came back clean — nothing in
+`banned_phrase_scan.py` covered it yet, which is what made the specimen contributable.
+
+That miss became `OWNER-01`, and the row went red before any fix existed:
+
+```json
+{
+  "id": "OWNER-01",
+  "stdin": "Four presets, one input.",
+  "assertions": [
+    { "type": "json", "path": "total_violations", "gte": 1 },
+    { "type": "violation_category_equals", "value": "slogan_fragment" }
+  ]
+}
+```
+
+The fix is a new `slogan_fragment` entry in `STRUCTURAL_PATTERNS`:
+
+```python
+r"(?:^|\n)[ \t]*(?:#{1,6}[ \t]*|>[ \t]*|[-*+][ \t]+)?(?:\*\*)?(?:one|two|three|four|five|six|"
+r"seven|eight|nine|ten|\d+)\s+[^,.!?\n]{1,40},\s+one\s+[^,.!?\n]{1,40}[.!?](?:\*\*)?[ \t]*(?=\n|$)"
+```
+
+It's anchored to `^|\n` and `(?=\n|$)` on purpose: standalone headline position is the tell,
+not the "N X, one Y" shape by itself. `FP-86` proves `"The unit has two bedrooms, one bath, and
+a den."` stays clean, since the same words embedded mid-sentence never reach the line boundary.
+
+OWNER-01 went red to green the moment the pattern landed, FP-86 held green the whole time, and
+`slogan_fragment` now sits inside the blocking gate battery that runs on every push to this
+repo — the project's own site included.
+
+The pipeline that produced this row is itself eval-covered: the `CONTRIB-*` rows and the
+`contribute-suite` gate pin precheck, scaffold, and redaction behavior end to end, and a
+`SLUG-01` row pins path safety against a hostile `--pattern-name`.
+
 Caught a specimen but working outside an agent? [CONTRIBUTING.md](CONTRIBUTING.md) links the
 fast path and the manual path.
 
