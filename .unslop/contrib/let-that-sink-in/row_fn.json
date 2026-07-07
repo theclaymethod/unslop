@@ -1,0 +1,24 @@
+{
+  "assertions": [
+    {
+      "gte": 1,
+      "path": "total_violations",
+      "type": "json"
+    },
+    {
+      "type": "violation_phrase_contains",
+      "value": "let that sink in"
+    }
+  ],
+  "category": "scanner_false_negative",
+  "command": [
+    "python3",
+    "scripts/banned_phrase_scan.py"
+  ],
+  "correct_behavior": "The scanner reports at least one violation containing the contributed tell.",
+  "failure_mode": "The scanner misses the contributed tell from the exact specimen.",
+  "id": "CONTRIB-FN-let-that-sink-in",
+  "stdin": "The launch memo ends with a warning instead of evidence. Let that sink in before you ask what changed.\n",
+  "target": "script",
+  "title": "New AI-ism fixture: Let that sink in"
+}

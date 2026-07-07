@@ -9,6 +9,16 @@ import sys
 from collections import Counter
 from pathlib import Path
 
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+
+from _lang import (  # noqa: E402
+    ENGLISH_FUNCTION_WORDS,
+    english_function_share,
+    is_probably_english,
+)
+from readability_metrics import split_sentences  # noqa: E402
+
 
 STOPWORDS = {
     "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "of",
@@ -18,6 +28,7 @@ STOPWORDS = {
     "these", "those", "we", "you", "they", "i", "he", "she", "as", "than",
     "if", "then", "so", "not", "no", "yes", "into", "over", "under",
 }
+
 
 CONNECTIVE_OPENERS = re.compile(
     r"^(however|moreover|furthermore|additionally|in addition|overall|"
@@ -42,22 +53,6 @@ CODA_START_RE = re.compile(
     re.I,
 )
 BOLD_COLON_RE = re.compile(r"^\s*[-*+]?\s*\*\*[^*]{1,40}\*\*\s*:", re.M)
-
-
-def split_sentences(text: str) -> list[str]:
-    parts = re.split(r'([.!?]["”]?)\s+(?=["“]?[A-Z])', text)
-    sentences = []
-    current = ""
-    for part in parts:
-        if re.match(r'[.!?]["”]?$', part):
-            current += part
-            sentences.append(current.strip())
-            current = ""
-        else:
-            current += part
-    if current.strip():
-        sentences.append(current.strip())
-    return [s.strip() for s in sentences if s.strip()]
 
 
 def words(text: str) -> list[str]:
@@ -109,6 +104,15 @@ def flag(metric: str, value: float | int, threshold: str, detail: str, suggestio
         "detail": detail,
         "suggestion": suggestion,
     }
+
+
+# Metrics a given --genre suppresses outright (the genre's normal shape trips
+# the metric without being AI-slop). Table form so each suppression is a single
+# lookup instead of an inline `genre != "..."` conditional per metric.
+GENRE_SUPPRESSIONS = {
+    "docs": {"bold_colon_listicle"},
+    "social": {"one_line_staccato"},
+}
 
 
 def scan(text: str, genre: str = "prose") -> dict:
@@ -166,7 +170,8 @@ def scan(text: str, genre: str = "prose") -> dict:
                 "Cut the wrap-up or end on a specific fact; if this is an abstract or executive summary, judge the genre before changing it.",
             ))
 
-    if metrics["bold_colon_listicle_count"] >= 3 and genre != "docs":
+    if (metrics["bold_colon_listicle_count"] >= 3
+            and "bold_colon_listicle" not in GENRE_SUPPRESSIONS.get(genre, set())):
         flags.append(flag(
             "bold_colon_listicle",
             metrics["bold_colon_listicle_count"],
@@ -182,7 +187,8 @@ def scan(text: str, genre: str = "prose") -> dict:
             if len(ps) == 1 and len(words(ps[0])) < 12:
                 one_line += 1
         metrics["one_line_staccato_share"] = round(one_line / len(paragraphs), 3)
-        if len(paragraphs) >= 6 and metrics["one_line_staccato_share"] > 0.6 and genre != "social":
+        if (len(paragraphs) >= 6 and metrics["one_line_staccato_share"] > 0.6
+                and "one_line_staccato" not in GENRE_SUPPRESSIONS.get(genre, set())):
             flags.append(flag(
                 "one_line_staccato",
                 metrics["one_line_staccato_share"],
@@ -286,7 +292,18 @@ def main(argv: list[str]) -> int:
         text = path.read_text()
     else:
         text = sys.stdin.read()
+
+    # English-only graceful decline, matching banned_phrase_scan.py.
     result = scan(text, args.genre)
+
+    # Function-word absence alone is not evidence of a foreign language
+    # (imperative stacks and buzzword lists are English slop with few function
+    # words). Decline only when the heuristic fails AND nothing flagged.
+    if not result.get("flags") and not is_probably_english(text):
+        print(json.dumps({"non_english": True, "violations": [], "flags": []}, indent=2))
+        print("note: input appears non-English; scanner declined (English-only).", file=sys.stderr)
+        return 0
+
     print(json.dumps(result, indent=2))
     return 1 if result["flags"] else 0
 

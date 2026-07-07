@@ -1,199 +1,406 @@
 # unslop
 
-An agent skill for humanizing AI-generated content.
+Strip the patterns that make writing read as machine-written, and reconstruct prose in a
+real human voice. unslop ships as an agent skill: the host agent runs it while you write,
+backed by deterministic scanners that any tool can call on their own.
 
-## What It Does
+Four commands cover the whole surface:
 
-Removes predictable AI writing patterns from prose at two levels: phrase-level tells ("delve", "it's worth noting", "stands as a testament") and document-level structure (uniform sentence rhythm, moralizing codas, bold-header listicles, connective paragraph scaffolds). Two modes:
+- `/unslop teach` builds a reusable voice from your own writing samples.
+- `/unslop cleanup` flags AI tells as reviewable suggestions and changes nothing on its own.
+- `/unslop rewrite` diagnoses a draft and rebuilds it under the guards (the default).
+- `/unslop mimic` drafts or rewrites in a taught voice, then clears every removal gate.
 
-1. **Audit only**: Analyze input for AI-isms, severity, and context-dependent flags without rewriting
-2. **Rewrite**: Diagnose, then rewrite following a preset voice while eliminating patterns
-
-It is equally deliberate about what it does *not* touch: literal domain usage (a horse harness, a load-bearing wall, financial leverage), load-bearing hedges and absolutes in legal, medical, security, and scientific text, and already-human writing that just needs to be left alone.
+The weight sits about 70/30 toward removal. Detection is cheap, deterministic, and
+benchmarkable; it is the trust asset. Voice work is generative, and it runs under detection's
+constitution: any mimic or rewrite that reintroduces a tell fails, however well it matches the
+voice.
 
 ## Installation
 
-### Using Skills CLI (Recommended)
+### Using the Skills CLI (recommended)
 
-Install to any supported coding agent using [npx skills](https://github.com/vercel-labs/skills):
+Install to any supported coding agent with [npx skills](https://github.com/vercel-labs/skills):
 
 ```bash
 # Install to Claude Code (global)
 npx skills add theclaymethod/unslop -g -a claude-code
 
-# Install to multiple agents
+# Install to several agents at once
 npx skills add theclaymethod/unslop -g -a claude-code -a cursor -a codex
 
-# Install to all detected agents
+# Install to every detected agent
 npx skills add theclaymethod/unslop -g
 
 # List available skills first
 npx skills add theclaymethod/unslop --list
 ```
 
-### Manual Installation
+### Manual installation
 
 ```bash
-# Clone the repo
 git clone https://github.com/theclaymethod/unslop.git ~/dev/unslop
-
-# Symlink to Claude Code skills directory
 ln -s ~/dev/unslop ~/.claude/skills/unslop
-
-# Or symlink to commands (for /unslop invocation)
+# Or wire it as a slash command:
 ln -s ~/dev/unslop/SKILL.md ~/.claude/commands/unslop.md
 ```
 
-### Standalone Scripts
+The Python scripts under `scripts/` run on their own with no third-party dependencies
+(Python 3.8+, standard library). Call them from CI, a pre-publish check, or another agent
+without loading the skill at all.
 
-The Python validation scripts work independently (stdlib only, no dependencies):
+## Three Detection Layers
 
-```bash
-# Extract constraints (facts that must survive)
-python3 scripts/extract_constraints.py < input.txt
+Detection stacks three deterministic scanners, coarse to fine. Each returns JSON, exits
+non-zero on a flag, and carries false-positive protection rows so a literal or domain use
+never trips it.
 
-# Scan for phrase-level AI-isms
-python3 scripts/banned_phrase_scan.py < input.txt
+**Phrase layer** (`scripts/banned_phrase_scan.py`). 313 banned phrases and vocabulary items,
+each tagged `hard` (always a tell) or `soft` (context-dependent). Gated words fire only in
+their jargon collocations. Sailors navigate, a `3:1 leverage` ratio holds, a `wedge` seats in
+the kerf, and `Garner, North Carolina` stays on the map; the same words in
+`"navigate challenges"` or `"leverage synergies"` get caught. Quoted spans, blockquotes, and
+code fences are masked first, so a tutorial documenting bad writing never flags its examples.
 
-# Scan including quoted examples and blockquotes
-python3 scripts/banned_phrase_scan.py --include-quoted < input.txt
+**Structure layer** (`scripts/structure_scan.py`). 77 structural patterns plus document-level
+metrics: `sentence_burstiness`, `paragraph_cv`, `triad_density`, `bold_colon_listicle_count`,
+`one_line_staccato_share`, `connective_paragraph_openers`, `signpost_density`,
+`opener_unique_ratio`, `top_opener_share`, `max_consecutive_opener`,
+`participial_closer_share`, `conclusion_coda`, and `summary_sandwich`. This layer catches the
+rhythm tells (uniform sentence length, staccato runs), the moralizing codas, the connective
+scaffolds that open every paragraph with `"However,"` or `"Moreover,"`, and the bold-label
+listicles standing in for prose. Genre carve-outs keep it honest: `--genre docs` allows the
+bold-label lists reference docs really use, and `--genre social` allows the short-line cadence
+that belongs in social copy.
 
-# Scan for document-level structural tells (burstiness, codas, scaffolds)
-python3 scripts/structure_scan.py < input.txt
-python3 scripts/structure_scan.py --genre docs < README.md    # reference-doc carve-outs
-python3 scripts/structure_scan.py --genre social < post.txt   # social-cadence carve-outs
+**Silhouette layer** (`scripts/silhouette_scan.py`). One level above the surface, this scores
+how ideas are arranged. It catches outline-following, recap loops, and paragraph-role
+templating: body paragraphs that open on a discourse cue instead of their own claim
+(`scaffold_opener_share`), opening vocabulary that disappears mid-document and returns at the
+end (`callback_content`, the strongest single tell), cue-opener roles rotating like a template
+(`role_entropy_bits`), intro content words reappearing as body-paragraph heads
+(`preview_fulfillment`), and section headings that restate the intro's outline
+(`heading_preview`). The composite `silhouette_penalty` flags at `1.0` against a committed
+human reference. On the corpus in the repo it separates cleanly: 12 of 12 AI documents
+flagged, 0 of 8 human documents flagged. A cue-deletion attack collapses the scaffold metric,
+so silhouette is scored jointly with the structure scanner as a lower fence.
 
-# Check readability metrics
-python3 scripts/readability_metrics.py < input.txt
+## The Gamut: What Gets Removed
 
-# Validate fact preservation
-python3 scripts/validate_preservation.py original.txt transformed.txt
+Every family below is cataloged in `references/taboo-phrases.md` and pinned by an eval row.
+Severity is `hard` (always a tell) or `soft` (a default register guard your real voice may
+override). The philosophy throughout is contextual gating over blunt word bans: a pattern
+ships only once a false-positive row proves the literal sense survives.
 
-# Strict mode: negation/scope/modality drift fails instead of warning
-# (use for legal, medical, security, scientific text)
-python3 scripts/validate_preservation.py --strict original.txt transformed.txt
+### Openers, emphasis, and inflation
 
-# Check change percentage
-python3 scripts/diff_check.py original.txt transformed.txt
+| Family | Caught examples |
+|--------|-----------------|
+| Throat-clearing openers | `"Here's the thing:"`, `"The uncomfortable truth is"`, `"Let me be clear"`, `"It turns out"`, `"Let's dive in"`, `"Let's unpack"` |
+| Emphasis crutches | `"Full stop."`, `"Let that sink in."`, `"Make no mistake"`, `"Read that again."`, `"This cannot be overstated."` |
+| The "X is real" closer | `"The struggle is real."`, `"The stakes are real."` (spares the literal "is it genuine?" sense) |
+| Significance inflation | `"stands as a testament to"`, `"pivotal moment"`, `"enduring legacy"`, `"rich tapestry"`, `"cornerstone of"`, `"holds great promise"` |
+| False agency | `"the numbers speak for themselves"`, `"the data tells a story"`, `"paints a clear picture"` |
 
-# Check Wikipedia for pattern updates
-python3 scripts/wiki_sync.py check
-```
+### Contrast, questions, and drama
 
-## Usage
+| Family | Caught examples |
+|--------|-----------------|
+| Negative parallelism | `"It's not X, it's Y"`, `"Not only... but also"`, `"Not merely X, but Y"`, `"No X, no Y, just Z"` |
+| Contrastive definitions | `"X isn't a Y, it's a Z"` (spares real corrections like `"Use pnpm, not npm."` and `"The painting is real, not a forgery."`) |
+| Wh-opener self-Q&A | `"Why does this matter? Because..."`, `"What does this mean for..."`, `"Why should you care?"` |
+| Cliffhanger fragments | `"[Noun]. That's it. That's the [thing]."`, `"The ___ loop."` as a standalone, `"X things. One thing."` |
+| Hedge stacks | `"(and perhaps more importantly, ...)"`, `"(arguably ...)"`, `"While X is promising, Y remains a challenge"` |
 
-### Basic
+### Attribution, flattery, and jargon
 
-```bash
-/unslop "Here's the thing: building products is hard. Let that sink in."
-```
+| Family | Caught examples |
+|--------|-----------------|
+| Vague attribution | `"Experts argue"`, `"Studies show"`, `"Some critics"`, and bare clause-initial `"Research indicates"` (attributed and possessive forms stay clean) |
+| Reader-addressing flattery | `"Here's what's interesting"`, `"worth reading"`, `"worth your time"`, `"Whether you're a seasoned developer or just starting out"` |
+| Business-jargon collocations | `"navigate challenges"`, `"leverage synergies"`, `"deep dive"`, `"circle back"`, `"move the needle"`, `"low-hanging fruit"` |
+| Marketing and headline cadence | `"world-class"`, `"state-of-the-art"`, `"a hidden gem"`, two-beat imperative slogans (`"Emit 1,100 tokens. Ship 237KB."`), and headline slogan cadence firing at three or more short-line headers in one document |
 
-Output:
-```
-Building products is hard.
-```
+### Chatbot residue and punctuation
 
-### With Preset
+| Family | Caught examples |
+|--------|-----------------|
+| Chatbot artifacts | `"I hope this helps"`, `"Certainly!"`, `"Great question!"`, `"as an AI language model"`, `"as of my knowledge cutoff"` |
+| Emoji section headers | Decorative emoji standing in as headings, flagged as a formatting tell |
+| Em-dash overuse | The single most reliable punctuation tell. Default is zero; two or more in one paragraph is always a hard flag |
+| Reasoning-chain leaks | `"Let me think step by step"`, `"Breaking this down"`, `"Here's my thought process"` |
 
-```bash
-/unslop --preset=warm "Your AI-generated text here"
-```
+### Structural and silhouette families
 
-Available presets:
-- `crisp` (default) - Short, direct, no fluff
-- `warm` - Friendly tone, conversational
-- `expert` - Authoritative, confident claims
-- `story` - Narrative flow, show don't tell
-
-### Audit Only
-
-```bash
-/unslop --audit-only "Here's what's interesting: this deck is worth reading."
-```
-
-Returns flagged AI patterns and an assessment without rewriting the text.
-
-### Strict Mode
-
-```bash
-/unslop --strict "Text to humanize"
-```
-
-Fails if rubric score < 32/40.
-
-## What Gets Removed
-
-### Throat-Clearing Openers
-- "Here's the thing:"
-- "The uncomfortable truth is"
-- "Let me be clear"
-- "It turns out"
-
-### Emphasis Crutches
-- "Full stop."
-- "Let that sink in."
-- "Make no mistake"
-
-### Business Jargon (collocation-gated)
-- "Navigate challenges" → "Handle problems"
-- "Leverage synergies" → "Use"
-- "Deep dive" → "Analysis"
-- "Game-changer" → (cut or use specific claim)
-
-Gated words only flag in their jargon collocations. "Sailors navigate", "3:1 leverage", "a wedge into the kerf", and "Garner, North Carolina" all pass clean.
-
-### Structural Patterns
-- "Not because X. Because Y." → State Y directly
-- "It's not the tooling. It's not the process. It's the culture." → State the point
-- "Why does this matter? Because..." → Cut the self-Q&A
-- "The result? A 40% drop." → "The result was a 40% drop."
-- "Whether you're a seasoned developer or just starting out..." → Address the actual reader
-
-### Macro Structure (document level)
-- Uniform 15-18-word sentences everywhere → vary the rhythm
-- "Ultimately, this reminds us that..." codas → just stop
-- "However," / "Moreover," / "Furthermore," opening every paragraph → real topic sentences
-- Bold-phrase-colon listicles standing in for prose
-- One-line-paragraph LinkedIn staccato (outside social copy)
-
-See `references/taboo-phrases.md` for the complete catalog.
+The structure scanner adds the document-shape tells: uniform sentence rhythm, staccato
+one-line-paragraph runs outside social copy, connective paragraph scaffolds, signpost density,
+and moralizing codas like `"Ultimately, this reminds us that..."`. The silhouette scanner adds
+the arrangement tells above. A handful of macro tells stay agent judgment rather than
+scanner-enforced (both-sidesism, templated redemption arcs, over-determination, uniform
+emotional register), because a scanner cannot reliably tell a genuine opposing view from a
+manufactured one.
 
 ## What Gets Protected
 
-Do-no-harm is half the product:
+Do-no-harm is half the product. The scanners are built to leave the following alone, and each
+guard has its own eval row.
 
-- **Register guards**: "never store secrets", "may cause drowsiness", "does not establish causation", and "notwithstanding anything to the contrary" are content, not filler. The `--strict` preservation mode makes dropping them a hard failure.
-- **Literal vocabulary**: construction, law, medicine, finance, sailing, code. Every contextual pattern ships with a false-positive eval row proving the literal sense survives.
-- **Quoted examples are exempt by default**: tutorials and docs should not self-flag their own bad examples.
-- **Facts**: numbers, names, dates, quotes, units, references (Section 12(b)), and "and/or" scope survive rewrites — with magnitude-aware checking, so "$47.3M" cannot silently become "$47.3 billion" and "150 km" cannot become "150 miles".
-- **Genre**: bold-label lists are correct in reference docs (`--genre docs`); staccato cadence is correct in social copy (`--genre social`); Section-roadmap abstracts are academic convention, not repetition.
+- **Register guards.** `"never store secrets"`, `"may cause drowsiness"`,
+  `"does not establish causation"`, and `"notwithstanding anything to the contrary"` are
+  content, not filler. In legal, medical, security, and scientific text these hedges,
+  negations, absolutes, and scope words carry meaning. `validate_preservation.py --strict`
+  turns dropping one into a hard failure.
+- **Literal domain usage.** Construction, mechanics, law, medicine, finance, sailing, and
+  code all use the gated words literally. Every contextual pattern ships with a false-positive
+  row proving the literal sense stays clean.
+- **Quoted examples.** Spans in quotes, blockquotes, and code fences are exempt by default, so
+  documentation never self-flags the bad writing it is teaching.
+- **Facts, with magnitude awareness.** Numbers, names, dates, quotes, units, references like
+  `Section 12(b)`, and `and/or` scope survive a rewrite. Magnitude-aware checking means
+  `$47.3M` cannot silently become `$47.3 billion`, and `150 km` cannot become `150 miles`.
+- **Genre carve-outs.** Bold-label lists are correct in reference docs, staccato is correct in
+  social copy, and a section-roadmap abstract is academic convention rather than a tell.
+- **English only.** Non-English input gets cheap detection and a clear decline. That is the one
+  graceful refusal in the product; the scanners return `non_english: true` and stop.
 
-## The Eval Suite Defines the Product
+## Voice: teach and mimic
 
-Every pattern, guard, and script behavior exists as an eval row first. The suite is designed to be un-gameable:
+The right end of the axis writes the way a specific person writes. It is agent-driven end to
+end: you supply approvals and answers, never a directory or a command.
 
-- **182 deterministic cases** in `evals/adversarial-evals.json`, run by `python3 evals/run_adversarial.py`. Every detection carries a false-negative row (the tell gets caught), a false-positive row (the literal sense survives), and a recall row (gating didn't gut detection). Deleting a scanner pattern fails the build; marking a passing case `xfail` fails the build; the expected-xfail set is pinned to exactly one documented case.
-- **33 behavioral cases** in `evals/shared-benchmark.json` (generated; never hand-edit), graded with an LLM judge *and* deterministic backstops: fact tokens that must survive, banned strings that must not appear, similarity floors for do-no-harm, and scanner exit codes on the output. Splits are `tune` / `holdout` / `holdback` (sealed).
-- **12 machine-readable gates** via `python3 evals/run_adversarial.py --list-gates`, mirrored in `evals/CHECKS.md`. Even the docs are eval-gated: SKILL.md's examples must pass the skill's own scanners, the scanner and catalog are held in two-way parity, and the gate-matrix doc is pinned to the runner.
+### teach
+
+`teach` distills your samples into two artifacts under `.unslop/voice/<name>/` (gitignored):
+a machine profile (`profile.json`, the deterministic referee) and a layered voice card
+(`card.md` plus per-situation sheets) that any generating model follows in context.
+
+1. **Harvest.** Cheap agents bootstrap the corpus from your chat transcripts and writing
+   folders. Adapters read both Claude Code (`claude-jsonl`) and Codex CLI/Desktop
+   (`codex-jsonl`) sessions, auto-detected by shape. The contamination guarantee is the whole
+   point: assistant-authored text in a voice profile would teach the exact register unslop
+   removes. So the adapters drop assistant and developer turns, strip injected content like a
+   dumped `AGENTS.md`, and run every kept candidate through the scanners. A hard hit or two
+   scanner categories marks a sample `suspect_ai`, ranked last and never auto-approved. Nothing
+   enters a profile without your approval.
+2. **Profile and card.** `voice_profile.py` computes the stylometric fingerprint (character
+   3-grams, function-word deltas, sentence-length distribution, punctuation, contractions,
+   MTLD, impostor z-scores, GI rank). `voice_card.py` writes the layered card the generator
+   reads. The card never fabricates: a dimension with no sample evidence gets no sheet and is
+   named under "Uncovered". A profile that does not describe the supplied samples is rejected
+   (exit 2), so a stale profile can never drive a card.
+3. **Calibrate.** When samples run thin, an A/B preference game gathers voice signal at
+   tap-level effort. Pairs are dimension-controlled minimal edits of your own passages, mostly
+   from deterministic transforms, so each pair preserves the passage's facts. Preferences
+   aggregate per dimension with confidence bounds, the game targets the least-known dimension
+   next, and a stated preference that contradicts a sample-measured value surfaces to you as a
+   named conflict rather than being resolved silently. Voice beats the default register guard,
+   but only visibly.
+4. **Scored demo.** teach closes by mimicking one paragraph, scoring it, and running the
+   scanners in front of you. A voiced demo that trips a slop gate fails the loop.
+
+### mimic
+
+`mimic` drafts or rewrites in the taught voice, then clears the full gate battery. The rule is
+absolute: a mimic that scores well on voice but trips a removal gate is rejected. Voice never
+buys an exemption from the constitution, and meaning preservation against the original draft
+is its own separate hard gate.
+
+- **Voice check** answers "does this sound like me?" with a score and no rewrite. It reports
+  the composite (lower is more you), the General Impostors rank, and the two or three metric
+  deltas that explain the score in plain words. It is the cheapest voice interaction and the
+  usual one after teach: check drafts often, commission rewrites rarely.
+- **Refine** hill-climbs when a single pass keeps landing short. It splits samples into a
+  retrieval pool and a held-out acceptance split, generates candidates, and discards any that
+  trip a hard gate (banned-phrase, structure, draft-to-candidate preservation, a copy-gate
+  against the pool, and a word floor). Survivors are scored on the held-out split with a
+  gaming-resistant composite: `0.5·(1−GI) + 0.5·` a clipped impostor-z distance against a
+  same-genre impostor pool. A marker-stuffed candidate can drive a raw distance down and still
+  lose under the General Impostors rank, which is what stops it from beating honest prose. A
+  **divergence guard** halts the loop and raises `reward_hacking_warning` when the pool score
+  improves while the held-out score worsens for two iterations. Claim a win only when
+  `mimic_stats.py` shows the confidence-interval lower bound above zero and p below 0.05.
+
+## Co-writer: cleanup
+
+`cleanup` is the co-writer mode. On detection it surfaces findings as structured suggestions,
+never as a silent rewrite. Each suggestion carries a span, severity, category, rationale, and
+proposed replacement. Detection is cheap and deterministic; replacement generation is
+delegated to a stronger model, which fills in the null replacements the scanner leaves.
+
+Hard findings become direct replacements. Soft findings are register-dependent, so their
+rationale is phrased as a question rather than an edit. Four contract gates in
+`check_suggestions.py` make "accept all" safe by construction:
+
+- **span-minimality**: an edit changes only its own span; a whole-sentence rewrite fails.
+- **replacement-scanner**: each replacement passes both scanners in isolation and adds no new
+  violation in context.
+- **accept-all**: applying every suggestion yields a document that passes both scanners and
+  preserves every constraint against the original.
+- **span-overlap**: spans may not overlap.
+
+A report-only variant ("flag it, change nothing") runs the scanners and reports each issue by
+span, category, and severity, separating clear problems from judgment calls.
+
+## Contribute: the growth flywheel
+
+Detection catalogs decay as generators evolve. Growth comes from adversarial refresh: a wild
+specimen becomes an eval row becomes a structured PR. `/unslop contribute` runs the pipeline
+offline until you approve publication.
+
+1. **Precheck** tells you whether the tell is already covered.
+2. **Confirmation gate one** shows you the exact snippet and asks whether it may go public,
+   with redaction hints that keep the tell byte-for-byte intact.
+3. **Scaffold and implement eval-first.** The false-negative row lands red before the scanner
+   changes, and a literal-use false-positive row lands beside it. The scanner and catalog then
+   change until the row goes green while the protection row holds.
+4. **Verify** captures the red-to-green transition and refuses TODO markers.
+5. **Full gate battery**, then **confirmation gate two** on the final PR body. Only then does
+   the host agent branch, commit, and open the PR. The scripts never touch the network.
+
+Yesterday's miss becomes tomorrow's regression test, and nothing rides on good habits.
+
+## The Eval Suite Is the Product
+
+Every behavior worth having is pinned by a row that fails without it. The suite is
+constitutional, and it is built to resist gaming.
+
+- **439 deterministic cases** in `evals/adversarial-evals.json`, run by
+  `python3 evals/run_adversarial.py`. Each detection carries a false-negative row (the tell
+  gets caught), a false-positive row (the literal sense survives), and a recall row (gating did
+  not gut detection).
+- **24 machine-readable gates** via `python3 evals/run_adversarial.py --list-gates`, mirrored
+  in `evals/CHECKS.md`. They cover the scanners, the harvest/contribute/calibrate suites, the
+  voice scorer, pack structure, silhouette separation, and the docs themselves.
+- **Mutation-proof by construction.** Deleting a scanner pattern fails the coverage gate.
+  Marking a passing case `xfail` fails the build. The one documented XFAIL is pinned to exactly
+  one case: `FP-06`, where the literal `"delve into the mountain"` collides with the strong
+  `"delve into the topic"` tell, an accepted residual a pattern regex cannot disambiguate. Even
+  the docs are gate-checked: SKILL.md's own examples must pass its scanners, the scanner and
+  catalog are held in two-way parity, and a kata proves the add-a-pattern loop still works.
+- **Behavioral layer.** `evals/shared-benchmark.json` is generated (never hand-edited) from the
+  `skill` rows, with `with_skill` and `without_skill` variants graded by an LLM judge plus
+  deterministic backstops: facts that must survive, banned strings that must not appear,
+  similarity floors for do-no-harm. Its 33 cases split `tune` (17) for shaping, `holdout` (12)
+  for reporting, and `holdback` (4) sealed until final confirmation.
+- **Interpreting the lift.** The base model already de-slops well, so judge-blended lift runs
+  near zero and per-case deltas carry the signal. On the recorded 2026-07-06 holdout run the
+  deterministic backstops show +4.2 points objective lift (0.917 vs 0.875 across 12 held-out
+  cases; see `evals/TUNE-RESULTS.md`) while the judge cannot tell the prose apart — the
+  measurable value lives in preserved facts, register, and structure. The recorded tune run
+  also preserved a legal hedge the baseline dropped, and exposed a do-no-harm regression the
+  guards were then hardened against.
 
 ```bash
-python3 evals/run_adversarial.py            # the deterministic suite
-python3 evals/run_adversarial.py --only FP  # a category slice (parallelizes well)
+python3 evals/run_adversarial.py            # the deterministic suite (439 pass, 1 xfail)
+python3 evals/run_adversarial.py --only FP  # one category slice, parallelizes well
 evals/run_behavioral.sh tune                # the behavioral layer (needs claude -p)
 ```
 
-See `evals/CHECKS.md` for the full gate matrix and the parallel check protocol, and `CLAUDE.md` / `AGENTS.md` for the eval-first contribution rules.
+## Model Tiering Is Measured
 
-## Tiered Execution for Smaller Models
+Where the pipeline depends on a model, `evals/run_model_parity.py` measures whether a cheap
+tier is safe rather than assuming it. The live matrix was recorded **2026-07-06** across both
+the Anthropic and GPT spectrums.
 
-The skill works single-agent, but `references/pipeline.md` documents a cost-tiered path for orchestrating harnesses:
+**Span replacement clears on the cheapest tier.** On the mechanical span-minimal contract,
+`claude-haiku`, `claude-sonnet`, `gpt-5.4-mini`, and `gpt-5.5` all scored 8/8; `claude-opus`
+scored 7/8, its one miss a dropped `8:30` caught by the preservation gate rather than by model
+choice. The gates carry safety, the tier does not.
 
-1. **Tier 0 (free)**: deterministic scripts run first — phrase scan, structure scan, constraint extraction.
-2. **Tier 1 (cheap, parallel)**: small detector agents each get one compact rule-pack from `references/packs/` (~30 lines each: phrases, structure, register guards, voice, facts) and a chunk of text, and emit JSON findings. A small model with one narrow rulebook beats a small model with a 250-line monolith it will half-read.
-3. **Tier 2 (one strong call)**: a single capable model rewrites with the merged findings handed to it.
-4. **Tier 0 again**: every validation gate re-runs on the output; failures block.
+**Full rewrites of register-sensitive text belong to frontier models.** On eight
+register/structure cases the ladder was 7/8 (opus, gpt-5.4-mini), 6/8 (sonnet, gpt-5.5), and
+5/8 (haiku, gpt-5.4-nano); cheap-tier misses softened absolutes, dropped hedges, and eroded a
+legal negation.
 
-Pack integrity (coverage of all scanner categories, size budgets, self-containment) is itself enforced by the eval suite via `scripts/check_packs.py`.
+**Macro structure defeated every model tested.** The `MACRO-01` case failed for all six,
+opus included: each kept a conclusion coda the prose instruction told it to drop. No model
+self-checks document shape from prose, so structure is always machine-detected and
+machine-gated. `references/pipeline.md` records the full tables.
+
+## Standalone Scripts
+
+The scripts run independently, standard library only. A quick tour:
+
+```bash
+# Phrase, structure, and silhouette scans
+python3 scripts/banned_phrase_scan.py < input.txt
+python3 scripts/banned_phrase_scan.py --include-quoted < input.txt   # audit quoted examples too
+python3 scripts/structure_scan.py < input.txt
+python3 scripts/structure_scan.py --genre docs < README.md           # reference-doc carve-outs
+python3 scripts/silhouette_scan.py < input.txt                       # idea-arrangement tells
+
+# Facts and preservation
+python3 scripts/extract_constraints.py < input.txt
+python3 scripts/validate_preservation.py original.txt transformed.txt
+python3 scripts/validate_preservation.py --strict original.txt transformed.txt  # regulated text
+python3 scripts/diff_check.py original.txt transformed.txt
+python3 scripts/readability_metrics.py < input.txt
+
+# Co-writer suggestions
+python3 scripts/suggest.py document.md
+python3 scripts/check_suggestions.py suggestions.json                # the four contract gates
+
+# Voice
+python3 scripts/harvest_samples.py SOURCE -o candidates.json         # bootstrap from transcripts
+python3 scripts/voice_profile.py samples/ -o profile.json            # stylometric fingerprint
+python3 scripts/voice_card.py --profile profile.json --samples samples/ --out . --name me
+python3 scripts/voice_score.py --profile profile.json candidate.md   # "does this sound like me?"
+python3 scripts/calibrate_pairs.py generate --base passage.txt --dimension em_dash --seed 1
+python3 scripts/wiki_sync.py check                                   # sync the phrase catalog
+```
+
+## Project Structure
+
+```
+unslop/
+├── SKILL.md                       # Four-verb router and shared doctrine
+├── README.md                      # This file
+├── references/
+│   ├── commands/                  # The routed flows: teach, cleanup, rewrite, mimic, contribute
+│   ├── taboo-phrases.md           # Authoritative pattern catalog (all families)
+│   ├── mimic.md                   # Teach/mimic internals: card anatomy, scoring, refine
+│   ├── harvest.md                 # Adapter internals and the contamination tripwire
+│   ├── calibrate.md               # The A/B preference game
+│   ├── pipeline.md                # Tiered execution and the measured model-parity tables
+│   ├── fact-preservation.md       # Constraint preservation rules
+│   ├── rubric.md                  # Strict scoring criteria
+│   ├── edit-library.md            # Transformation examples
+│   ├── personality-guide.md       # Adding voice without fake personality
+│   ├── maintenance.md             # Add/list/wiki-sync procedures (eval-first)
+│   └── packs/                     # Small detector rule-packs plus manifest
+├── presets/                       # crisp / warm / expert / story voice deltas
+├── scripts/                       # Scanners, voice tools, preservation, suggest, harvest
+├── evals/
+│   ├── adversarial-evals.json     # Source of truth: 439 cases
+│   ├── run_adversarial.py         # Deterministic runner (--only, --case, --list-gates)
+│   ├── shared-benchmark.json      # Generated behavioral manifest (never hand-edit)
+│   ├── build_shared_benchmark.py  # Regenerates the behavioral manifest
+│   ├── run_model_parity.py        # Re-measures the tiering matrix
+│   ├── CHECKS.md                  # Machine-readable gate matrix and parallel protocol
+│   └── check_*.py                 # Parity, doc, pack, voice, and silhouette gates
+├── docs/
+│   └── PRODUCT.md                 # Product doctrine (the why behind the repo)
+└── assets/
+    └── examples/                  # Before/after sets: article, LinkedIn, sales
+```
+
+## Voice Presets
+
+Read one preset from `presets/` before a rewrite.
+
+| Preset | Style | Best for |
+|--------|-------|----------|
+| `crisp` | Short, direct, no filler | Technical writing, documentation |
+| `warm` | Friendly, conversational | Emails, blog posts |
+| `expert` | Authoritative, confident | Thought leadership, articles |
+| `story` | Narrative flow, show rather than tell | Case studies, personal posts |
+
+## Scoring Rubric
+
+Eight criteria, one to five points each (40 maximum): directness, natural rhythm, concrete
+verbs, reader trust, human authenticity, content density, fact preservation, and template
+avoidance. Strict mode fails a rewrite scoring below 32/40. Criteria live in
+`references/rubric.md`.
 
 ## Supported Agents
 
@@ -207,105 +414,44 @@ This skill follows the [Agent Skills specification](https://agentskills.io) and 
 - Roo Code
 - And [35+ other agents](https://github.com/vercel-labs/skills#supported-agents)
 
-## Project Structure
+## Wikipedia Sync
 
-```
-unslop/
-├── SKILL.md                    # Main skill file (single-agent path + pointers)
-├── README.md                   # This file
-├── references/
-│   ├── taboo-phrases.md       # Authoritative pattern catalog (incl. macro structure)
-│   ├── pipeline.md            # Tiered execution architecture
-│   ├── packs/                 # Small detector rule-packs + manifest
-│   ├── maintenance.md         # Add/list/wiki-sync procedures (eval-first)
-│   ├── rubric.md              # Scoring criteria
-│   ├── edit-library.md        # 24 transformation examples
-│   ├── fact-preservation.md   # What to preserve
-│   └── personality-guide.md   # Voice and personality guidance
-├── presets/                   # crisp / warm / expert / story voice deltas
-├── scripts/
-│   ├── banned_phrase_scan.py  # Phrase-level detection (severity, quote exemptions)
-│   ├── structure_scan.py      # Document-level detection (genre carve-outs)
-│   ├── extract_constraints.py # Find must-preserve facts
-│   ├── validate_preservation.py # Verify facts survived (--strict for regulated text)
-│   ├── readability_metrics.py # Grade level, variance, staccato
-│   ├── diff_check.py          # Change percentage
-│   ├── check_packs.py         # Rule-pack integrity gate
-│   └── wiki_sync.py           # Wikipedia source page sync
-├── evals/
-│   ├── adversarial-evals.json # Source of truth: 182 script + 33 skill cases
-│   ├── run_adversarial.py     # Deterministic runner (--only, --case, --list-gates)
-│   ├── run_behavioral.sh      # One-command behavioral run
-│   ├── build_shared_benchmark.py # Generates shared-benchmark.json
-│   ├── CHECKS.md              # Machine-readable gate matrix + parallel protocol
-│   └── check_*.py             # Parity, doc, example, and pack gates
-└── assets/
-    └── examples/              # Before/after sets: article, LinkedIn, sales
-```
-
-## Scoring Rubric
-
-Eight criteria, 1-5 points each (40 max):
-
-1. **Directness** - No hedging or softening
-2. **Natural Rhythm** - Sentence length variance (8-25 words)
-3. **Concrete Verbs** - Specific actions, not abstractions
-4. **Reader Trust** - No over-explaining
-5. **Human Authenticity** - No performative emphasis
-6. **Content Density** - Substance over filler
-7. **Fact Preservation** - All numbers, names, dates intact
-8. **Template Avoidance** - No AI structural clichés
-
-Passing score: 32/40 (80%)
-
-## Wikipedia Auto-Update
-
-The rules in this skill are partially derived from Wikipedia's [Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing) guide. The skill can sync itself with that page to pick up new patterns as Wikipedia editors add them.
+Part of the phrase catalog derives from Wikipedia's
+[Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing) guide. The
+skill can sync itself with that page to pick up new patterns as editors add them:
 
 ```bash
-# Tell the skill to check Wikipedia and update itself
-/unslop --wiki-sync
+python3 scripts/wiki_sync.py check
 ```
 
-This checks the Wikipedia page for changes, diffs against the last sync, and updates `taboo-phrases.md` and `banned_phrase_scan.py` with any new patterns — eval rows first, per `references/maintenance.md`. Wikipedia-specific patterns (broken wikitext, DOI issues, etc.) are skipped automatically.
-
-State is stored in `scripts/.wiki_sync_state.json` (gitignored). First run treats all content as new.
+The sync diffs against the last run and proposes updates to `taboo-phrases.md` and the phrase
+scanner, always eval-row-first per `references/maintenance.md`. Wikipedia-only patterns (broken
+wikitext, DOI issues) are skipped, and state lives in `scripts/.wiki_sync_state.json`
+(gitignored).
 
 ## Maintenance
 
-All maintenance is eval-first: the row lands red in `evals/adversarial-evals.json` before any scanner or catalog edit makes it green. `references/maintenance.md` has the full procedures for:
-
-- Adding a banned phrase (`--add-phrase`) — needs a false-negative row plus a literal-use protection row
-- Adding a structural pattern (`--add-structure`)
-- Listing current phrases and patterns
-- Wikipedia sync
-
-## Examples
-
-See `assets/examples/` for extended before/after transformations:
-
-- **Articles**: Technical writing, thought leadership
-- **LinkedIn**: Professional social posts
-- **Sales**: Product launches, cold outreach, case studies
+All maintenance is eval-first: the row lands red in `evals/adversarial-evals.json` before any
+scanner or catalog edit turns it green. `references/maintenance.md` holds the procedures for
+adding a banned phrase (with its required literal-use protection row), adding a structural
+pattern, listing current patterns, and running the Wikipedia sync. `CLAUDE.md` and `AGENTS.md`
+hold the contribution rules; `docs/PRODUCT.md` holds the reasoning behind them.
 
 ## Philosophy
 
-AI-generated text follows predictable patterns that humans recognize. This skill doesn't just find-and-replace words—it restructures content to read like a human wrote it, and it refuses to "fix" writing that was never broken.
+AI text follows predictable patterns that readers learn to spot. unslop does not just swap
+words; it restructures content to read as human, and it refuses to fix writing that was never
+broken. The guiding principles:
 
-Key principles:
-- **Cut ruthlessly**: If removal doesn't change meaning, remove it
-- **Trust the reader**: They don't need "let that sink in"
-- **Facts are sacred**: Numbers, names, dates, negations, and scope survive unchanged
-- **Structure matters**: Binary contrasts, self-Q&A, uniform rhythm, and moralizing codas are tells
-- **Do no harm**: Register hedges, literal vocabulary, and human writing stay intact
-- **Quoted examples are exempt by default**: Tutorials and docs should not self-flag their own bad examples
-- **The eval suite defines the product**: If a behavior matters, there is a row that fails without it
+- **Cut what carries no meaning.** If removal does not change the meaning, remove it.
+- **Trust the reader.** They do not need `"let that sink in"`.
+- **Facts are sacred.** Numbers, names, dates, negations, and scope survive unchanged.
+- **Do no harm.** Register hedges, literal vocabulary, and already-human prose stay intact.
+- **Voice runs under the constitution.** A mimic that reintroduces slop is a failure.
+- **The eval suite defines the product.** If a behavior matters, a row fails without it.
 
-## Requirements
+## Requirements and License
 
-- Python 3.8+
-- Any supported coding agent
-
-## License
-
-MIT
+Python 3.8+ and any supported coding agent. Licensed MIT.
+</content>
+</invoke>

@@ -482,6 +482,7 @@ These attribute claims to unnamed sources, creating an illusion of authority.
 | "Some critics" | Who? Be specific or cut. |
 | "Many believe" | Weasel phrasing |
 | "Research suggests" | Which research? |
+| "Research indicates / Research shows" (bare, clause-initial) | Unattributed authority — cite the study or name the source. Attributed ("Research by the Kaiser group indicates…") and possessive ("Our research indicates…") forms stay clean. |
 | "Studies show" | Which studies? |
 | "It is widely regarded" | By whom? |
 | "According to experts" | Name the experts |
@@ -718,6 +719,7 @@ without making the claim itself. (Signal adapted from `stop-slop`.)
 |--------|--------------|
 | "the numbers speak for themselves" | The writer should say what they show |
 | "the data tells a (clear) story" | Data doesn't narrate; state the finding |
+| "tells a story" | Data or artifacts do not narrate; state the finding |
 | "the results speak for themselves" | Dodges the actual interpretation |
 | "X paints a clear picture" | Inflated stand-in for "X shows" |
 
@@ -976,6 +978,24 @@ scanner-enforced.
 Related deterministic metrics: `sentence_burstiness`, `bold_colon_listicle`,
 `one_line_staccato`, `connective_paragraph_openers`, `signpost_density`,
 `opener_repetition`, and `participial_closer_share`.
+
+### Silhouette (discourse-level)
+
+`scripts/silhouette_scan.py` scores idea arrangement one level above the surface
+scanner. All five tells are scanner-enforced; the composite `silhouette_penalty`
+flags at `>= 1.0` against a committed human reference.
+
+| Tell | What fires |
+|------|------------|
+| Scaffold openers | Body paragraphs opening on a discourse-cue class instead of their own claim — scanner-enforced (`scaffold_opener_share`). |
+| Recap loop | Opening vocabulary that vanishes mid-document and returns at the end — scanner-enforced (`callback_content`, strongest single tell). |
+| Rotating opener roles | Several distinct cue-opener classes rotating like a template — scanner-enforced (`role_entropy_bits`). |
+| Preview-then-fulfill | Intro content words reappearing as body-paragraph heads — scanner-enforced (`preview_fulfillment`). |
+| Heading preview | Section headings restating the intro's outline — scanner-enforced (`heading_preview`, retained under `--genre docs`). |
+
+Anti-gaming: a cue-deletion attack collapses the scaffold and role metrics, so
+silhouette must be scored jointly with `structure_scan.py` (staccato /
+opener_repetition) as the lower fence.
 
 ---
 

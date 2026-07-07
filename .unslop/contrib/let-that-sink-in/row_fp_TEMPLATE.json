@@ -1,0 +1,21 @@
+{
+  "assertions": [
+    {
+      "equals": 0,
+      "path": "total_violations",
+      "type": "json"
+    }
+  ],
+  "category": "scanner_false_positive",
+  "command": [
+    "python3",
+    "scripts/banned_phrase_scan.py"
+  ],
+  "correct_behavior": "No violations for the protected literal/domain use.",
+  "failure_mode": "A broad pattern could flag legitimate prose.",
+  "id": "CONTRIB-FP-let-that-sink-in",
+  "protects": "emphasis_crutch",
+  "stdin": "TODO: add a literal or domain-specific use that should remain clean.",
+  "target": "script",
+  "title": "Literal-use protection for Let that sink in"
+}

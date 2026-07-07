@@ -24,9 +24,14 @@ test_*.txt
 # Wiki sync state
 scripts/.wiki_sync_state.json
 
+# Taught voices: profiles, cards, and provenance are user data, not repo content
+.unslop/
+
 # Packaged skill
 *.skill
 
 # Behavioral eval run artifacts (prepared tasks, model outputs, judge results)
 evals/runs/
 runs/
+.claude/
+.codex/

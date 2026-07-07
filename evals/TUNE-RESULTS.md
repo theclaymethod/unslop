@@ -34,3 +34,18 @@ Next skill work:
   invocation telemetry.
 - Harness v0.4.2 can emit null judge scores; coerce them before `benchmark` as
   shown in `evals/BEHAVIORAL-EVALS.md`.
+
+## Holdout run — 2026-07-06 (post-assembly, branch eval-forms-integrate)
+
+12 holdout cases, judged with `claude -p`, exact bookkeeping (40 judge rows):
+
+| variant | objective (deterministic backstops) | combined (judge + scripts) |
+|---------|-------------------------------------|----------------------------|
+| with_skill | 0.917 | 0.872 |
+| without_skill | 0.875 | 0.879 |
+
+Objective lift +4.2 points on held-out cases; judge-blended is flat. Consistent
+with the standing interpretation: the deterministic layer (facts, register,
+structure) carries the measurable value, the judge cannot distinguish the
+prose, and the without-skill baseline is contaminated by the globally installed
+skill (see run_local.py). Holdback remains sealed.

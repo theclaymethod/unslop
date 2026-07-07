@@ -19,7 +19,17 @@ import argparse
 import sys
 import re
 import json
+from pathlib import Path
 from typing import TypedDict
+
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+
+from _lang import (  # noqa: E402
+    ENGLISH_FUNCTION_WORDS,
+    english_function_share,
+    is_probably_english,
+)
 
 
 class Violation(TypedDict):
@@ -577,6 +587,20 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "severity": "soft",
         "suggestion": "foundation, base, layer"
     },
+    # Bare unattributed "research indicates/shows/suggests" — the same vague_attribution
+    # move as "studies show": authority invoked with no source. Gated on the BARE,
+    # clause-initial form (sentence start or after .!?;:) where "research" sits
+    # immediately before the verb. An attributive phrase ("Research by the Kaiser group
+    # indicates …") or a leading possessive ("Our research indicates …") breaks the
+    # adjacency/anchor, so a named study or a concrete first-person claim stays clean.
+    # Soft: attribution is a judgment call and the anchor is a heuristic. Matched on
+    # lowercased text like every structural pattern.
+    {
+        "pattern": r"(?:^|[.!?;:]\s+)research\s+(?:indicates|shows|suggests)\b",
+        "category": "vague_attribution",
+        "severity": "soft",
+        "suggestion": "Cite the specific research or name the source."
+    },
     # Promotional "boasts <boastful complement>" (not "boasts a capacity of 50,000").
     {
         "pattern": r"\bboasts?\s+(?:a\s+|an\s+)?(?:world-class|state-of-the-art|cutting-edge|impressive|stunning|robust|comprehensive|unparalleled|rich|vibrant|array of|host of|range of|wealth of|plethora)",
@@ -739,7 +763,7 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "suggestion": "State what it's about directly"
     },
     {
-        "pattern": r"\b(?:it'?s not|this is not|that'?s not|isn'?t|wasn'?t|aren'?t|weren'?t)\s+just\b[^.;!?\n]{1,60}[,;—–-]\s*(?:it'?s|it (?:is|was)|they'?re|that'?s)\b",
+        "pattern": r"\b(?:it'?s not|it\s+is\s+not|this is not|that'?s not|isn'?t|is\s+not|wasn'?t|was\s+not|aren'?t|are\s+not|weren'?t|were\s+not)\s+just\b[^.;!?\n]{1,60}[,;—–-]\s*(?:it'?s|it (?:is|was)|they'?re|that'?s)\b",
         "category": "negative_parallelism",
         "severity": "hard",
         "suggestion": "State both points directly"
@@ -910,12 +934,23 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "suggestion": "Vary sentence length. Stacked short sentences are an AI rhythm tell."
     },
 
-    # Paragraph starting with "So,"
+    # Paragraph starting with "So," (comma required: bare "So the tenant remains
+    # liable" is ordinary prose). Match lowercase: scan_for_violations lowercases
+    # the text before applying structural patterns.
     {
-        "pattern": r"(?:^|\n)So,?\s",
+        "pattern": r"(?:^|\n)so,\s",
         "category": "filler_opener",
+        "severity": "soft",
+        "suggestion": "Start with content, not 'So,'"
+    },
+
+    # False agency: inanimate subjects narrating. People tell stories literally;
+    # data does not.
+    {
+        "pattern": r"\b(?:data|numbers?|charts?|graphs?|metrics?|figures?|results?|dashboards?|spreadsheets?|trend\s?lines?|statistics)\s+tells?\s+a\s+story\b",
+        "category": "false_agency",
         "severity": "hard",
-        "suggestion": "Start with content, not 'So'"
+        "suggestion": "Say what the data shows."
     },
 
     # Colon-before-dramatic-reveal
@@ -977,7 +1012,7 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
     },
     {
         "pattern": r"\b(?:could|may|might|can)\s+(?:potentially|possibly)\b",
-        "category": "hedge",
+        "category": "hedge_stack",
         "severity": "soft",
         "suggestion": "Drop the redundant hedge."
     },
@@ -1122,6 +1157,15 @@ def main() -> None:
         sys.exit(1)
 
     violations = scan_for_violations(text, include_quoted=args.include_quoted)
+
+    # English-only graceful decline. Function-word absence alone is not evidence
+    # of a foreign language: imperative stacks and buzzword lists are English
+    # slop with few function words. Decline only when the text both fails the
+    # function-word heuristic AND produced zero English-pattern hits.
+    if not violations and not is_probably_english(text):
+        print(json.dumps({"non_english": True, "total_violations": 0, "violations": []}, indent=2))
+        print("note: input appears non-English; scanner declined (English-only).", file=sys.stderr)
+        sys.exit(0)
 
     # Group by category for summary
     categories: dict[str, int] = {}

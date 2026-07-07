@@ -16,6 +16,27 @@ Current gates:
     "needs": []
   },
   {
+    "id": "harvest-suite",
+    "command": "python3 evals/run_adversarial.py --only HARV",
+    "pass_criterion": "exit 0",
+    "blocking": true,
+    "needs": []
+  },
+  {
+    "id": "contribute-suite",
+    "command": "python3 evals/run_adversarial.py --only CONTRIB",
+    "pass_criterion": "exit 0",
+    "blocking": true,
+    "needs": []
+  },
+  {
+    "id": "calibrate-suite",
+    "command": "python3 evals/run_adversarial.py --only CAL",
+    "pass_criterion": "exit 0",
+    "blocking": true,
+    "needs": []
+  },
+  {
     "id": "shared-benchmark-check",
     "command": "python3 evals/build_shared_benchmark.py --check",
     "pass_criterion": "exit 0",
@@ -34,6 +55,55 @@ Current gates:
   {
     "id": "taboo-catalog-parity",
     "command": "python3 evals/check_taboo_parity.py",
+    "pass_criterion": "exit 0",
+    "blocking": true,
+    "needs": []
+  },
+  {
+    "id": "pattern-coverage",
+    "command": "python3 evals/check_pattern_coverage.py",
+    "pass_criterion": "exit 0",
+    "blocking": true,
+    "needs": []
+  },
+  {
+    "id": "voice-scorer",
+    "command": "python3 evals/check_voice.py --separation && python3 evals/check_voice.py --gi && python3 evals/check_voice.py --gaming && python3 evals/check_voice.py --profiles",
+    "pass_criterion": "exit 0",
+    "blocking": true,
+    "needs": []
+  },
+  {
+    "id": "add-pattern-kata",
+    "command": "python3 evals/kata_add_pattern.py --run",
+    "pass_criterion": "exit 0",
+    "blocking": true,
+    "needs": []
+  },
+  {
+    "id": "command-router-parity",
+    "command": "python3 evals/check_commands.py",
+    "pass_criterion": "exit 0",
+    "blocking": true,
+    "needs": []
+  },
+  {
+    "id": "seeded-docs",
+    "command": "python3 evals/check_seeded_docs.py",
+    "pass_criterion": "exit 0",
+    "blocking": true,
+    "needs": []
+  },
+  {
+    "id": "paired-fixture-hygiene",
+    "command": "python3 evals/check_pairs.py",
+    "pass_criterion": "exit 0",
+    "blocking": true,
+    "needs": []
+  },
+  {
+    "id": "mimic-logic",
+    "command": "python3 evals/run_adversarial.py --only MIMIC --only CARD",
     "pass_criterion": "exit 0",
     "blocking": true,
     "needs": []
@@ -65,6 +135,20 @@ Current gates:
   {
     "id": "structure-scan",
     "command": "python3 scripts/structure_scan.py < transformed.txt",
+    "pass_criterion": "exit 0",
+    "blocking": true,
+    "needs": []
+  },
+  {
+    "id": "silhouette-scan",
+    "command": "python3 scripts/silhouette_scan.py < transformed.txt",
+    "pass_criterion": "exit 0",
+    "blocking": true,
+    "needs": []
+  },
+  {
+    "id": "silhouette-check",
+    "command": "python3 evals/check_silhouette.py",
     "pass_criterion": "exit 0",
     "blocking": true,
     "needs": []
