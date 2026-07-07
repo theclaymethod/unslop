@@ -34,3 +34,4 @@ scripts/.wiki_sync_state.json
 evals/runs/
 runs/
 .claude/
+.codex/

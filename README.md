@@ -282,10 +282,13 @@ constitutional, and it is built to resist gaming.
   deterministic backstops: facts that must survive, banned strings that must not appear,
   similarity floors for do-no-harm. Its 33 cases split `tune` (17) for shaping, `holdout` (12)
   for reporting, and `holdback` (4) sealed until final confirmation.
-- **Interpreting the lift.** The base model already de-slops well, so aggregate lift runs near
-  zero and per-case deltas carry the signal. In the recorded tune run the skill preserved a
-  legal hedge the baseline dropped, and exposed a do-no-harm regression (rewriting already-clean
-  prose) the guards were then hardened against.
+- **Interpreting the lift.** The base model already de-slops well, so judge-blended lift runs
+  near zero and per-case deltas carry the signal. On the recorded 2026-07-06 holdout run the
+  deterministic backstops show +4.2 points objective lift (0.917 vs 0.875 across 12 held-out
+  cases; see `evals/TUNE-RESULTS.md`) while the judge cannot tell the prose apart — the
+  measurable value lives in preserved facts, register, and structure. The recorded tune run
+  also preserved a legal hedge the baseline dropped, and exposed a do-no-harm regression the
+  guards were then hardened against.
 
 ```bash
 python3 evals/run_adversarial.py            # the deterministic suite (439 pass, 1 xfail)
