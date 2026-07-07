@@ -12279,6 +12279,48 @@
           "value": "Traceback"
         }
       ]
+    },
+    {
+      "id": "LANG-20",
+      "category": "language_decline",
+      "title": "Spanish prose declined by silhouette_scan",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/silhouette_scan.py"
+      ],
+      "stdin": "Hola amigo. \u00bfC\u00f3mo est\u00e1s? Muy bien gracias. El perro corre en el parque todos los d\u00edas.\n\nOtro p\u00e1rrafo en espa\u00f1ol con m\u00e1s palabras comunes del idioma, para asegurar que el texto tenga suficientes palabras y frases completas sobre la vida cotidiana.",
+      "failure_mode": "silhouette_scan never imported _lang, so its discourse-arrangement metrics run on tokens never validated as English; a Spanish document the sibling scanners wave through with non_english true could still be hard-blocked by silhouette_penalty.",
+      "correct_behavior": "Non-English detected: non_english true, exit 0.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "\"non_english\": true"
+        }
+      ]
+    },
+    {
+      "id": "LANG-21",
+      "category": "scanner_false_negative",
+      "title": "Decline must not preempt a genuine silhouette flag",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/silhouette_scan.py",
+        "evals/fixtures/silhouette/corpus/ai/01_linkedin.txt"
+      ],
+      "failure_mode": "A decline check placed BEFORE scanning could misclassify low-function-word English AI slop as non-English and wave it through unscanned, the same scan-order bug already fixed once in the other scanners (commit 4d514a2).",
+      "correct_behavior": "Scan runs first; the known AI fixture still flags (non-English decline never fires on it).",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 1
+        }
+      ]
     }
   ]
 }
