@@ -15,6 +15,8 @@ jobs:
           python-version: "3.11"
       - name: Compile all scripts
         run: python -m py_compile scripts/*.py evals/*.py
+      - name: Lint (ruff baseline)
+        run: pipx install ruff && ruff check .
       - name: Run adversarial regression harness
         run: python3 evals/run_adversarial.py
       - name: Behavioral manifest is in sync with the source cases
