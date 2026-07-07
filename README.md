@@ -1,8 +1,8 @@
 # unslop
 
-Strip the patterns that make writing read as machine-written, and reconstruct prose in a
-real human voice. unslop ships as an agent skill: the host agent runs it while you write,
-backed by deterministic scanners that any tool can call on their own.
+unslop strips the patterns that make writing read as machine-written, then rebuilds the prose
+in a real human voice. It ships as an agent skill, and the host agent runs it while you write,
+backed by deterministic scanners that any tool can call on its own.
 
 Four commands cover the whole surface:
 
@@ -11,10 +11,9 @@ Four commands cover the whole surface:
 - `/unslop rewrite` diagnoses a draft and rebuilds it under the guards (the default).
 - `/unslop mimic` drafts or rewrites in a taught voice, then clears every removal gate.
 
-The weight sits about 70/30 toward removal. Detection is cheap, deterministic, and
-benchmarkable; it is the trust asset. Voice work is generative, and it runs under detection's
-constitution: any mimic or rewrite that reintroduces a tell fails, however well it matches the
-voice.
+Detection carries the weight, and it's cheap, deterministic, and benchmarkable, which is what
+makes it the trust asset. Voice work is generative, and it runs under detection's constitution,
+so any mimic or rewrite that reintroduces a tell fails, however well it matches the voice.
 
 ## Installation
 
@@ -45,52 +44,52 @@ ln -s ~/dev/unslop ~/.claude/skills/unslop
 ln -s ~/dev/unslop/SKILL.md ~/.claude/commands/unslop.md
 ```
 
-The Python scripts under `scripts/` run on their own with no third-party dependencies
-(Python 3.8+, standard library). Call them from CI, a pre-publish check, or another agent
-without loading the skill at all.
+The Python scripts under `scripts/` run on their own, with no third-party dependencies, just
+Python 3.8+ and the standard library. Call them from CI, a pre-publish check, or another agent,
+and you never load the skill at all.
 
 ## Three Detection Layers
 
-Detection stacks three deterministic scanners, coarse to fine. Each returns JSON, exits
-non-zero on a flag, and carries false-positive protection rows so a literal or domain use
+Detection stacks three deterministic scanners, coarse to fine. Each one returns JSON and exits
+non-zero on a flag, and each carries false-positive protection rows, so a literal or domain use
 never trips it.
 
 **Phrase layer** (`scripts/banned_phrase_scan.py`). 313 banned phrases and vocabulary items,
 each tagged `hard` (always a tell) or `soft` (context-dependent). Gated words fire only in
 their jargon collocations. Sailors navigate, a `3:1 leverage` ratio holds, a `wedge` seats in
-the kerf, and `Garner, North Carolina` stays on the map; the same words in
+the kerf, and `Garner, North Carolina` stays on the map, while the same words inside
 `"navigate challenges"` or `"leverage synergies"` get caught. Quoted spans, blockquotes, and
-code fences are masked first, so a tutorial documenting bad writing never flags its examples.
+code fences get masked first, so a tutorial documenting bad writing never flags its own examples.
 
 **Structure layer** (`scripts/structure_scan.py`). 77 structural patterns plus document-level
 metrics: `sentence_burstiness`, `paragraph_cv`, `triad_density`, `bold_colon_listicle_count`,
 `one_line_staccato_share`, `connective_paragraph_openers`, `signpost_density`,
 `opener_unique_ratio`, `top_opener_share`, `max_consecutive_opener`,
 `participial_closer_share`, `conclusion_coda`, and `summary_sandwich`. This layer catches the
-rhythm tells (uniform sentence length, staccato runs), the moralizing codas, the connective
-scaffolds that open every paragraph with `"However,"` or `"Moreover,"`, and the bold-label
-listicles standing in for prose. Genre carve-outs keep it honest: `--genre docs` allows the
-bold-label lists reference docs really use, and `--genre social` allows the short-line cadence
-that belongs in social copy.
+rhythm tells, the uniform sentence length and the staccato runs, the moralizing codas, the
+connective scaffolds that open every paragraph with `"However,"` or `"Moreover,"`, and the
+bold-label listicles that stand in for prose. Genre carve-outs keep it honest, so `--genre docs`
+allows the bold-label lists that reference docs really use, and `--genre social` allows the
+short-line cadence that belongs in social copy.
 
-**Silhouette layer** (`scripts/silhouette_scan.py`). One level above the surface, this scores
-how ideas are arranged. It catches outline-following, recap loops, and paragraph-role
+**Silhouette layer** (`scripts/silhouette_scan.py`). This one sits a level above the surface and
+scores how the ideas are arranged. It catches outline-following, recap loops, and paragraph-role
 templating: body paragraphs that open on a discourse cue instead of their own claim
 (`scaffold_opener_share`), opening vocabulary that disappears mid-document and returns at the
 end (`callback_content`, the strongest single tell), cue-opener roles rotating like a template
 (`role_entropy_bits`), intro content words reappearing as body-paragraph heads
 (`preview_fulfillment`), and section headings that restate the intro's outline
 (`heading_preview`). The composite `silhouette_penalty` flags at `1.0` against a committed
-human reference. On the corpus in the repo it separates cleanly: 12 of 12 AI documents
-flagged, 0 of 8 human documents flagged. A cue-deletion attack collapses the scaffold metric,
-so silhouette is scored jointly with the structure scanner as a lower fence.
+human reference. On the corpus in the repo it separates cleanly, with 12 of 12 AI documents
+flagged and 0 of 8 human documents flagged. A cue-deletion attack collapses the scaffold metric,
+so silhouette gets scored jointly with the structure scanner, as a lower fence.
 
 ## The Gamut: What Gets Removed
 
 Every family below is cataloged in `references/taboo-phrases.md` and pinned by an eval row.
-Severity is `hard` (always a tell) or `soft` (a default register guard your real voice may
-override). The philosophy throughout is contextual gating over blunt word bans: a pattern
-ships only once a false-positive row proves the literal sense survives.
+Severity is `hard` (always a tell) or `soft` (a default register guard your real voice can
+override). The idea throughout is contextual gating over blunt word bans, and a pattern ships
+only once a false-positive row proves the literal sense survives.
 
 ### Openers, emphasis, and inflation
 
@@ -135,38 +134,38 @@ ships only once a false-positive row proves the literal sense survives.
 The structure scanner adds the document-shape tells: uniform sentence rhythm, staccato
 one-line-paragraph runs outside social copy, connective paragraph scaffolds, signpost density,
 and moralizing codas like `"Ultimately, this reminds us that..."`. The silhouette scanner adds
-the arrangement tells above. A handful of macro tells stay agent judgment rather than
+the arrangement tells above. A handful of macro tells stay agent judgment instead of
 scanner-enforced (both-sidesism, templated redemption arcs, over-determination, uniform
-emotional register), because a scanner cannot reliably tell a genuine opposing view from a
+emotional register), because a scanner can't reliably tell a genuine opposing view from a
 manufactured one.
 
 ## What Gets Protected
 
-Do-no-harm is half the product. The scanners are built to leave the following alone, and each
-guard has its own eval row.
+Do-no-harm is half the product. The scanners leave the following alone, and each guard has its
+own eval row.
 
 - **Register guards.** `"never store secrets"`, `"may cause drowsiness"`,
   `"does not establish causation"`, and `"notwithstanding anything to the contrary"` are
-  content, not filler. In legal, medical, security, and scientific text these hedges,
+  content, not filler. In legal, medical, security, and scientific text, these hedges,
   negations, absolutes, and scope words carry meaning. `validate_preservation.py --strict`
   turns dropping one into a hard failure.
 - **Literal domain usage.** Construction, mechanics, law, medicine, finance, sailing, and
   code all use the gated words literally. Every contextual pattern ships with a false-positive
   row proving the literal sense stays clean.
 - **Quoted examples.** Spans in quotes, blockquotes, and code fences are exempt by default, so
-  documentation never self-flags the bad writing it is teaching.
+  documentation never self-flags the bad writing it's teaching.
 - **Facts, with magnitude awareness.** Numbers, names, dates, quotes, units, references like
   `Section 12(b)`, and `and/or` scope survive a rewrite. Magnitude-aware checking means
-  `$47.3M` cannot silently become `$47.3 billion`, and `150 km` cannot become `150 miles`.
+  `$47.3M` can't silently become `$47.3 billion`, and `150 km` can't become `150 miles`.
 - **Genre carve-outs.** Bold-label lists are correct in reference docs, staccato is correct in
   social copy, and a section-roadmap abstract is academic convention rather than a tell.
-- **English only.** Non-English input gets cheap detection and a clear decline. That is the one
-  graceful refusal in the product; the scanners return `non_english: true` and stop.
+- **English only.** Non-English input gets cheap detection and a clear decline. That's the one
+  graceful refusal in the product, and the scanners return `non_english: true` and stop.
 
 ## Voice: teach and mimic
 
-The right end of the axis writes the way a specific person writes. It is agent-driven end to
-end: you supply approvals and answers, never a directory or a command.
+The right end of the axis writes the way a specific person writes. It's agent-driven end to
+end, and you supply approvals and answers, never a directory or a command.
 
 ### teach
 
@@ -177,45 +176,46 @@ a machine profile (`profile.json`, the deterministic referee) and a layered voic
 1. **Harvest.** Cheap agents bootstrap the corpus from your chat transcripts and writing
    folders. Adapters read both Claude Code (`claude-jsonl`) and Codex CLI/Desktop
    (`codex-jsonl`) sessions, auto-detected by shape. The contamination guarantee is the whole
-   point: assistant-authored text in a voice profile would teach the exact register unslop
-   removes. So the adapters drop assistant and developer turns, strip injected content like a
+   point, because assistant-authored text in a voice profile would teach the exact register
+   unslop removes. So the adapters drop assistant and developer turns, strip injected content
+   like a
    dumped `AGENTS.md`, and run every kept candidate through the scanners. A hard hit or two
    scanner categories marks a sample `suspect_ai`, ranked last and never auto-approved. Nothing
-   enters a profile without your approval.
+   reaches a profile without your approval.
 2. **Profile and card.** `voice_profile.py` computes the stylometric fingerprint (character
    3-grams, function-word deltas, sentence-length distribution, punctuation, contractions,
    MTLD, impostor z-scores, GI rank). `voice_card.py` writes the layered card the generator
-   reads. The card never fabricates: a dimension with no sample evidence gets no sheet and is
-   named under "Uncovered". A profile that does not describe the supplied samples is rejected
-   (exit 2), so a stale profile can never drive a card.
+   reads. The card never fabricates, so a dimension with no sample evidence gets no sheet, and
+   it's named under "Uncovered" instead. A profile that doesn't describe the supplied samples
+   gets rejected (exit 2), so a stale profile can never drive a card.
 3. **Calibrate.** When samples run thin, an A/B preference game gathers voice signal at
-   tap-level effort. Pairs are dimension-controlled minimal edits of your own passages, mostly
-   from deterministic transforms, so each pair preserves the passage's facts. Preferences
-   aggregate per dimension with confidence bounds, the game targets the least-known dimension
-   next, and a stated preference that contradicts a sample-measured value surfaces to you as a
-   named conflict rather than being resolved silently. Voice beats the default register guard,
-   but only visibly.
+   tap-level effort. The pairs are dimension-controlled minimal edits of your own passages,
+   mostly from deterministic transforms, so each pair keeps the passage's facts. Preferences
+   aggregate per dimension with confidence bounds, and the game targets the least-known
+   dimension next, while a stated preference that contradicts a sample-measured value surfaces
+   to you as a named conflict, never resolved silently. Voice beats the default register guard,
+   but only in the open.
 4. **Scored demo.** teach closes by mimicking one paragraph, scoring it, and running the
    scanners in front of you. A voiced demo that trips a slop gate fails the loop.
 
 ### mimic
 
 `mimic` drafts or rewrites in the taught voice, then clears the full gate battery. The rule is
-absolute: a mimic that scores well on voice but trips a removal gate is rejected. Voice never
+absolute, so a mimic that scores well on voice but trips a removal gate gets rejected. Voice never
 buys an exemption from the constitution, and meaning preservation against the original draft
 is its own separate hard gate.
 
 - **Voice check** answers "does this sound like me?" with a score and no rewrite. It reports
   the composite (lower is more you), the General Impostors rank, and the two or three metric
-  deltas that explain the score in plain words. It is the cheapest voice interaction and the
-  usual one after teach: check drafts often, commission rewrites rarely.
+  deltas that explain the score in plain words. It's the cheapest voice interaction and the
+  usual one after teach. Check drafts often, commission rewrites rarely.
 - **Refine** hill-climbs when a single pass keeps landing short. It splits samples into a
   retrieval pool and a held-out acceptance split, generates candidates, and discards any that
   trip a hard gate (banned-phrase, structure, draft-to-candidate preservation, a copy-gate
-  against the pool, and a word floor). Survivors are scored on the held-out split with a
+  against the pool, and a word floor). Survivors get scored on the held-out split with a
   gaming-resistant composite: `0.5·(1−GI) + 0.5·` a clipped impostor-z distance against a
   same-genre impostor pool. A marker-stuffed candidate can drive a raw distance down and still
-  lose under the General Impostors rank, which is what stops it from beating honest prose. A
+  lose under the General Impostors rank, and that's what stops it from beating honest prose. A
   **divergence guard** halts the loop and raises `reward_hacking_warning` when the pool score
   improves while the held-out score worsens for two iterations. Claim a win only when
   `mimic_stats.py` shows the confidence-interval lower bound above zero and p below 0.05.
@@ -223,15 +223,15 @@ is its own separate hard gate.
 ## Co-writer: cleanup
 
 `cleanup` is the co-writer mode. On detection it surfaces findings as structured suggestions,
-never as a silent rewrite. Each suggestion carries a span, severity, category, rationale, and
-proposed replacement. Detection is cheap and deterministic; replacement generation is
+never a silent rewrite. Each suggestion carries a span, severity, category, rationale, and
+proposed replacement. Detection is cheap and deterministic, and replacement generation is
 delegated to a stronger model, which fills in the null replacements the scanner leaves.
 
 Hard findings become direct replacements. Soft findings are register-dependent, so their
 rationale is phrased as a question rather than an edit. Four contract gates in
 `check_suggestions.py` make "accept all" safe by construction:
 
-- **span-minimality**: an edit changes only its own span; a whole-sentence rewrite fails.
+- **span-minimality**: an edit changes only its own span, and a whole-sentence rewrite fails.
 - **replacement-scanner**: each replacement passes both scanners in isolation and adds no new
   violation in context.
 - **accept-all**: applying every suggestion yields a document that passes both scanners and
@@ -243,9 +243,9 @@ span, category, and severity, separating clear problems from judgment calls.
 
 ## Contribute: the growth flywheel
 
-Detection catalogs decay as generators evolve. Growth comes from adversarial refresh: a wild
-specimen becomes an eval row becomes a structured PR. `/unslop contribute` runs the pipeline
-offline until you approve publication.
+Detection catalogs decay as generators evolve. Growth comes from adversarial refresh, where a
+wild specimen becomes an eval row becomes a structured PR. `/unslop contribute` runs the
+pipeline offline until you approve publication.
 
 1. **Precheck** tells you whether the tell is already covered.
 2. **Confirmation gate one** shows you the exact snippet and asks whether it may go public,
@@ -262,20 +262,20 @@ Yesterday's miss becomes tomorrow's regression test, and nothing rides on good h
 ## The Eval Suite Is the Product
 
 Every behavior worth having is pinned by a row that fails without it. The suite is
-constitutional, and it is built to resist gaming.
+constitutional, and it's built to resist gaming.
 
 - **439 deterministic cases** in `evals/adversarial-evals.json`, run by
   `python3 evals/run_adversarial.py`. Each detection carries a false-negative row (the tell
-  gets caught), a false-positive row (the literal sense survives), and a recall row (gating did
-  not gut detection).
+  gets caught), a false-positive row (the literal sense survives), and a recall row (gating
+  didn't gut detection).
 - **24 machine-readable gates** via `python3 evals/run_adversarial.py --list-gates`, mirrored
   in `evals/CHECKS.md`. They cover the scanners, the harvest/contribute/calibrate suites, the
   voice scorer, pack structure, silhouette separation, and the docs themselves.
 - **Mutation-proof by construction.** Deleting a scanner pattern fails the coverage gate.
   Marking a passing case `xfail` fails the build. The one documented XFAIL is pinned to exactly
   one case: `FP-06`, where the literal `"delve into the mountain"` collides with the strong
-  `"delve into the topic"` tell, an accepted residual a pattern regex cannot disambiguate. Even
-  the docs are gate-checked: SKILL.md's own examples must pass its scanners, the scanner and
+  `"delve into the topic"` tell, an accepted residual a pattern regex can't disambiguate. Even
+  the docs get gate-checked, so SKILL.md's own examples must pass its scanners, the scanner and
   catalog are held in two-way parity, and a kata proves the add-a-pattern loop still works.
 - **Behavioral layer.** `evals/shared-benchmark.json` is generated (never hand-edited) from the
   `skill` rows, with `with_skill` and `without_skill` variants graded by an LLM judge plus
@@ -283,11 +283,11 @@ constitutional, and it is built to resist gaming.
   similarity floors for do-no-harm. Its 33 cases split `tune` (17) for shaping, `holdout` (12)
   for reporting, and `holdback` (4) sealed until final confirmation.
 - **Interpreting the lift.** The base model already de-slops well, so judge-blended lift runs
-  near zero and per-case deltas carry the signal. On the recorded 2026-07-06 holdout run the
+  near zero and per-case deltas carry the signal. On the recorded 2026-07-06 holdout run, the
   deterministic backstops show +4.2 points objective lift (0.917 vs 0.875 across 12 held-out
-  cases; see `evals/TUNE-RESULTS.md`) while the judge cannot tell the prose apart — the
-  measurable value lives in preserved facts, register, and structure. The recorded tune run
-  also preserved a legal hedge the baseline dropped, and exposed a do-no-harm regression the
+  cases, see `evals/TUNE-RESULTS.md`), while the judge can't tell the prose apart, so the
+  measurable value lives in preserved facts, register, and structure. The recorded tune run also
+  preserved a legal hedge the baseline dropped, and it exposed a do-no-harm regression the
   guards were then hardened against.
 
 ```bash
@@ -303,18 +303,18 @@ tier is safe rather than assuming it. The live matrix was recorded **2026-07-06*
 the Anthropic and GPT spectrums.
 
 **Span replacement clears on the cheapest tier.** On the mechanical span-minimal contract,
-`claude-haiku`, `claude-sonnet`, `gpt-5.4-mini`, and `gpt-5.5` all scored 8/8; `claude-opus`
+`claude-haiku`, `claude-sonnet`, `gpt-5.4-mini`, and `gpt-5.5` all scored 8/8, and `claude-opus`
 scored 7/8, its one miss a dropped `8:30` caught by the preservation gate rather than by model
-choice. The gates carry safety, the tier does not.
+choice. The gates carry safety, the tier doesn't.
 
 **Full rewrites of register-sensitive text belong to frontier models.** On eight
 register/structure cases the ladder was 7/8 (opus, gpt-5.4-mini), 6/8 (sonnet, gpt-5.5), and
-5/8 (haiku, gpt-5.4-nano); cheap-tier misses softened absolutes, dropped hedges, and eroded a
-legal negation.
+5/8 (haiku, gpt-5.4-nano), and the cheap-tier misses softened absolutes, dropped hedges, and
+eroded a legal negation.
 
 **Macro structure defeated every model tested.** The `MACRO-01` case failed for all six,
-opus included: each kept a conclusion coda the prose instruction told it to drop. No model
-self-checks document shape from prose, so structure is always machine-detected and
+opus included, and each one kept a conclusion coda the prose instruction told it to drop. No
+model self-checks document shape from prose, so structure is always machine-detected and
 machine-gated. `references/pipeline.md` records the full tables.
 
 ## Standalone Scripts
@@ -426,25 +426,25 @@ python3 scripts/wiki_sync.py check
 
 The sync diffs against the last run and proposes updates to `taboo-phrases.md` and the phrase
 scanner, always eval-row-first per `references/maintenance.md`. Wikipedia-only patterns (broken
-wikitext, DOI issues) are skipped, and state lives in `scripts/.wiki_sync_state.json`
+wikitext, DOI issues) get skipped, and state lives in `scripts/.wiki_sync_state.json`
 (gitignored).
 
 ## Maintenance
 
-All maintenance is eval-first: the row lands red in `evals/adversarial-evals.json` before any
-scanner or catalog edit turns it green. `references/maintenance.md` holds the procedures for
+All maintenance is eval-first, and the row lands red in `evals/adversarial-evals.json` before
+any scanner or catalog edit turns it green. `references/maintenance.md` holds the procedures for
 adding a banned phrase (with its required literal-use protection row), adding a structural
 pattern, listing current patterns, and running the Wikipedia sync. `CLAUDE.md` and `AGENTS.md`
-hold the contribution rules; `docs/PRODUCT.md` holds the reasoning behind them.
+hold the contribution rules, and `docs/PRODUCT.md` holds the reasoning behind them.
 
 ## Philosophy
 
-AI text follows predictable patterns that readers learn to spot. unslop does not just swap
-words; it restructures content to read as human, and it refuses to fix writing that was never
+AI text follows predictable patterns that readers learn to spot. unslop doesn't just swap
+words, it restructures content to read as human, and it refuses to fix writing that was never
 broken. The guiding principles:
 
-- **Cut what carries no meaning.** If removal does not change the meaning, remove it.
-- **Trust the reader.** They do not need `"let that sink in"`.
+- **Cut what carries no meaning.** If removal doesn't change the meaning, remove it.
+- **Trust the reader.** They don't need `"let that sink in"`.
 - **Facts are sacred.** Numbers, names, dates, negations, and scope survive unchanged.
 - **Do no harm.** Register hedges, literal vocabulary, and already-human prose stay intact.
 - **Voice runs under the constitution.** A mimic that reintroduces slop is a failure.
