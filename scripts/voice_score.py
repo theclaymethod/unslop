@@ -225,7 +225,7 @@ def parse_args(argv):
 
 def read_candidate(path):
     if path == "-":
-        return sys.stdin.read()
+        return sys.stdin.buffer.read().decode("utf-8", errors="replace")
     p = Path(path)
     if not p.exists():
         raise FileNotFoundError(path)

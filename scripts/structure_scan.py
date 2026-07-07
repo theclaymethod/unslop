@@ -289,9 +289,9 @@ def main(argv: list[str]) -> int:
         if not path.exists():
             print(f"Missing file: {path}", file=sys.stderr)
             return 2
-        text = path.read_text()
+        text = path.read_text(errors="replace")
     else:
-        text = sys.stdin.read()
+        text = sys.stdin.buffer.read().decode("utf-8", errors="replace")
 
     # English-only graceful decline, matching banned_phrase_scan.py.
     result = scan(text, args.genre)

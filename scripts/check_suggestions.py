@@ -183,9 +183,9 @@ def main(argv: list[str]) -> int:
         if not path.exists():
             print(f"Missing file: {path}", file=sys.stderr)
             return 2
-        raw = path.read_text()
+        raw = path.read_text(errors="replace")
     else:
-        raw = sys.stdin.read()
+        raw = sys.stdin.buffer.read().decode("utf-8", errors="replace")
 
     try:
         data = json.loads(raw)

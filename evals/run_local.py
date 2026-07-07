@@ -59,6 +59,8 @@ def run_one(task: dict, runs_dir: Path, model: str | None, timeout: int) -> tupl
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
     except subprocess.TimeoutExpired:
         return label, False, "timeout"
+    except (FileNotFoundError, OSError) as e:
+        return label, False, f"runner unavailable: {e}"
     answer = proc.stdout.strip()
     if not answer:
         return label, False, (proc.stderr.strip()[:120] or "empty output")

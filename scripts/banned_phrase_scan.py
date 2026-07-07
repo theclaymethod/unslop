@@ -1144,13 +1144,13 @@ def main() -> None:
     # Read input
     if args.input_file:
         try:
-            with open(args.input_file, 'r') as f:
+            with open(args.input_file, 'r', errors="replace") as f:
                 text = f.read()
         except OSError as e:
             print(json.dumps({"error": f"Could not read input: {e}", "violations": []}))
             sys.exit(2)
     else:
-        text = sys.stdin.read()
+        text = sys.stdin.buffer.read().decode("utf-8", errors="replace")
 
     if not text.strip():
         print(json.dumps({"error": "No input provided", "violations": []}))
