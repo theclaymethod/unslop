@@ -65,7 +65,9 @@
       "numeric_parallelism",
       "slogan_fragment",
       "spec_fragment",
-      "staccato_fragmentation"
+      "staccato_fragmentation",
+      "tool_agency_reflexive",
+      "tool_agency_volitional"
     ],
     "pack-facts": []
   }

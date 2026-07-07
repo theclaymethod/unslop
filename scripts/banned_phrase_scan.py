@@ -984,6 +984,46 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "severity": "soft",
         "suggestion": "Abstractions don't 'ship inside' things. State the mechanism plainly."
     },
+    # Tool anthropomorphism, TIER A — reflexive self-agency. An inanimate tool-noun
+    # subject that acts on ITSELF ("The suite defends itself.", "The rules update
+    # themselves.", "It graded its own reflection."). Marketing personification of
+    # machinery. Fires anywhere (not line-gated). The FP guard is adjacency: the
+    # reflexive object must sit DIRECTLY after the verb (optionally one -ly adverb),
+    # so the dev idiom "The test cleans up after itself." — where "up after"
+    # intervenes — never forms the shape. The negative lookahead on "... out" spares
+    # the "sorts itself out" / "works itself out" idioms. Ordinary tool-verb prose
+    # ("the gate fails the build", "the scanner returns JSON") has no reflexive
+    # object and stays clean. Soft: a voice may choose this cadence. Two patterns:
+    # a spelled-out tool-noun subject, and the bare sentence-initial "It ..." subject.
+    {
+        "pattern": r"\b(?:the|these|those|its)\s+(?:suite|scanner|gates?|tool|system|pipeline|bench|rules?|tests?|code|models?|loop|harness)\s+(?:\w+ly\s+)?\w+\s+(?:(?:itself|themselves)(?!\s+out\b)|its\s+own\s+\w+)",
+        "category": "tool_agency_reflexive",
+        "severity": "soft",
+        "suggestion": "A tool acting on itself is personification. State what it does and to what."
+    },
+    {
+        "pattern": r"(?:^|[.!?]\s+|\n)it\s+(?:\w+ly\s+)?\w+\s+(?:(?:itself|themselves)(?!\s+out\b)|its\s+own\s+\w+)",
+        "category": "tool_agency_reflexive",
+        "severity": "soft",
+        "suggestion": "A tool acting on itself is personification. State what it does and to what."
+    },
+    # Tool anthropomorphism, TIER B — strongly-volitional verb with a tool-noun (or
+    # bare "It") subject, in HEADLINE / standalone-line position only ("The bench
+    # decides which model does which job.", "It hunts instances, not word lists.").
+    # The volitional set is deliberately narrow (decide/hunt/want/know/believe/care/
+    # refuse/judge/think) — the everyday technical verbs (reads, runs, checks, finds,
+    # returns, handles, learns, sees) are EXCLUDED because "the parser reads the file"
+    # and "the model learns the distribution" are normal register. Line-anchored like
+    # slogan_fragment: the whole line must be the short sentence (<=~55 chars of tail,
+    # terminal punctuation, then EOL), so a volitional verb buried in running prose,
+    # or a longer flowing sentence, is spared. The tool-noun requirement keeps human
+    # roles out ("The judge decides the case." — 'judge' is not a tool-noun). Soft.
+    {
+        "pattern": r"(?:^|\n)[ \t]*(?:#{1,6}[ \t]*|>[ \t]*|[-*+][ \t]+)?(?:\*\*)?(?:(?:the|its|this)\s+(?:suite|scanner|gates?|tool|system|pipeline|bench|rules?|tests?|code|models?|loop|harness)\s+|it\s+)(?:decide|hunt|want|know|believe|care|refuse|judge|think)(?:s|es|d|ed)?\b[^.!?\n]{0,55}[.!?](?:\*\*)?[ \t]*(?=\n|$)",
+        "category": "tool_agency_volitional",
+        "severity": "soft",
+        "suggestion": "A tool doesn't decide, want, or know. Say what it does mechanically."
+    },
 
     # Em-dash overuse
     {

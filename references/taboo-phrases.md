@@ -725,6 +725,26 @@ without making the claim itself. (Signal adapted from `stop-slop`.)
 
 **Fix**: State the figure and what it means. "Revenue doubled" beats "the numbers speak for themselves."
 
+### Tool Anthropomorphism
+
+A close cousin of false agency: marketing copy hands an inanimate tool or artifact
+volitional or cognitive agency — machinery personified. Two shapes, both soft.
+
+| Pattern | Why It's Bad |
+|---------|--------------|
+| Reflexive self-agency: "The suite defends itself." / "The rules update themselves." / "It graded its own reflection." | A tool acting on itself is personification; state what it does and to what |
+| Volitional verb on a standalone headline line: "The bench decides which model does which job." / "It hunts instances, not word lists." | A tool doesn't decide, hunt, want, or know; say what it does mechanically |
+
+The reflexive shape fires anywhere the tool-noun subject takes a reflexive object
+directly after the verb. The volitional shape (decides, hunts, wants, knows, believes,
+cares, refuses, judges, thinks) fires only when the whole line is the short sentence —
+the headline/slogan position. Ordinary technical register is spared: "the parser reads
+the file", "the model learns the distribution", "the gate fails the build", and the dev
+idiom "the test cleans up after itself" all stay clean, and human roles ("the judge
+decides the case") are not tool-nouns.
+
+**Fix**: Name the mechanism. "The bench routes each job to a model" beats "The bench decides which model does which job."
+
 ---
 
 ## Conclusion & Sequencing Scaffolding
@@ -1079,6 +1099,13 @@ opener_repetition) as the lower fence.
 
 # Headline slogan cadence (soft; DOCUMENT-LEVEL — fires only at 3+ line matches)
 (?i)(?:^|\n)[ \t]*(?:[a-z0-9][\w'-]*(?:[ ,]+[a-z0-9][\w'-]*){0,4}[.!?][ \t]+){1,3}[a-z0-9][\w'-]*(?:[ ,]+[a-z0-9][\w'-]*){0,4}[.!?][ \t]*(?=\n|$)
+
+# Tool anthropomorphism (soft)
+# tier A reflexive self-agency, fires anywhere; adjacency + "...out" lookahead spare "cleans up after itself" / "sorts itself out"
+(?i)\b(?:the|these|those|its)\s+(?:suite|scanner|gates?|tool|system|pipeline|bench|rules?|tests?|code|models?|loop|harness)\s+(?:\w+ly\s+)?\w+\s+(?:(?:itself|themselves)(?!\s+out\b)|its\s+own\s+\w+)
+(?i)(?:^|[.!?]\s+|\n)it\s+(?:\w+ly\s+)?\w+\s+(?:(?:itself|themselves)(?!\s+out\b)|its\s+own\s+\w+)
+# tier B strongly-volitional verb, standalone-line only (excludes reads/runs/checks/returns/learns)
+(?i)(?:^|\n)[ \t]*(?:#{1,6}[ \t]*|>[ \t]*|[-*+][ \t]+)?(?:\*\*)?(?:(?:the|its|this)\s+(?:suite|scanner|gates?|tool|system|pipeline|bench|rules?|tests?|code|models?|loop|harness)\s+|it\s+)(?:decide|hunt|want|know|believe|care|refuse|judge|think)(?:s|es|d|ed)?\b[^.!?\n]{0,55}[.!?](?:\*\*)?[ \t]*(?=\n|$)
 
 # False concession structures
 (?i)((while|although) .+?, .+? (remains|is still) .+?(challenge|concern|open question|limitation|constraint))
