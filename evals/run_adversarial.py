@@ -283,6 +283,13 @@ def list_gates():
             "blocking": False,
             "needs": ["rubric judge"],
         },
+        {
+            "id": "evals-schema",
+            "command": "python3 evals/check_evals_schema.py",
+            "pass_criterion": "exit 0",
+            "blocking": True,
+            "needs": [],
+        },
     ]
 
 

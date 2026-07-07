@@ -182,6 +182,13 @@ Current gates:
     "needs": [
       "rubric judge"
     ]
+  },
+  {
+    "id": "evals-schema",
+    "command": "python3 evals/check_evals_schema.py",
+    "pass_criterion": "exit 0",
+    "blocking": true,
+    "needs": []
   }
 ]
 ```

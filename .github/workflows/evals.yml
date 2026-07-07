@@ -18,13 +18,73 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Compile all scripts
         run: python -m py_compile scripts/*.py evals/*.py
-      - name: Run adversarial regression harness
-        run: python3 evals/run_adversarial.py
-      - name: Behavioral manifest is in sync with the source cases
-        run: python3 evals/build_shared_benchmark.py --check
-      - name: Scanner catalog matches taboo docs
-        run: python3 evals/check_taboo_parity.py
       - name: Install skill benchmark harness
         run: pipx install git+https://github.com/adewale/skill-eval-harness.git
-      - name: Behavioral manifest passes strict leakage validation
-        run: skill-benchmark validate evals/shared-benchmark.json --strict-leakage
+      - name: Run every blocking gate from the live gate matrix
+        # Drives CI from `python3 evals/run_adversarial.py --list-gates`
+        # instead of a hand-copied list of steps, so a new blocking gate
+        # (registered in list_gates()) is enforced automatically and a
+        # deleted one can't silently drop out of CI unnoticed.
+        run: |
+          python3 - <<'PYEOF'
+          import json, shlex, subprocess, sys
+          from pathlib import Path
+
+          ROOT = Path.cwd()
+          gates = json.loads(subprocess.run(
+              ["python3", "evals/run_adversarial.py", "--list-gates"],
+              capture_output=True, text=True, check=True,
+          ).stdout)
+
+          blocking = [g for g in gates if g.get("blocking")]
+
+          # A few gate commands are workflow templates for a live rewrite
+          # session's own output check (they reference bare transformed.txt /
+          # original.txt, never committed to the repo -- they're produced by
+          # an actual rewrite). Their underlying scanner logic is already
+          # exercised by the many FP-*/STRUCT-*/SIL-*/PRES-*/ROB-*/AS-* rows
+          # the adversarial-suite gate runs (the first gate below), so skip
+          # them here instead of failing on a missing fixture. The check is
+          # generic (missing-file detection), not a hardcoded id list, so a
+          # real transformed.txt at the repo root would flip this back to a
+          # real run.
+          PLACEHOLDER_FILES = ("transformed.txt", "original.txt")
+
+          def missing_placeholder(command: str):
+              for token in command.split():
+                  token = token.strip("<>")
+                  if token in PLACEHOLDER_FILES and not (ROOT / token).exists():
+                      return token
+              return None
+
+          failed = []
+          skipped = []
+          ran = []
+          for gate in blocking:
+              gid, command = gate["id"], gate["command"]
+              placeholder = missing_placeholder(command)
+              if placeholder:
+                  skipped.append((gid, placeholder))
+                  print(f"SKIP  {gid}: references {placeholder}, not present outside a live rewrite session")
+                  continue
+              ran.append(gid)
+              print(f"RUN   {gid}: {command}")
+              if "&&" in command or "|" in command:
+                  # Compound command sourced only from the version-controlled
+                  # gate matrix (list_gates()), never external/user input --
+                  # shell=True is safe here.
+                  proc = subprocess.run(command, shell=True, cwd=ROOT)
+              else:
+                  proc = subprocess.run(shlex.split(command), cwd=ROOT)
+              if proc.returncode != 0:
+                  failed.append(gid)
+                  print(f"FAIL  {gid}: exit {proc.returncode}")
+              else:
+                  print(f"OK    {gid}")
+
+          print()
+          print(f"{len(ran)} gate(s) run, {len(skipped)} skipped (no live-session fixture), {len(failed)} failed")
+          if failed:
+              print("Failing gates:", ", ".join(failed))
+              sys.exit(1)
+          PYEOF
