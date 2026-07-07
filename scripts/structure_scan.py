@@ -16,6 +16,8 @@ from _lang import (  # noqa: E402
     ENGLISH_FUNCTION_WORDS,
     english_function_share,
     is_probably_english,
+    paragraphs as _prose_paragraphs,
+    words,
 )
 from readability_metrics import split_sentences  # noqa: E402
 
@@ -55,26 +57,8 @@ CODA_START_RE = re.compile(
 BOLD_COLON_RE = re.compile(r"^\s*[-*+]?\s*\*\*[^*]{1,40}\*\*\s*:", re.M)
 
 
-def words(text: str) -> list[str]:
-    return re.findall(r"[A-Za-z0-9]+(?:[-'][A-Za-z0-9]+)?", text.lower())
-
-
-def strip_markdown_for_prose(text: str) -> str:
-    text = re.sub(r"```[\s\S]*?```", "\n\n", text)
-    kept = []
-    for line in text.splitlines():
-        if re.match(r"\s*>", line) or re.match(r"\s{0,3}#{1,6}\s+", line):
-            kept.append("")
-            continue
-        line = re.sub(r"^\s*[-*+]\s+", "", line)
-        line = re.sub(r"^\s*\d+[.)]\s+", "", line)
-        kept.append(line)
-    return "\n".join(kept)
-
-
 def prose_paragraphs(text: str) -> list[str]:
-    stripped = strip_markdown_for_prose(text)
-    return [re.sub(r"\s+", " ", p).strip() for p in re.split(r"\n\s*\n", stripped) if p.strip()]
+    return _prose_paragraphs(text, blank_blockquotes=True)
 
 
 def cv(values: list[int]) -> float:
