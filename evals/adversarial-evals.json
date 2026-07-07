@@ -12007,14 +12007,14 @@
         "python3",
         "scripts/banned_phrase_scan.py"
       ],
-      "stdin": "İİİİİİİİİİİİİİİİİİİİhere's the thing:\nnext line here\n",
+      "stdin": "İİİİİİİİİİİİİİİİİİİİ here's the thing:\nnext line here\n",
       "failure_mode": "Matching runs against scan_text.lower(); str.lower() is not length-preserving for characters like U+0130 (İ), so match positions computed against the lowered text land on the wrong offset when indexed back into the original text, corrupting line/column/context.",
       "correct_behavior": "The reported context for the flagged violation is exactly the line containing the phrase, and it contains the phrase text verbatim.",
       "assertions": [
         {
           "type": "json",
           "path": "violations.0.context",
-          "equals": "İİİİİİİİİİİİİİİİİİİİhere's the thing:"
+          "equals": "İİİİİİİİİİİİİİİİİİİİ here's the thing:"
         }
       ]
     },
