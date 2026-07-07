@@ -11972,6 +11972,74 @@
           "value": "false_agency"
         }
       ]
+    },
+    {
+      "id": "SPAN-01",
+      "category": "scanner_detection",
+      "title": "CRLF line endings still report the correct line and column",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Intro line one.\r\nSecond line here.\r\nHere is here's the thing: seriously.\r\n",
+      "failure_mode": "Span reconstruction that assumes a 1-char line terminator (splitlines()-based re-summing) undercounts CRLF (\\r\\n) documents by 1 char per line, corrupting position tracking.",
+      "correct_behavior": "The banned phrase on line 3 is reported with line_number 3 and column 9 (its true 1-based position against the original CRLF text), regardless of internal span bookkeeping.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "violations.0.line_number",
+          "equals": 3
+        },
+        {
+          "type": "json",
+          "path": "violations.0.column",
+          "equals": 9
+        }
+      ]
+    },
+    {
+      "id": "SPAN-02",
+      "category": "scanner_detection",
+      "title": "Case-expanding fold (Turkish dotted capital I) does not shift offsets off the phrase",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "İİİİİİİİİİİİİİİİİİİİhere's the thing:\nnext line here\n",
+      "failure_mode": "Matching runs against scan_text.lower(); str.lower() is not length-preserving for characters like U+0130 (İ), so match positions computed against the lowered text land on the wrong offset when indexed back into the original text, corrupting line/column/context.",
+      "correct_behavior": "The reported context for the flagged violation is exactly the line containing the phrase, and it contains the phrase text verbatim.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "violations.0.context",
+          "equals": "İİİİİİİİİİİİİİİİİİİİhere's the thing:"
+        }
+      ]
+    },
+    {
+      "id": "SPAN-03",
+      "category": "scanner_detection",
+      "title": "scan_for_violations stays sub-linear-cost on a large slop document",
+      "target": "script",
+      "command": [
+        "python3",
+        "-c",
+        "import sys, time\nsys.path.insert(0, '.')\nfrom scripts.banned_phrase_scan import scan_for_violations\nsentences = ['This is a testament to progress.' for _ in range(8000)]\nlines = []\nfor i in range(0, len(sentences), 10):\n    lines.append(' '.join(sentences[i:i+10]))\ntext = '\\n'.join(lines)\nstart = time.perf_counter()\nscan_for_violations(text)\nelapsed = time.perf_counter() - start\nprint(f'elapsed={elapsed:.3f}s')\nif elapsed >= 2.0:\n    raise SystemExit(f'too slow: {elapsed:.3f}s >= 2.0s threshold')\n"
+      ],
+      "failure_mode": "Quadratic span reconstruction (re-splitting the whole document per violation) and quadratic containment (all-pairs comparison per violation) make scan_for_violations scale badly: ~10s on an 8k-sentence document.",
+      "correct_behavior": "scan_for_violations completes an 8,000-sentence document (each sentence a 'testament to' violation, nested inside 'a testament to') in under 2.0s.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        }
+      ]
     }
   ]
 }
