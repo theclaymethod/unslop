@@ -58,6 +58,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 from structure_scan import STOPWORDS as _STRUCTURE_STOPWORDS  # noqa: E402
+from _lang import is_probably_english  # noqa: E402
 
 
 REFERENCE_PATH = (
@@ -387,6 +388,12 @@ def main(argv: list[str]) -> int:
         text = sys.stdin.read()
 
     result = scan(text, reference, args.genre)
+
+    if not result.get("flags") and not is_probably_english(text):
+        print(json.dumps({"non_english": True, "flags": [], "penalty": None}, indent=2))
+        print("note: input appears non-English; scanner declined (English-only).", file=sys.stderr)
+        return 0
+
     print(json.dumps(result, indent=2))
     is_flagged = bool(result.get("penalty") is not None
                       and result["penalty"] >= PENALTY_THRESHOLD)

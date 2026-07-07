@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Shared cheap English-detection helpers for banned_phrase_scan.py and
-structure_scan.py. Both scanners must decline the same non-English inputs, so
-this table and its two functions live in exactly one place."""
+"""Shared cheap English-detection helpers for banned_phrase_scan.py,
+structure_scan.py, and silhouette_scan.py. All three scanners must decline the
+same non-English inputs, so this table and its two functions live in exactly
+one place."""
 
 import re
 
