@@ -1,19 +1,9 @@
-# Harvesting Voice Samples
+# Harvesting Voice Samples — internals
 
 Harvest bootstraps teach samples from local chat transcripts and folders the user
-declares as their own writing.
-
-Flow:
-
-1. Run `python3 scripts/harvest_samples.py SOURCE [SOURCE...] -o candidates.json`.
-2. Run `python3 scripts/harvest_classify.py --candidates candidates.json --mode heuristic`
-   for a deterministic coverage pass, or `--mode agent` to emit chunked task files for
-   cheap model classification.
-3. Review the candidates by hand. Approval is mandatory because accepted samples define
-   the voice profile.
-4. Only approved samples should be copied into `.unslop/voice/<name>/samples/` with
-   provenance for the teach flow.
-5. Run teach/mimic on the approved set.
+declares as their own writing. The routed flow (harvest → classify → approve →
+copy) is step 1 of `references/commands/teach.md`; this file holds the adapter
+internals, the contamination tripwire, and the privacy rules that flow links to.
 
 The transcript adapter only accepts entries with explicit user authorship. Assistant
 turns are dropped before candidate filtering, and unknown JSONL schemas are skipped with

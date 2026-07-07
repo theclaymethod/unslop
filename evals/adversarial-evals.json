@@ -10666,6 +10666,28 @@
       ]
     },
     {
+      "id": "DOC-13",
+      "category": "scanner_detection",
+      "title": "Command router surface stays in parity with references/commands/",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_commands.py"
+      ],
+      "failure_mode": "SKILL.md's argument-hint, its routing table, and the files under references/commands/ can drift: a verb added to the hint without a file, an orphaned command file, a routed command missing its file, an over-length command file, or a command file with the wrong first line all silently break the impeccable-style router.",
+      "correct_behavior": "Exit 0: the argument-hint top-level verbs equal the pinned four-verb surface, every routing-table link resolves to a references/commands/<cmd>.md file and vice versa, each command file is <= 90 lines, and each starts with `# /unslop <cmd>`.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        }
+      ]
+    },
+    {
       "id": "CAL-01",
       "category": "calibrate",
       "title": "Per-dimension transform correctness with constraints preserved",

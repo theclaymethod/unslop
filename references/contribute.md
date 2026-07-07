@@ -1,7 +1,10 @@
-# Contributing a New AI-ism
+# Contributing a New AI-ism — internals
 
-This flow turns one real snippet into an eval-first PR. Keep it offline until the
-user has approved both publication and the final PR body.
+The routed step-by-step is in `references/commands/contribute.md` (reachable as a
+maintenance path, not a top-level verb). This file is the exhaustive companion:
+every command flag, the redaction discipline, the row-diff verification, and the
+non-maintainer fork path. Keep it offline until the user has approved both
+publication and the final PR body.
 
 ## 1. Precheck
 

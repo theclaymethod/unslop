@@ -81,6 +81,13 @@ Current gates:
     "needs": []
   },
   {
+    "id": "command-router-parity",
+    "command": "python3 evals/check_commands.py",
+    "pass_criterion": "exit 0",
+    "blocking": true,
+    "needs": []
+  },
+  {
     "id": "seeded-docs",
     "command": "python3 evals/check_seeded_docs.py",
     "pass_criterion": "exit 0",

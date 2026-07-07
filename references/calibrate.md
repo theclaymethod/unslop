@@ -3,6 +3,8 @@
 An agent-hosted micro-game that calibrates voice preferences the user can state but
 never bothered to write samples for. Far lower effort than `teach`: harvest bootstraps
 samples, the A/B game calibrates dimension preferences, and both feed the voice card.
+`teach` offers this game (`references/commands/teach.md`, step 3) when sample coverage
+or confidence stays thin; this file is the canonical flow and rationale.
 
 ## Deterministic set
 
