@@ -38,6 +38,11 @@ ignore = ["E401", "E501", "E701", "E702", "E731"]
 #   scripts/voice_profile.py        F401    unused `math` import.
 #   scripts/wiki_sync.py            F541    three f-strings with no
 #                                            placeholders.
+#   plans/scratch/015-silhouette-stability.py
+#                                    F541    one f-string with no placeholders
+#                                            (spike scratch script merged from
+#                                            Plan 015 after this baseline was
+#                                            written; integration-time ignore).
 [lint.per-file-ignores]
 "evals/check_contrib.py" = ["F821", "F401"]
 "evals/check_pattern_coverage.py" = ["F401"]
@@ -50,3 +55,4 @@ ignore = ["E401", "E501", "E701", "E702", "E731"]
 "scripts/suggest.py" = ["F401"]
 "scripts/voice_profile.py" = ["F401"]
 "scripts/wiki_sync.py" = ["F541"]
+"plans/scratch/015-silhouette-stability.py" = ["F541"]
