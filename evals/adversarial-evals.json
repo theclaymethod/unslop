@@ -12321,6 +12321,93 @@
           "equals": 1
         }
       ]
+    },
+    {
+      "id": "WIKI-01",
+      "category": "wiki_sync",
+      "title": "diff --from-file surfaces a mapped section's watch word offline",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/wiki_sync.py",
+        "diff",
+        "--from-file",
+        "evals/fixtures/wiki/snapshot.wikitext"
+      ],
+      "failure_mode": "parse_wikitext or the --from-file seam drops watch words from a mapped section, or the command silently tries to hit the network / mutate state instead of reading the fixture.",
+      "correct_behavior": "Exit 0; the diff JSON's changes include the 'Words to watch' section's watch word marker.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "WIKIFIXTURE_MARKER_ALPHA"
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        }
+      ]
+    },
+    {
+      "id": "WIKI-02",
+      "category": "wiki_sync",
+      "title": "prompt --from-file carries a mapped section's watch word into the integration prompt",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/wiki_sync.py",
+        "prompt",
+        "--from-file",
+        "evals/fixtures/wiki/snapshot.wikitext"
+      ],
+      "failure_mode": "generate_prompt loses section watch words on the way from parse_wikitext to the rendered prompt, or --from-file fails to reach cmd_prompt.",
+      "correct_behavior": "Exit 0; the rendered prompt lists the 'Promotional language' section's watch word marker.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "WIKIFIXTURE_MARKER_BETA"
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        }
+      ]
+    },
+    {
+      "id": "WIKI-03",
+      "category": "wiki_sync",
+      "title": "Unmapped section content does not leak into diff output",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/wiki_sync.py",
+        "diff",
+        "--from-file",
+        "evals/fixtures/wiki/snapshot.wikitext"
+      ],
+      "failure_mode": "A future change dumps full section content (not just title/details/words) into the diff, leaking prose from sections that map to no SECTION_MAP keyword.",
+      "correct_behavior": "Exit 0; the unmapped 'Trivia' section's marker never appears in diff output, since it was never bolded into a watch word.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_not_contains",
+          "value": "WIKIFIXTURE_MARKER_GAMMA"
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        }
+      ]
     }
   ]
 }
