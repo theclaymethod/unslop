@@ -18,6 +18,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import bisect
 import sys
 import re
 import json
@@ -77,6 +78,43 @@ def _phrase_pattern(phrase: str) -> re.Pattern[str]:
     left = r"(?<![a-z0-9_-])" if phrase[0].isalnum() else ""
     right = r"(?![a-z0-9_-])" if phrase[-1].isalnum() else ""
     return re.compile(left + re.escape(phrase) + right)
+
+
+# Case-insensitive variant used only at the scan_for_violations call site, so
+# _phrase_pattern's case-sensitive default is unchanged for any other caller.
+# BANNED_PHRASES keys are lowercase literals; matching case-insensitively
+# against the original (unlowered) text avoids str.lower()'s non-length-
+# preserving folds (e.g. U+0130 "İ" -> 2 chars), which corrupt offsets.
+_phrase_pattern_ci_cache: dict[str, re.Pattern[str]] = {}
+
+
+def _phrase_pattern_ci(phrase: str) -> re.Pattern[str]:
+    cached = _phrase_pattern_ci_cache.get(phrase)
+    if cached is None:
+        cached = re.compile(_phrase_pattern(phrase).pattern, re.IGNORECASE)
+        _phrase_pattern_ci_cache[phrase] = cached
+    return cached
+
+
+def _line_starts(text: str) -> list[int]:
+    """0-indexed start offset of each line; line N (1-based) starts at index N-1."""
+    starts = [0]
+    for m in re.finditer("\n", text):
+        starts.append(m.end())
+    return starts
+
+
+def _line_col_context(text: str, line_starts: list[int], pos: int) -> tuple[int, int, str]:
+    """Derive (1-based line, 1-based column, stripped line context) for an offset
+    into ORIGINAL text from a precomputed line_starts index, in O(log n)."""
+    idx = bisect.bisect_right(line_starts, pos) - 1
+    line_start = line_starts[idx]
+    line_end = line_starts[idx + 1] - 1 if idx + 1 < len(line_starts) else len(text)
+    line_num = idx + 1
+    column = pos - line_start + 1
+    context = text[line_start:line_end].strip()
+    context = context[:100] + "..." if len(context) > 100 else context
+    return line_num, column, context
 
 
 # Banned phrases with categories, suggestions, and severity.
@@ -1043,24 +1081,18 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
 def scan_for_violations(text: str, include_quoted: bool = False) -> list[Violation]:
     """Scan text for banned phrases and structural patterns."""
     violations: list[Violation] = []
+    spans: list[tuple[int, int]] = []
     scan_text = mask_ignored_spans(text, include_quoted=include_quoted)
-    text_lower = scan_text.lower()
+    line_starts = _line_starts(text)
 
-    # Check banned phrases
+    # Check banned phrases. Matching runs case-insensitively directly on
+    # scan_text (original case, masking is length-preserving) instead of on a
+    # separately lowered copy, so match.start()/match.end() are valid offsets
+    # into the original text with no re-derivation needed.
     for phrase, info in BANNED_PHRASES.items():
-        for match in _phrase_pattern(phrase).finditer(text_lower):
+        for match in _phrase_pattern_ci(phrase).finditer(scan_text):
             pos = match.start()
-
-            # Calculate line number and column
-            line_num = text[:pos].count('\n') + 1
-            line_start = text.rfind('\n', 0, pos) + 1
-            column = pos - line_start + 1
-
-            # Get context (the line containing the phrase)
-            line_end = text.find('\n', pos)
-            if line_end == -1:
-                line_end = len(text)
-            context = text[line_start:line_end].strip()
+            line_num, column, context = _line_col_context(text, line_starts, pos)
 
             violations.append({
                 "phrase": phrase,
@@ -1068,43 +1100,34 @@ def scan_for_violations(text: str, include_quoted: bool = False) -> list[Violati
                 "severity": info.get("severity", "hard"),
                 "line_number": line_num,
                 "column": column,
-                "context": context[:100] + "..." if len(context) > 100 else context,
+                "context": context,
                 "suggestion": info["suggestion"]
             })
+            spans.append((match.start(), match.end()))
 
     # Check structural patterns
     for pattern_info in STRUCTURAL_PATTERNS:
-        matches = list(re.finditer(pattern_info["pattern"], text_lower))
+        matches = list(re.finditer(pattern_info["pattern"], scan_text, re.IGNORECASE))
         min_matches = int(pattern_info.get("min_matches", "1"))
         if len(matches) < min_matches:
             continue
         for match in matches:
             pos = match.start()
-            line_num = text[:pos].count('\n') + 1
-            line_start = text.rfind('\n', 0, pos) + 1
-            column = pos - line_start + 1
-
-            line_end = text.find('\n', pos)
-            if line_end == -1:
-                line_end = len(text)
-            context = text[line_start:line_end].strip()
+            line_num, column, context = _line_col_context(text, line_starts, pos)
 
             violations.append({
-                "phrase": match.group(),
+                # Preserve the pre-fix lowercase phrase field: STRUCTURAL_PATTERNS
+                # regexes are lowercase literals, previously matched against a
+                # lowered copy of the text, so match.group() was always lowercase.
+                "phrase": match.group().lower(),
                 "category": pattern_info["category"],
                 "severity": pattern_info.get("severity", "hard"),
                 "line_number": line_num,
                 "column": column,
-                "context": context[:100] + "..." if len(context) > 100 else context,
+                "context": context,
                 "suggestion": pattern_info["suggestion"]
             })
-
-    filtered: list[Violation] = []
-    spans: list[tuple[int, int]] = []
-    for v in violations:
-        start = sum(len(line) + 1 for line in text.splitlines()[:v["line_number"] - 1]) + v["column"] - 1
-        end = start + len(v["phrase"])
-        spans.append((start, end))
+            spans.append((match.start(), match.end()))
 
     # Frequency-gated structural findings (min_matches > 1) describe the DOCUMENT, not
     # a single span. A broad, unrelated match (e.g. anti_slop_register spanning several
@@ -1113,15 +1136,41 @@ def scan_for_violations(text: str, include_quoted: bool = False) -> list[Violati
     freq_gated = {
         p["category"] for p in STRUCTURAL_PATTERNS if int(p.get("min_matches", "1")) > 1
     }
-    for i, v in enumerate(violations):
-        start, end = spans[i]
-        contained = any(
-            i != j and other_start <= start and end <= other_end and (other_end - other_start) > (end - start)
-            for j, (other_start, other_end) in enumerate(spans)
-        )
-        if not contained or v["category"] in freq_gated:
-            filtered.append(v)
-    violations = filtered
+
+    # Linear containment sweep, equivalent to the O(n^2) "any other strictly
+    # larger span fully encloses mine" check above, but O(n log n): sort by
+    # (start ascending, end descending) and sweep once. For any two spans with
+    # other_start <= start and end <= other_end, (other_end - other_start) >
+    # (end - start) holds automatically UNLESS the spans are identical -- so
+    # weak enclosure by a DISTINCT span is exactly the strict-length condition.
+    # A running "tallest end seen among strictly earlier starts" plus a
+    # within-group max (for spans sharing the current start) reproduces this
+    # without ever comparing every pair.
+    n = len(violations)
+    order = sorted(range(n), key=lambda i: (spans[i][0], -spans[i][1]))
+    contained = [False] * n
+    max_end_before_group = -1
+    idx = 0
+    while idx < n:
+        group_start = spans[order[idx]][0]
+        group_end = idx
+        while group_end < n and spans[order[group_end]][0] == group_start:
+            group_end += 1
+        running_max_in_group = -1
+        for vi in order[idx:group_end]:
+            end = spans[vi][1]
+            if max_end_before_group >= end or running_max_in_group > end:
+                contained[vi] = True
+            if end > running_max_in_group:
+                running_max_in_group = end
+        if running_max_in_group > max_end_before_group:
+            max_end_before_group = running_max_in_group
+        idx = group_end
+
+    violations = [
+        v for i, v in enumerate(violations)
+        if not contained[i] or v["category"] in freq_gated
+    ]
 
     # Sort by line number, then column
     violations.sort(key=lambda v: (v["line_number"], v["column"]))
