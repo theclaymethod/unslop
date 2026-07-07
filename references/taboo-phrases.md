@@ -1071,6 +1071,12 @@ opener_repetition) as the lower fence.
 (?im)(?:^|[.!?]\s+)one\s+[^,.!?\n]{1,30},\s+(?:two|three|four|five|\d+)\s+[^,.!?\n]{1,30}[.!?]
 (?i)\b(?:loop|story|experience|magic|feedback|workflow)\s+ships?\s+(?:inside|within|with)\b|ships?\s+(?:inside|within)\s+(?:the|your|a|an)\b
 
+# Standalone slogan/spec fragment lines & headers (soft; whole-line only — embedded counts stay clean)
+# slogan_fragment: "N X, one Y." ("Four presets, one input.")
+(?:^|\n)[ \t]*(?:#{1,6}[ \t]*|>[ \t]*|[-*+][ \t]+)?(?:\*\*)?(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)\s+[^,.!?\n]{1,40},\s+one\s+[^,.!?\n]{1,40}[.!?](?:\*\*)?[ \t]*(?=\n|$)
+# spec_fragment: "N noun-phrase, past-participle ..." ("Eight criteria, scored 1 to 5.")
+(?:^|\n)[ \t]*(?:#{1,6}[ \t]*|>[ \t]*|[-*+][ \t]+)?(?:\*\*)?(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)\s+[^,.!?\n]{1,40},\s+(?:[a-z]+ed|built|written|drawn|made|split|set|done|shown|given|taken)\b[^.!?\n]{0,40}[.!?](?:\*\*)?[ \t]*(?=\n|$)
+
 # Headline slogan cadence (soft; DOCUMENT-LEVEL — fires only at 3+ line matches)
 (?i)(?:^|\n)[ \t]*(?:[a-z0-9][\w'-]*(?:[ ,]+[a-z0-9][\w'-]*){0,4}[.!?][ \t]+){1,3}[a-z0-9][\w'-]*(?:[ ,]+[a-z0-9][\w'-]*){0,4}[.!?][ \t]*(?=\n|$)
 

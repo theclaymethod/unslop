@@ -12408,6 +12408,148 @@
           "value": "Traceback"
         }
       ]
+    },
+    {
+      "id": "OWNER-01",
+      "category": "scanner_false_negative",
+      "title": "Owner specimen: standalone 'N X, one Y.' slogan fragment flags",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Four presets, one input.",
+      "failure_mode": "Owner-caught on his own marketing page: the standalone 'N X, one Y.' slogan-cadence section header passed both scanners clean.",
+      "correct_behavior": "Flagged (>=1) as slogan_fragment (soft) because the whole line is the fragment.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "slogan_fragment"
+        }
+      ]
+    },
+    {
+      "id": "OWNER-02",
+      "category": "scanner_false_negative",
+      "title": "Owner specimen: standalone 'N noun, past-participle ...' spec fragment flags",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Eight criteria, scored 1 to 5.",
+      "failure_mode": "Owner-caught on his own marketing page: the standalone spec-sheet fragment 'N noun-phrase, past-participle ...' passed both scanners clean.",
+      "correct_behavior": "Flagged (>=1) as spec_fragment (soft) because the whole line is the fragment.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "spec_fragment"
+        }
+      ]
+    },
+    {
+      "id": "OWNER-03",
+      "category": "scanner_false_negative",
+      "title": "Owner specimen: repeated paragraph-initial 'Every <noun> <verb>' template opener flags",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py",
+        "evals/fixtures/structure/owner_every_template.md"
+      ],
+      "failure_mode": "Owner-caught rhythm tell: two+ paragraphs opening on the 'Every ___ is/does ...' template read as machine cadence, but no per-line phrase scan sees it.",
+      "correct_behavior": "Exit 1 and report every_template_openers at 2+ paragraph openers.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 1
+        },
+        {
+          "type": "json",
+          "path": "flagged.every_template_openers",
+          "equals": true
+        }
+      ]
+    },
+    {
+      "id": "OWNER-04",
+      "category": "scanner_detection",
+      "title": "A single 'Every ...' opener is voice, not the template rhythm",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py",
+        "evals/fixtures/structure/owner_every_single.md"
+      ],
+      "failure_mode": "A frequency-gated opener metric that fired on one paragraph would punish an ordinary 'Every child deserves ...' sentence.",
+      "correct_behavior": "Exit 0 with no structure flags: one Every-opener is below the min-2 rhythm threshold.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "flags",
+          "equals": []
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "Traceback"
+        }
+      ]
+    },
+    {
+      "id": "FP-86",
+      "category": "scanner_false_positive",
+      "protects": "slogan_fragment",
+      "title": "Prose-embedded 'two bedrooms, one bath' is a literal count, not a slogan",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "The unit has two bedrooms, one bath, and a den.",
+      "failure_mode": "A blunt 'N X, one Y.' ban would flag an ordinary mid-sentence enumeration.",
+      "correct_behavior": "No violations: the 'N X, one Y' shape is embedded in a full sentence, not a standalone line.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "FP-87",
+      "category": "scanner_false_positive",
+      "protects": "spec_fragment",
+      "title": "Prose-embedded 'eight criteria, scored 1 to 5' is a literal clause, not a spec fragment",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "We rated eight criteria, scored 1 to 5, before deciding.",
+      "failure_mode": "A blunt spec-fragment ban would flag the same shape embedded in running prose.",
+      "correct_behavior": "No violations: the fragment is embedded in a full sentence, not a standalone line.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
     }
   ]
 }

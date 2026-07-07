@@ -39,6 +39,18 @@ CONNECTIVE_OPENERS = re.compile(
     r"consequently|nevertheless)\b",
     re.I,
 )
+# Paragraph-initial "Every <noun> <verb-phrase>" template opener ("Every
+# transformation is scored ...", "Every rewrite passes ..."). As a RHYTHM tell
+# this is about REPETITION, so the metric below fires only at 2+ such paragraph
+# openers; a lone "Every child deserves a good school." stays clean. The verb is
+# a copula/auxiliary or a present/past inflection (-s / -ed) so the second word
+# reads as a predicate, not another noun.
+EVERY_OPENER_RE = re.compile(
+    r"^every\s+[a-z][\w'-]*\s+(?:is|are|was|were|be|been|being|has|have|had|"
+    r"do|does|did|can|will|shall|must|should|would|may|might|"
+    r"[a-z]+(?:s|ed))\b",
+    re.I,
+)
 SIGNPOST_RE = re.compile(
     r"\b(first,|next,|having (?:covered|established)|in (?:this|the following|"
     r"the next) section|as (?:mentioned|noted) (?:above|earlier)|let us turn|"
@@ -118,6 +130,7 @@ def scan(text: str, genre: str = "prose") -> dict:
         "bold_colon_listicle_count": len(BOLD_COLON_RE.findall(text)),
         "one_line_staccato_share": 0.0,
         "connective_paragraph_openers": 0,
+        "every_template_openers": 0,
         "signpost_density": 0.0,
         "opener_unique_ratio": 0.0,
         "top_opener_share": 0.0,
@@ -192,6 +205,17 @@ def scan(text: str, genre: str = "prose") -> dict:
             ">= 3 paragraphs or > 40% of 8+ paragraphs",
             "Paragraphs repeatedly open with formal transition words.",
             "Replace scaffold openers with specific topic sentences; academic prose may justify some connectors.",
+        ))
+
+    every_openers = sum(1 for p in paragraphs if EVERY_OPENER_RE.search(p))
+    metrics["every_template_openers"] = every_openers
+    if every_openers >= 2:
+        flags.append(flag(
+            "every_template_openers",
+            every_openers,
+            ">= 2 paragraphs opening 'Every <noun> <verb>'",
+            "Paragraphs repeatedly open on the 'Every ___ is/does ...' template.",
+            "Vary the paragraph openings; a repeated Every-template is a machine rhythm tell even when each sentence is fine on its own.",
         ))
 
     if prose_words:

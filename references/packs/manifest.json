@@ -63,6 +63,8 @@
       "negative_listing",
       "negative_parallelism",
       "numeric_parallelism",
+      "slogan_fragment",
+      "spec_fragment",
       "staccato_fragmentation"
     ],
     "pack-facts": []

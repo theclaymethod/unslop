@@ -947,6 +947,33 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "severity": "soft",
         "suggestion": "'One X, N Y.' numeric-parallelism headline is a slogan tell. Rewrite as a normal sentence."
     },
+    # Standalone "N X, one Y." slogan-cadence line/header ("Four presets, one
+    # input.") — the mirror of numeric_parallelism ("One X, N Y."). Fires ONLY when
+    # the whole line IS the fragment (optionally with markdown #/**/bullet/blockquote
+    # dressing): the line-start and end-of-line anchors are the FP guard, so a
+    # prose-embedded enumeration ("The unit has two bedrooms, one bath, and a den.")
+    # never reaches the boundary and stays clean. The leading count is a digit or a
+    # spelled one-through-ten number at line start (matched case-insensitively, so
+    # the capitalized header form is covered). Soft: a voice may choose this cadence.
+    {
+        "pattern": r"(?:^|\n)[ \t]*(?:#{1,6}[ \t]*|>[ \t]*|[-*+][ \t]+)?(?:\*\*)?(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)\s+[^,.!?\n]{1,40},\s+one\s+[^,.!?\n]{1,40}[.!?](?:\*\*)?[ \t]*(?=\n|$)",
+        "category": "slogan_fragment",
+        "severity": "soft",
+        "suggestion": "'N X, one Y.' standalone slogan cadence is an AI header tell. Rewrite as a normal sentence."
+    },
+    # Standalone "N noun-phrase, past-participle ..." spec-sheet fragment line/header
+    # ("Eight criteria, scored 1 to 5."). Same whole-line anchoring as slogan_fragment,
+    # so an embedded clause ("We rated eight criteria, scored 1 to 5, before deciding.")
+    # keeps the fragment off the line boundary and stays clean. The post-comma token
+    # must be a past participle (-ed, or a curated irregular) — this both names the
+    # spec-sheet shape and stops the "one Y" count clause of slogan_fragment from
+    # landing here. Soft: a real spec line can be intentional.
+    {
+        "pattern": r"(?:^|\n)[ \t]*(?:#{1,6}[ \t]*|>[ \t]*|[-*+][ \t]+)?(?:\*\*)?(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)\s+[^,.!?\n]{1,40},\s+(?:[a-z]+ed|built|written|drawn|made|split|set|done|shown|given|taken)\b[^.!?\n]{0,40}[.!?](?:\*\*)?[ \t]*(?=\n|$)",
+        "category": "spec_fragment",
+        "severity": "soft",
+        "suggestion": "'N noun, past-participle ...' standalone spec fragment is an AI header tell. Rewrite as a normal sentence."
+    },
     # Anthropomorphic shipping: an abstraction that "ships inside/with" something
     # ("The feedback loop ships inside the artifact."). Guarded so concrete
     # changelog uses ("The SDK ships with a CLI.") are spared: fire only when the
