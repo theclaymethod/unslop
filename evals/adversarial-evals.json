@@ -12887,6 +12887,74 @@
           "equals": 0
         }
       ]
+    },
+    {
+      "id": "OWNER-07",
+      "category": "scanner_false_negative",
+      "title": "Owner specimen: a calendar container cannot deliver a slide outcome",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Week 1 ends with a calibrated eval.",
+      "failure_mode": "A slide title makes a time container the actor that delivers a product outcome. The sentence is grammatical, but the title hides the actual completion criterion behind narrative agency.",
+      "correct_behavior": "Flagged as headline_container_agency (soft). A precise replacement names the evidence or action, such as 'The Week 1 capstone is a clean run with recorded agreement.'",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "gte": 1
+        },
+        {
+          "type": "violation_category_equals",
+          "value": "headline_container_agency"
+        }
+      ]
+    },
+    {
+      "id": "FP-92",
+      "category": "scanner_false_positive",
+      "protects": "headline_container_agency",
+      "title": "A literal calendar boundary is not narrative agency",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py"
+      ],
+      "stdin": "Week 1 ends on Friday.",
+      "failure_mode": "A blunt 'Week N ends ...' pattern would flag an ordinary temporal fact.",
+      "correct_behavior": "No violations. 'Ends on Friday' describes the calendar boundary; it does not claim that the week delivered an artifact or outcome.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "SKILL-TITLE-01",
+      "category": "headline_reconstruction",
+      "title": "Rewrite slide titles as tests, mechanisms, results, or decisions",
+      "target": "skill",
+      "prompt": "Rewrite these slide titles without changing the underlying claims: (1) Week 1 ends with a calibrated eval. (2) Your judge is lying to someone. (3) The package outlives the cohort. (4) Taste becomes infrastructure. Return four replacement titles only.",
+      "failure_mode": "The skill removes fixed phrases but preserves category-error agency, vague strategic transformations, or generic topic handles in high-salience titles.",
+      "correct_behavior": "Each replacement names a concrete test, mechanism, result, decision, action, or completion criterion. It removes calendar/container agency and tool personification without flattening the actual claim into a generic label.",
+      "assertions": [
+        {
+          "type": "judge",
+          "check": "All four replacement titles are concrete and preserve the distinct underlying claim of the original."
+        },
+        {
+          "type": "judge",
+          "check": "No replacement assigns volitional, narrative, or outcome-producing agency to a week, judge tool, package, score, data, or other inanimate container."
+        },
+        {
+          "type": "judge",
+          "check": "No replacement uses vague uplift language, journey/paradigm/pillars framing, or a generic one-word topic handle."
+        }
+      ]
     }
   ]
 }

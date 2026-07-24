@@ -1692,6 +1692,59 @@
         "adversarial",
         "failure_mode:Small detector agents can import the whole monolithic skill,"
       ]
+    },
+    {
+      "id": "SKILL-TITLE-01",
+      "split": "tune",
+      "kind": "headline_reconstruction",
+      "domain": "presentation",
+      "difficulty": "hard",
+      "trigger_type": "explicit",
+      "success_goals": [
+        "Rewrite slide titles as tests, mechanisms, results, or decisions"
+      ],
+      "prompt": "Rewrite these slide titles without changing the underlying claims: (1) Week 1 ends with a calibrated eval. (2) Your judge is lying to someone. (3) The package outlives the cohort. (4) Taste becomes infrastructure. Return four replacement titles only.",
+      "expected_behavior": [
+        "Each replacement names a concrete test, mechanism, result, decision, action, or completion criterion. It removes calendar/container agency and tool personification without flattening the actual claim into a generic label."
+      ],
+      "assertions": [
+        {
+          "name": "skill-title-01-judge-1",
+          "type": "judge",
+          "rubric": [
+            "All four replacement titles are concrete and preserve the distinct underlying claim of the original."
+          ]
+        },
+        {
+          "name": "skill-title-01-judge-2",
+          "type": "judge",
+          "rubric": [
+            "No replacement assigns volitional, narrative, or outcome-producing agency to a week, judge tool, package, score, data, or other inanimate container."
+          ]
+        },
+        {
+          "name": "skill-title-01-judge-3",
+          "type": "judge",
+          "rubric": [
+            "No replacement uses vague uplift language, journey/paradigm/pillars framing, or a generic one-word topic handle."
+          ]
+        },
+        {
+          "name": "skill-title-01-removes-category-error-titles",
+          "type": "excludes_any",
+          "values": [
+            "Week 1 ends with",
+            "judge is lying",
+            "package outlives",
+            "Taste becomes infrastructure"
+          ]
+        }
+      ],
+      "tags": [
+        "headline_reconstruction",
+        "adversarial",
+        "failure_mode:The skill removes fixed phrases but preserves category-error"
+      ]
     }
   ],
   "ablations": [
