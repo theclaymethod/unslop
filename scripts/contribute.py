@@ -161,6 +161,10 @@ def render_report(
     if include_rec:
         rows.append("| CONTRIB-REC | REC | existing-word recall still flags |")
     quoted = "\n".join(f"> {line}" if line else ">" for line in snippet.splitlines())
+    pattern_added = manifest.get(
+        "pattern_added",
+        f"TODO: regex or phrase for `{manifest['tell']}`",
+    )
     return (
         f"# Add {manifest['category']} pattern: {shorten(str(manifest['tell']))}\n\n"
         "## The specimen\n\n"
@@ -171,7 +175,7 @@ def render_report(
         "## Why it's an AI-ism\n\n"
         f"{manifest.get('rationale', 'TODO: explain why this phrase is a reusable AI-writing tell in 2-4 sentences.')}\n\n"
         "## Detection\n\n"
-        f"- Pattern added: {manifest.get('pattern_added', f'TODO: regex or phrase for `{manifest['tell']}`')}\n"
+        f"- Pattern added: {pattern_added}\n"
         f"- Severity: {manifest.get('severity', 'TODO: hard or soft')}\n"
         f"- Gating rationale: {manifest.get('gating_rationale', 'TODO: explain literal-use boundary')}\n"
         "- Catalog entry location: references/taboo-phrases.md\n\n"
