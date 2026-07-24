@@ -90,6 +90,12 @@ Read one preset from `presets/` before writing.
 
 - Cut throat-clearing and scaffolding. Start with the claim.
 - Replace inflated importance with the concrete fact.
+- For headings and slide titles, name the test, mechanism, result, decision, or
+  completion criterion. Rewrite calendar/container agency ("Week 1 ends with
+  ..."), tool personification ("the judge lies"), vague uplift transformations
+  ("taste becomes infrastructure"), generic topic handles, and counting/journey
+  frames. Do not ban accurate causal subjects such as "examples calibrate the
+  judge." See `references/taboo-phrases.md` § Headings and Slide Titles.
 - Prefer short, direct sentences, but avoid telegraphic staccato.
 - Use em-dashes sparingly. A single appositive dash can be fine; clusters are a
   tell. Never trade a dash for a comma splice; if a dash is wrong, use a period.

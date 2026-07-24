@@ -57,6 +57,7 @@ SPLITS: dict[str, str] = {
     "SKILL-WARMTH-01": "tune",
     "SKILL-MACRO-01": "tune",
     "SKILL-TIER-01": "tune",
+    "SKILL-TITLE-01": "tune",
     # holdout — measure, do not tune
     "SKILL-DEHEDGE-02": "holdout",
     "SKILL-LIST-01": "holdout",
@@ -111,6 +112,7 @@ DOMAIN: dict[str, str] = {
     "SKILL-MACRO-01": "essay",
     "SKILL-MACRO-02": "report",
     "SKILL-TIER-01": "legal",
+    "SKILL-TITLE-01": "presentation",
 }
 
 # Difficulty is a coarse hint for reporting, not a gate.
@@ -325,6 +327,18 @@ DETERMINISTIC_ASSERTIONS = {
         _assertion("skill-inject-01-keeps-roadmap", "regex", pattern=r"\broadmap\b"),
     ],
     "SKILL-NEWPAT-01": [_assertion("skill-newpat-01-removes-missed-patterns", "excludes_any", values=["speak for themselves", "underscores the importance"])],
+    "SKILL-TITLE-01": [
+        _assertion(
+            "skill-title-01-removes-category-error-titles",
+            "excludes_any",
+            values=[
+                "Week 1 ends with",
+                "judge is lying",
+                "package outlives",
+                "Taste becomes infrastructure",
+            ],
+        ),
+    ],
     "SKILL-SHORT-01": [_assertion("skill-short-01-keeps-text", "regex", pattern=r"\bship it\b")],
     "SKILL-EMDASH-01": [
         _assertion("skill-emdash-01-keeps-meaning", "regex", pattern=r"\bmarket readiness\b"),

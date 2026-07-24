@@ -1024,6 +1024,17 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "severity": "soft",
         "suggestion": "A tool doesn't decide, want, or know. Say what it does mechanically."
     },
+    # Headline/container agency: a calendar or program container is made to
+    # deliver the outcome of a slide ("Week 1 ends with a calibrated eval.",
+    # "Demo day closes the cohort."). Literal boundaries stay clean: "Week 1
+    # ends on Friday." does not match because only "ends with" carries an
+    # artifact/result here. Whole-line anchoring keeps this in title territory.
+    {
+        "pattern": r"(?:^|\n)[ \t]*(?:#{1,6}[ \t]*|>[ \t]*|[-*+][ \t]+)?(?:\*\*)?(?:(?:week|month|quarter|phase|module|chapter|day)\s+(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten)|demo\s+day)\s+(?:ends?\s+with|delivers?|produces?|builds?|earns?|creates?|unlocks?|closes?)\b[^.!?\n]{0,70}[.!?]?(?:\*\*)?[ \t]*(?=\n|$)",
+        "category": "headline_container_agency",
+        "severity": "soft",
+        "suggestion": "A time or program container does not deliver the outcome. Name the completion criterion, mechanism, result, or decision."
+    },
 
     # Em-dash overuse
     {

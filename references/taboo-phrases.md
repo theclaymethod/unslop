@@ -384,6 +384,38 @@ limit: in plain text "standalone headline" can only be approximated as "a line w
 whole content is the short-sentence pair," so the tell is gated on frequency, not on
 proof that the line is a real heading.
 
+### Headings and Slide Titles
+
+Write the title after the slide or section has earned its point. A strong title
+names the test, mechanism, result, decision, or completion criterion the viewer
+should inspect.
+
+Prefer:
+
+- "The Week 1 capstone is a clean run with recorded agreement."
+- "Order, verbosity, and self-preference bias the judge."
+- "Each capstone must clear three gates."
+- "Can one packet reconstruct both products?"
+
+Rewrite:
+
+- Calendar or program containers delivering outcomes: "Week 1 ends with a
+  calibrated eval"; "Demo day closes the cohort."
+- Tools, scores, data, or packages given narrative or volitional agency: "Your
+  judge is lying"; "A score hides five failures"; "The package outlives the
+  cohort."
+- Abstract uplift transformations: "Taste becomes infrastructure"; "Unlocking
+  the power of clinical intelligence."
+- Generic handles that make the body do all the work: "Architecture", "Proof
+  plan", "Three pillars", "What the budget buys."
+- Repeated counting or journey frames that describe the deck instead of the
+  claim.
+
+This is a semantic rule, not a blanket subject-verb ban. "Examples calibrate the
+judge" and "The gate fails the build" describe mechanisms. "Week 1 ends on
+Friday" describes a literal boundary. The problem is category-error agency or a
+title that withholds the actual point.
+
 ---
 
 ## Significance & Legacy Inflation
