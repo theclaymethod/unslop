@@ -106,6 +106,27 @@ Read one preset from `presets/` before writing.
 - Do not replace AI slop with anti-slop register: "Not X. Y.", forced punch
   endings, or runs of tiny fragments.
 
+## Preservation
+
+Every gate above asks whether the output is sloppy. None asks whether the draft
+still belongs to whoever wrote it. Most real input is mixed: a human paragraph
+carrying two or three tells. Treat that paragraph as a draft with defects, and
+edit only the defects.
+
+- Scope the edit to what the scanners found. A draft with one hard hit gets one
+  fix, not a new paragraph. Rewrite whole sentences when the sentence is the
+  problem.
+- Before Pass 2, note three to five traits that make the draft sound like a
+  person: word choice, sentence rhythm, bluntness, admitted uncertainty,
+  humor, digression. These survive the rewrite. This is a per-draft reading, not
+  a voice card; `teach` and `mimic` cover the case where a stored profile exists.
+- Blunt or self-deprecating first-person lines are signal. Cut the filler around
+  them and leave them standing.
+- When the scanners come back clean, return the text unchanged and say it was
+  already clean. Do not manufacture findings to justify an edit.
+- Hedges, contractions, and spoken rhythm are filler only when they delay the
+  point. When they mark real doubt or the writer's cadence, they are content.
+
 ## Register Guards
 
 Before removing a hedge or strengthening a sentence, check whether the register
@@ -152,6 +173,9 @@ Blocking output failures:
   medical, security, or scientific text so these exit non-zero.
 - Staccato cadence in readability metrics.
 - Rubric score below 32/40 in strict mode.
+- An `excessive_change` flag from `diff_check.py` on input that scanned mostly
+  clean. Name the findings that justified the scale of the edit; if the list is
+  shorter than the rewrite, restore what you did not need to touch.
 
 When a `structure_scan.py` or `silhouette_scan.py` flag persists after a rewrite,
 don't re-prompt with vague "fix the structure" — no model self-checks macro shape.

@@ -22,7 +22,11 @@ and `$OUTPUT` to your rewrite.
    Pass `--genre docs` or `--genre social` only when the input truly belongs to
    that genre. Add `banned_phrase_scan.py --include-quoted` only when the user
    wants quoted examples audited too.
-3. Read the selected preset from `presets/`. Reach for
+3. Note the traits that make the draft sound like a person, per SKILL.md
+   **Preservation**. Three to five is enough. If every scan in step 2 came back
+   clean, stop here, return the text unchanged, and say it was already clean
+   rather than reaching for something to fix.
+4. Read the selected preset from `presets/`. Reach for
    `references/taboo-phrases.md` on phrase edge cases,
    `references/fact-preservation.md` on dense facts, `references/rubric.md` for
    strict scoring, and `references/personality-guide.md` only when a clean draft
@@ -30,9 +34,12 @@ and `$OUTPUT` to your rewrite.
 
 ## Pass 2 — reconstruct
 
-Rewrite under the SKILL.md **Rewrite Principles** and **Register Guards**. Cut
-the throat-clearing, keep every fact and guard word, match the preset, and never
-trade AI slop for anti-slop cadence. If a gate fails twice after rewrite,
+Rewrite under the SKILL.md **Rewrite Principles**, **Preservation**, and
+**Register Guards**. Cut the throat-clearing, keep every fact and guard word,
+match the preset, and never trade AI slop for anti-slop cadence. Scope the edit
+to the findings from Pass 1, and carry the traits you noted in step 3 through
+the rewrite so the paragraph still reads as the same writer. Findings bound the
+diff. If a gate fails twice after rewrite,
 escalate the model tier instead of piling on prompt rules.
 
 ## Validate

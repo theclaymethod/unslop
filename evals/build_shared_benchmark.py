@@ -74,6 +74,8 @@ SPLITS: dict[str, str] = {
     "SKILL-OVEREDIT-01": "holdback",
     "SKILL-FRAGMENT-02": "holdout",
     "SKILL-DONOHARM-02": "holdout",
+    "SKILL-MIXED-01": "tune",
+    "SKILL-MIXED-02": "holdout",
     "SKILL-INJECT-02": "holdout",
     "SKILL-MACRO-02": "holdout",
 }
@@ -108,6 +110,8 @@ DOMAIN: dict[str, str] = {
     "SKILL-EMDASH-01": "business",
     "SKILL-FRAGMENT-02": "business",
     "SKILL-DONOHARM-02": "narrative",
+    "SKILL-MIXED-01": "narrative",
+    "SKILL-MIXED-02": "report",
     "SKILL-INJECT-02": "security",
     "SKILL-MACRO-01": "essay",
     "SKILL-MACRO-02": "report",
@@ -264,6 +268,20 @@ SCRIPT_ASSERTIONS = {
     ],
     "SKILL-FRAGMENT-02": [_banned_phrase_clean("SKILL-FRAGMENT-02")],
     "SKILL-DONOHARM-02": [_difflib_ratio("SKILL-DONOHARM-02", "donoharm02_original.txt", 0.55)],
+    # Deleting the four-word opener scores 0.97; a legitimately tighter edit that
+    # keeps the writer's cadence scores 0.75; a neutral corporate rewrite scores
+    # 0.41. A 0.70 floor clears both good edits and fails the rewrite.
+    "SKILL-MIXED-01": [
+        _difflib_ratio("SKILL-MIXED-01", "mixed01_original.txt", 0.70),
+        _banned_phrase_clean("SKILL-MIXED-01"),
+    ],
+    # The rewrite here should be heavy, so similarity is the wrong instrument.
+    # What must survive is the numbers and the two blunt asides.
+    "SKILL-MIXED-02": [
+        _contains_all_script("SKILL-MIXED-02", "keeps-figures", ["4,200", "310"]),
+        _contains_any_script("SKILL-MIXED-02", "keeps-ugly-admission", ["ugly"]),
+        _banned_phrase_clean("SKILL-MIXED-02"),
+    ],
     "SKILL-WEDGE-01": [_contains_all_script("SKILL-WEDGE-01", "keeps-claim", ["onboarding", "enterprise"])],
     "SKILL-LITERAL-01": [_contains_all_script("SKILL-LITERAL-01", "keeps-literal-terms", ["intersection", "load-bearing", "substrate", "5th", "Main"])],
     "SKILL-LIST-01": [_contains_all_script("SKILL-LIST-01", "keeps-fields", ["name", "email", "phone"])],
