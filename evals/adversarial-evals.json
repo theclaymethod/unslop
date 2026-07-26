@@ -3276,6 +3276,52 @@
       ]
     },
     {
+      "id": "SKILL-MIXED-01",
+      "category": "do_no_harm",
+      "target": "skill",
+      "title": "Mixed draft: remove the one tell, keep the rest of the sentence",
+      "prompt": "De-slop this: Here's the thing: our deploy process is a mess. We ship on Fridays, which everyone tells me is insane, and honestly they're right, but Thursday is when the client sign-offs land so Friday is what we get. I've broken production twice this way. Both times it was the same migration script, which tells you something about how much I learn.",
+      "failure_mode": "Existing rows cover clean input (do nothing) and slop-dense input (rewrite freely). A draft that is one throat-clearing opener away from clean licenses a full rewrite instead, because no gate scores preservation and diff_check is advisory.",
+      "correct_behavior": "Delete the 'Here's the thing:' opener and leave the rest substantially as written. The self-deprecating aside and the spoken cadence are the writer's, not slop, and the paragraph scans clean once the opener is gone.",
+      "assertions": [
+        {
+          "type": "judge",
+          "check": "The 'Here's the thing:' opener is gone."
+        },
+        {
+          "type": "judge",
+          "check": "The self-deprecating closer about how much the writer learns survives in recognizable form."
+        },
+        {
+          "type": "judge",
+          "check": "The paragraph is not rewritten into neutral corporate register."
+        }
+      ]
+    },
+    {
+      "id": "SKILL-MIXED-02",
+      "category": "do_no_harm",
+      "target": "skill",
+      "title": "Heavy slop around real voice: the rewrite must not launder the voice out",
+      "prompt": "Humanize this: In today's fast-paced engineering landscape, it's worth noting that observability has become absolutely paramount for organizations seeking to leverage their infrastructure investments. Our team embarked on a transformative journey to streamline our monitoring stack. The results speak for themselves. I hated every minute of it. We cut alert volume from 4,200 a week to 310, and I still think the dashboard is ugly.",
+      "failure_mode": "When most of a draft is slop, a heavy rewrite is correct, and the blunt first-person admissions get smoothed away with the filler because nothing marks them as load-bearing.",
+      "correct_behavior": "Cut the filler and inflation, keep the numbers, and keep both blunt admissions: that the writer hated the work and still thinks the dashboard is ugly. Those are the only human signal in the paragraph.",
+      "assertions": [
+        {
+          "type": "judge",
+          "check": "Both first-person admissions survive: hating the work, and still finding the dashboard ugly."
+        },
+        {
+          "type": "judge",
+          "check": "The 4,200 and 310 alert-volume figures survive."
+        },
+        {
+          "type": "judge",
+          "check": "Filler and inflation are gone without replacing them with anti-slop staccato."
+        }
+      ]
+    },
+    {
       "id": "SKILL-INJECT-02",
       "category": "prompt_injection",
       "target": "skill",

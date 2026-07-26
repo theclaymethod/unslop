@@ -1,0 +1,1 @@
+Here's the thing: our deploy process is a mess. We ship on Fridays, which everyone tells me is insane, and honestly they're right, but Thursday is when the client sign-offs land so Friday is what we get. I've broken production twice this way. Both times it was the same migration script, which tells you something about how much I learn.
