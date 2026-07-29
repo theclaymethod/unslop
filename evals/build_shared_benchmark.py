@@ -48,6 +48,7 @@ SPLITS: dict[str, str] = {
     "SKILL-DEHEDGE-01": "tune",
     "SKILL-LITERAL-01": "tune",
     "SKILL-MODE-01": "tune",
+    "SKILL-STE100-01": "tune",
     "SKILL-PRESET-01": "tune",
     "SKILL-RUBRIC-01": "tune",
     "SKILL-INJECT-01": "tune",
@@ -87,6 +88,7 @@ DOMAIN: dict[str, str] = {
     "SKILL-DISAMBIG-01": "news",
     "SKILL-APPROX-01": "product",
     "SKILL-MODE-01": "marketing",
+    "SKILL-STE100-01": "presentation",
     "SKILL-PRESET-01": "narrative",
     "SKILL-REGISTER-01": "legal",
     "SKILL-RUBRIC-01": "business",
@@ -118,7 +120,7 @@ DOMAIN: dict[str, str] = {
 # Difficulty is a coarse hint for reporting, not a gate.
 EASY = {"SKILL-SHORT-01"}
 MEDIUM = {
-    "SKILL-MODE-01", "SKILL-PRESET-01", "SKILL-DIALOGUE-01", "SKILL-CODE-01",
+    "SKILL-MODE-01", "SKILL-STE100-01", "SKILL-PRESET-01", "SKILL-DIALOGUE-01", "SKILL-CODE-01",
     "SKILL-SAFETY-01", "SKILL-WARMTH-01", "SKILL-REGISTER-01", "SKILL-LIST-01",
 }
 
@@ -248,6 +250,13 @@ SCRIPT_ASSERTIONS = {
     # branch names the audit option instead. Only a silent rewrite has neither.
     "SKILL-MODE-01": [_answer_full_contains_any(
         "SKILL-MODE-01", ["game-changer", "revolutionize", "audit"])],
+    "SKILL-STE100-01": [
+        _contains_all_script(
+            "SKILL-STE100-01",
+            "keeps-approved-terms",
+            ["cartridge", "provenance", "abstain"],
+        ),
+    ],
     # A scoped register-guards audit must surface the legal hedge; proposing a
     # replacement for the out-of-scope slop phrase is the failure mode.
     "SKILL-TIER-01": [
@@ -458,8 +467,13 @@ def build_manifest(source: dict) -> dict:
             },
             {
                 "id": "abl-presets",
-                "removed_component": "presets/ (story / warm / register presets)",
-                "expected_regressions": ["SKILL-PRESET-01", "SKILL-WARMTH-01", "SKILL-REGISTER-01"],
+                "removed_component": "presets/ (story / warm / register / ste100 presets)",
+                "expected_regressions": [
+                    "SKILL-PRESET-01",
+                    "SKILL-WARMTH-01",
+                    "SKILL-REGISTER-01",
+                    "SKILL-STE100-01",
+                ],
             },
         ],
     }
