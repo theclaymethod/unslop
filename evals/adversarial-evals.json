@@ -2916,6 +2916,29 @@
       ]
     },
     {
+      "id": "SKILL-STE100-01",
+      "category": "mode_routing",
+      "title": "ASD-STE100 mode simplifies teaching copy without erasing terms of art",
+      "target": "skill",
+      "prompt": "/unslop ste100 Rewrite this slide copy for a smart non-specialist audience. Keep these approved terms of art: cartridge, provenance, abstain.\n\nGold-calibrated abstraction selection enables cartridge promotion when the proposed rule reproduces the clinician's boundary across locked cases, but the system must preserve provenance and abstain when the evidence is incomplete.",
+      "failure_mode": "A generic de-slop rewrite can shorten the sentence but leave its noun stack intact, or remove the approved technical terms and condition that carry the meaning.",
+      "correct_behavior": "Route to the ASD-STE100-style mode. Use short sentences with explicit actors and actions. Preserve cartridge, provenance, abstain, the clinician-approved boundary, the locked-case test, and the condition that incomplete evidence requires abstention. Do not claim formal ASD-STE100 compliance.",
+      "assertions": [
+        {
+          "type": "judge",
+          "check": "The output uses clear sentences with explicit actors and actions instead of the noun stack 'gold-calibrated abstraction selection enables cartridge promotion'."
+        },
+        {
+          "type": "judge",
+          "check": "The output preserves the approved terms cartridge, provenance, and abstain, plus the clinician boundary, locked-case test, and incomplete-evidence condition."
+        },
+        {
+          "type": "judge",
+          "check": "The output does not claim formal ASD-STE100 compliance."
+        }
+      ]
+    },
+    {
       "id": "SKILL-PRESET-01",
       "category": "preset_routing",
       "title": "Personal narrative should not be auto-shredded by crisp",
@@ -10873,7 +10896,7 @@
         "evals/check_commands.py"
       ],
       "failure_mode": "SKILL.md's argument-hint, its routing table, and the files under references/commands/ can drift: a verb added to the hint without a file, an orphaned command file, a routed command missing its file, an over-length command file, or a command file with the wrong first line all silently break the impeccable-style router.",
-      "correct_behavior": "Exit 0: the argument-hint top-level verbs equal the pinned four-verb surface, every routing-table link resolves to a references/commands/<cmd>.md file and vice versa, each command file is <= 90 lines, and each starts with `# /unslop <cmd>`.",
+      "correct_behavior": "Exit 0: the argument-hint top-level verbs equal the pinned five-verb surface, every routing-table link resolves to a references/commands/<cmd>.md file and vice versa, each command file is <= 90 lines, and each starts with `# /unslop <cmd>`.",
       "assertions": [
         {
           "type": "exit_code",

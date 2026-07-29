@@ -1,12 +1,12 @@
 ---
 name: unslop
-description: Remove AI writing patterns from prose using either audit-only detection or a two-pass rewrite flow (diagnosis then reconstruction). Use this skill when editing, reviewing, or rewriting AI-generated content to make it sound human. Triggers on requests to "humanize", "de-slop", "fix AI text", "make it sound human", "remove AI patterns", or when reviewing text that contains obvious AI tells like "Here's the thing:", "Let that sink in", or "In today's fast-paced landscape". Also use when the user pastes text and says it "sounds like ChatGPT", "sounds robotic", "needs to sound more natural", or asks you to "clean up" drafted content before publishing.
+description: Remove AI writing patterns from prose using audit-only detection, a two-pass rewrite flow, voice mimicry, or ASD-STE100-style simplification. Use this skill when editing, reviewing, or rewriting AI-generated content to make it sound human; when the user asks to humanize, de-slop, fix AI text, remove AI patterns, simplify teaching or technical copy, preserve a controlled set of terms of art, or make writing follow ASD-STE100-style Simplified Technical English.
 license: MIT
 user-invocable: true
-argument-hint: "[teach · cleanup · rewrite · mimic] [input]"
+argument-hint: "[teach · cleanup · rewrite · mimic · ste100] [input]"
 metadata:
   author: claytonkim
-  version: "2.3.0"
+  version: "2.4.0"
 ---
 
 # Unslop
@@ -29,6 +29,7 @@ load that command file and proceed as if invoked.
 | `cleanup` | Co-writer: cheap detection, reviewable suggestions with contract gates; includes report-only "flag, change nothing". | [references/commands/cleanup.md](references/commands/cleanup.md) |
 | `teach` | Agent-driven voice building: harvest, approve, profile, layered card, scored demo. | [references/commands/teach.md](references/commands/teach.md) |
 | `mimic` | Voiced drafting or rewriting under the full gates; refine loop when one pass falls short. | [references/commands/mimic.md](references/commands/mimic.md) |
+| `ste100` | Simplify teaching or technical copy with ASD-STE100-style rules while preserving approved terms and constraints. | [references/commands/ste100.md](references/commands/ste100.md) |
 | _maintenance_ | Turn a wild AI-ism into an eval row and a PR (not a top-level verb). | [references/commands/contribute.md](references/commands/contribute.md) |
 
 ### Routing by phrase
@@ -43,6 +44,7 @@ When the user says any of these, load the named file and jump to the flow:
 | `calibrate` / "the A/B game" / "quiz me on my voice" | [references/commands/teach.md](references/commands/teach.md#calibrate) |
 | `refine` / "keep pushing until it sounds like me" | [references/commands/mimic.md](references/commands/mimic.md#refine) |
 | voice check / "does this sound like me?" | [references/commands/mimic.md](references/commands/mimic.md#voice-check) |
+| `ASD-STE100` / "Simplified Technical English" / "simplify this teaching copy" | [references/commands/ste100.md](references/commands/ste100.md) |
 | "found a new AI-ism" / "add this tell" | [references/commands/contribute.md](references/commands/contribute.md) |
 
 The shared doctrine below (register guards, validation gates and blocking
@@ -55,14 +57,17 @@ command. The command files hold the flows; this file holds the constitution.
 - Drafts contain obvious AI tells: throat-clearing, scaffolded conclusions,
   inflated significance, em-dash abuse, or staccato fragment drama.
 - User asks for an audit, scan, or review of prose before publishing.
+- User asks for ASD-STE100-style teaching or technical copy with controlled
+  terminology.
 
 ## Arguments
 
 | Argument | Description | Default |
 |----------|-------------|---------|
-| `--preset` | Voice style: `crisp`, `warm`, `expert`, `story` | `crisp` |
+| `--preset` | Voice style: `crisp`, `warm`, `expert`, `story`, `ste100` | `crisp` |
 | `--strict` | Fail if rubric score < 32/40 | false |
 | `--report` | Flag AI patterns without changing the text (cleanup) | false |
+| `--terms` | Comma-separated approved terms of art to preserve (`ste100`) | none |
 | Input | Text to transform (argument, file path, or stdin) | required |
 
 ## Scripts
@@ -85,6 +90,7 @@ Read one preset from `presets/` before writing.
 | `warm` | Friendly, conversational | Emails, blog posts |
 | `expert` | Authoritative, confident | Thought leadership, articles |
 | `story` | Narrative flow, show don't tell | Case studies, personal posts |
+| `ste100` | Streamlined engineering communication | Teaching, technical explanation, slide copy |
 
 ## Rewrite Principles
 
@@ -213,7 +219,7 @@ For strict or requested analysis:
 
 | File | When to Read |
 |------|-------------|
-| `references/commands/*.md` | The routed command flows (rewrite, cleanup, teach, mimic, contribute). |
+| `references/commands/*.md` | The routed command flows (rewrite, cleanup, teach, mimic, ste100, contribute). |
 | `references/pipeline.md` | Orchestrated tiered execution for multi-agent harnesses. |
 | `references/mimic.md` | Teach/mimic internals: card anatomy, scoring, baselines, the `--refine` loop. |
 | `references/harvest.md` | Harvest adapter internals, contamination tripwire, privacy rules. |

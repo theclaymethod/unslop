@@ -10,6 +10,7 @@ Four commands cover the whole surface:
 - `/unslop cleanup` flags AI tells as reviewable suggestions and changes nothing on its own.
 - `/unslop rewrite` diagnoses a draft and rebuilds it under the guards (the default).
 - `/unslop mimic` drafts or rewrites in a taught voice, then clears every removal gate.
+- `/unslop ste100` rewrites teaching and technical copy in a streamlined engineering voice.
 
 Detection carries the weight, and it's cheap, deterministic, and benchmarkable, which is what
 makes it the trust asset. Voice work is generative, and it runs under detection's constitution,
@@ -394,10 +395,10 @@ python3 scripts/wiki_sync.py check                                   # sync the 
 
 ```
 unslop/
-├── SKILL.md                       # Four-verb router and shared doctrine
+├── SKILL.md                       # Five-verb router and shared doctrine
 ├── README.md                      # This file
 ├── references/
-│   ├── commands/                  # The routed flows: teach, cleanup, rewrite, mimic, contribute
+│   ├── commands/                  # The routed flows: teach, cleanup, rewrite, mimic, ste100, contribute
 │   ├── taboo-phrases.md           # Authoritative pattern catalog (all families)
 │   ├── mimic.md                   # Teach/mimic internals: card anatomy, scoring, refine
 │   ├── harvest.md                 # Adapter internals and the contamination tripwire
@@ -409,7 +410,7 @@ unslop/
 │   ├── personality-guide.md       # Adding voice without fake personality
 │   ├── maintenance.md             # Add/list/wiki-sync procedures (eval-first)
 │   └── packs/                     # Small detector rule-packs plus manifest
-├── presets/                       # crisp / warm / expert / story voice deltas
+├── presets/                       # crisp / warm / expert / story / ste100 voice deltas
 ├── scripts/                       # Scanners, voice tools, preservation, suggest, harvest
 ├── evals/
 │   ├── adversarial-evals.json     # Source of truth: 440 script cases
@@ -435,6 +436,7 @@ Read one preset from `presets/` before a rewrite.
 | `warm` | Friendly, conversational | Emails, blog posts |
 | `expert` | Authoritative, confident | Thought leadership, articles |
 | `story` | Narrative flow, show rather than tell | Case studies, personal posts |
+| `ste100` | Streamlined engineering communication | Teaching, technical explanation, slide copy |
 
 ## Scoring Rubric
 

@@ -467,6 +467,64 @@
       ]
     },
     {
+      "id": "SKILL-STE100-01",
+      "split": "tune",
+      "kind": "mode_routing",
+      "domain": "presentation",
+      "difficulty": "medium",
+      "trigger_type": "explicit",
+      "success_goals": [
+        "ASD-STE100 mode simplifies teaching copy without erasing terms of art"
+      ],
+      "prompt": "/unslop ste100 Rewrite this slide copy for a smart non-specialist audience. Keep these approved terms of art: cartridge, provenance, abstain.\n\nGold-calibrated abstraction selection enables cartridge promotion when the proposed rule reproduces the clinician's boundary across locked cases, but the system must preserve provenance and abstain when the evidence is incomplete.",
+      "expected_behavior": [
+        "Route to the ASD-STE100-style mode. Use short sentences with explicit actors and actions. Preserve cartridge, provenance, abstain, the clinician-approved boundary, the locked-case test, and the condition that incomplete evidence requires abstention. Do not claim formal ASD-STE100 compliance."
+      ],
+      "assertions": [
+        {
+          "name": "skill-ste100-01-judge-1",
+          "type": "judge",
+          "rubric": [
+            "The output uses clear sentences with explicit actors and actions instead of the noun stack 'gold-calibrated abstraction selection enables cartridge promotion'."
+          ]
+        },
+        {
+          "name": "skill-ste100-01-judge-2",
+          "type": "judge",
+          "rubric": [
+            "The output preserves the approved terms cartridge, provenance, and abstain, plus the clinician boundary, locked-case test, and incomplete-evidence condition."
+          ]
+        },
+        {
+          "name": "skill-ste100-01-judge-3",
+          "type": "judge",
+          "rubric": [
+            "The output does not claim formal ASD-STE100 compliance."
+          ]
+        },
+        {
+          "name": "skill-ste100-01-keeps-approved-terms",
+          "type": "script",
+          "command": [
+            "python3",
+            "-c",
+            "import sys; text=open(sys.argv[1]).read().lower(); vals=[v.lower() for v in sys.argv[2:]]; sys.exit(0 if all(v in text for v in vals) else 1)",
+            "{output_dir}/output.md",
+            "cartridge",
+            "provenance",
+            "abstain"
+          ],
+          "pass_exit_code": 0,
+          "timeout_s": 30
+        }
+      ],
+      "tags": [
+        "mode_routing",
+        "adversarial",
+        "failure_mode:A generic de-slop rewrite can shorten the sentence but leave"
+      ]
+    },
+    {
       "id": "SKILL-PRESET-01",
       "split": "tune",
       "kind": "preset_routing",
@@ -1767,11 +1825,12 @@
     },
     {
       "id": "abl-presets",
-      "removed_component": "presets/ (story / warm / register presets)",
+      "removed_component": "presets/ (story / warm / register / ste100 presets)",
       "expected_regressions": [
         "SKILL-PRESET-01",
         "SKILL-WARMTH-01",
-        "SKILL-REGISTER-01"
+        "SKILL-REGISTER-01",
+        "SKILL-STE100-01"
       ]
     }
   ]

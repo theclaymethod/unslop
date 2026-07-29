@@ -28,9 +28,9 @@ from _check_support import ROOT  # noqa: E402
 SKILL = ROOT / "SKILL.md"
 COMMANDS_DIR = ROOT / "references" / "commands"
 
-# The pinned four-verb surface. A change here is a deliberate product decision,
+# The pinned five-verb surface. A change here is a deliberate product decision,
 # never an accident of editing SKILL.md.
-EXPECTED_TOPLEVEL = {"teach", "cleanup", "rewrite", "mimic"}
+EXPECTED_TOPLEVEL = {"teach", "cleanup", "rewrite", "mimic", "ste100"}
 # Command files reachable as maintenance paths, not top-level verbs.
 ALLOWED_MAINTENANCE = {"contribute"}
 MAX_LINES = 90
@@ -101,10 +101,17 @@ def main() -> int:
     # Synonym routing: the "Routing by phrase" table must exist, cover the
     # demoted flows, and every target must be a real command file (optionally
     # with a #section anchor).
-    REQUIRED_SYNONYMS = {"audit", "harvest", "calibrate", "refine", "voice check"}
+    REQUIRED_SYNONYMS = {
+        "audit",
+        "harvest",
+        "calibrate",
+        "refine",
+        "voice check",
+        "asd-ste100",
+    }
     skill_text = (ROOT / "SKILL.md").read_text()
     import re as _re
-    syn_rows = _re.findall(r"^\| *([^|]+?) *\| *\[?references/commands/([a-z]+)\.md(#[a-z-]+)?",
+    syn_rows = _re.findall(r"^\| *([^|]+?) *\| *\[?references/commands/([a-z0-9]+)\.md(#[a-z-]+)?",
                            skill_text[skill_text.find("Routing by phrase"):], _re.M) \
         if "Routing by phrase" in skill_text else []
     covered = {name.strip().strip('`').lower() for name, _, _ in syn_rows}
