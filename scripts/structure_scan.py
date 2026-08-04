@@ -90,7 +90,24 @@ def content_bigrams(text: str) -> set[tuple[str, str]]:
 
 
 def triad_count(text: str) -> int:
-    return len(re.findall(r"\b[A-Za-z][A-Za-z-]+,\s+[A-Za-z][A-Za-z-]+,\s+and\s+[A-Za-z][A-Za-z-]+\b", text))
+    """Count compact Oxford-comma triads with one-to-four-word items."""
+    item = r"[A-Za-z][A-Za-z'-]*(?:\s+[A-Za-z][A-Za-z'-]*){0,3}"
+    return len(re.findall(rf"\b{item},\s+{item},\s+and\s+{item}\b", text))
+
+
+def and_heavy_long_sentence_count(sentences: list[str]) -> int:
+    """Long sentences repeatedly chained with the conjunction 'and'."""
+    return sum(
+        1
+        for sentence in sentences
+        if len(words(sentence)) >= 20
+        and len(re.findall(r"\band\b", sentence, re.I)) >= 2
+    )
+
+
+def internal_punctuation_count(text: str) -> int:
+    """Punctuation that structures clauses inside a sentence, not terminators."""
+    return len(re.findall(r"[,;:()\[\]\u2014\u2013]", text))
 
 
 def flag(metric: str, value: float | int, threshold: str, detail: str, suggestion: str) -> dict:
@@ -108,7 +125,12 @@ def flag(metric: str, value: float | int, threshold: str, detail: str, suggestio
 # the metric without being AI-slop). Table form so each suppression is a single
 # lookup instead of an inline `genre != "..."` conditional per metric.
 GENRE_SUPPRESSIONS = {
-    "docs": {"bold_colon_listicle"},
+    "docs": {
+        "bold_colon_listicle",
+        "triad_density",
+        "and_heavy_long_sentence_share",
+        "sparse_internal_punctuation",
+    },
     "social": {"one_line_staccato"},
 }
 
@@ -120,12 +142,20 @@ def scan(text: str, genre: str = "prose") -> dict:
     sentence_lengths = [len(words(s)) for s in sentences]
     prose_words = words(prose_text)
     para_lengths = [len(words(p)) for p in paragraphs]
+    triads = triad_count(prose_text)
+    and_heavy = and_heavy_long_sentence_count(sentences)
+    internal_punctuation = internal_punctuation_count(prose_text)
     metrics = {
         "sentence_burstiness": round(cv(sentence_lengths), 3),
         "summary_sandwich": 0.0,
         "paragraph_cv": round(cv(para_lengths), 3),
         "sentence_mean_len": round(sum(sentence_lengths) / len(sentence_lengths), 1) if sentence_lengths else 0,
-        "triad_density": round((triad_count(prose_text) / len(prose_words) * 1000), 3) if prose_words else 0,
+        "triad_count": triads,
+        "triad_density": round((triads / len(prose_words) * 1000), 3) if prose_words else 0,
+        "and_heavy_long_sentence_share": round(and_heavy / len(sentences), 3) if sentences else 0,
+        "internal_punctuation_per_100_words": round(
+            internal_punctuation / len(prose_words) * 100, 3
+        ) if prose_words else 0,
         "em_dash_per_1k": round((text.count("—") / len(prose_words) * 1000), 3) if prose_words else 0,
         "bold_colon_listicle_count": len(BOLD_COLON_RE.findall(text)),
         "one_line_staccato_share": 0.0,
@@ -139,6 +169,39 @@ def scan(text: str, genre: str = "prose") -> dict:
         "conclusion_coda": False,
     }
     flags = []
+
+    if (len(prose_words) >= 40 and triads >= 3
+            and "triad_density" not in GENRE_SUPPRESSIONS.get(genre, set())):
+        flags.append(flag(
+            "triad_density",
+            metrics["triad_density"],
+            ">= 3 compact triads over at least 40 prose words",
+            "The passage repeatedly packages claims into rhetorical rules of three.",
+            "Keep factual enumerations, but rewrite decorative triads as specific claims; reference docs may rerun with --genre docs.",
+        ))
+
+    if (len(sentences) >= 6 and and_heavy >= 3
+            and metrics["and_heavy_long_sentence_share"] >= 0.5
+            and "and_heavy_long_sentence_share" not in GENRE_SUPPRESSIONS.get(genre, set())):
+        flags.append(flag(
+            "and_heavy_long_sentence_share",
+            metrics["and_heavy_long_sentence_share"],
+            ">= 0.50 over at least 6 sentences, with 3+ long conjunction-heavy sentences",
+            "Long sentences repeatedly chain clauses with 'and'.",
+            "Split or subordinate clauses where the relationship is specific; technical procedures may rerun with --genre docs.",
+        ))
+
+    if (len(prose_words) >= 110 and len(sentences) >= 6
+            and metrics["sentence_mean_len"] >= 19
+            and metrics["internal_punctuation_per_100_words"] < 1.0
+            and "sparse_internal_punctuation" not in GENRE_SUPPRESSIONS.get(genre, set())):
+        flags.append(flag(
+            "sparse_internal_punctuation",
+            metrics["internal_punctuation_per_100_words"],
+            "< 1 internal mark per 100 words with mean sentence length >= 19 over 110+ words",
+            "Long prose contains almost no internal punctuation to shape its clauses.",
+            "Recast the syntax instead of adding decorative marks; reference docs may rerun with --genre docs.",
+        ))
 
     if len(paragraphs) >= 2:
         first = content_bigrams(paragraphs[0])

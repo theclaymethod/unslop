@@ -1026,10 +1026,17 @@ scanner-enforced.
 | Over-determination | Agent judgment — not scanner-enforced. Watch for explicit theme-stating that explains what the reader should infer. | Explainers, tutorials, and accessibility-minded docs may need explicitness. |
 | Elegant variation pointer | Agent judgment — not scanner-enforced. Watch for one referent cycling through many labels to avoid repetition. | Literary prose and journalism may vary references for rhythm, as long as clarity survives. |
 | Uniform emotional register | Agent judgment — not scanner-enforced. Watch for every paragraph landing at the same polished confidence level. | Formal reports and reference docs may intentionally keep emotional texture low. |
+| Repeated rhetorical triads | Scanner-enforced (`triad_density`) only after three compact Oxford-comma triads in 40+ prose words. Preserve factual lists. | Reference docs and inventories legitimately repeat three-item enumerations; use `--genre docs`. |
+| Conjunction-heavy long sentences | Scanner-enforced (`and_heavy_long_sentence_share`) when at least half of six sentences are 20+ words with two or more uses of "and". | Ordered technical operations may require the conjunctions; use `--genre docs`. |
+| Sparse internal punctuation in long prose | Scanner-enforced (`sparse_internal_punctuation`) only over 110+ words when mean sentence length is at least 19 and internal marks fall below one per 100 words. | Complete declarative reference prose can be intentionally sparse; use `--genre docs`. |
 
 Related deterministic metrics: `sentence_burstiness`, `bold_colon_listicle`,
 `one_line_staccato`, `connective_paragraph_openers`, `signpost_density`,
-`opener_repetition`, and `participial_closer_share`.
+`opener_repetition`, `participial_closer_share`, `triad_density`,
+`and_heavy_long_sentence_share`, and `sparse_internal_punctuation`. The three
+aggregate cadence checks above follow the corpus findings in The Economist's
+2026 study, ["How to spot AI writing"](https://archive.ph/i9UQP); they do not
+turn the study's individual example words into blanket bans.
 
 ### Silhouette (discourse-level)
 

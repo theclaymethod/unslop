@@ -104,7 +104,12 @@ def _line_starts(text: str) -> list[int]:
     return starts
 
 
-def _line_col_context(text: str, line_starts: list[int], pos: int) -> tuple[int, int, str]:
+def _line_col_context(
+    text: str,
+    line_starts: list[int],
+    pos: int,
+    context_cache: dict[int, str] | None = None,
+) -> tuple[int, int, str]:
     """Derive (1-based line, 1-based column, stripped line context) for an offset
     into ORIGINAL text from a precomputed line_starts index, in O(log n)."""
     idx = bisect.bisect_right(line_starts, pos) - 1
@@ -112,8 +117,12 @@ def _line_col_context(text: str, line_starts: list[int], pos: int) -> tuple[int,
     line_end = line_starts[idx + 1] - 1 if idx + 1 < len(line_starts) else len(text)
     line_num = idx + 1
     column = pos - line_start + 1
-    context = text[line_start:line_end].strip()
-    context = context[:100] + "..." if len(context) > 100 else context
+    context = context_cache.get(idx) if context_cache is not None else None
+    if context is None:
+        context = text[line_start:line_end].strip()
+        context = context[:100] + "..." if len(context) > 100 else context
+        if context_cache is not None:
+            context_cache[idx] = context
     return line_num, column, context
 
 
@@ -509,6 +518,13 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
 }
 
 # Structural patterns (regex)
+# Compile literal phrase regexes once at module load. In-process callers such as
+# harvest and refine time scan_for_violations itself and may scan many documents;
+# they should not pay the one-time compilation cost on the first document.
+for _banned_phrase in BANNED_PHRASES:
+    _phrase_pattern_ci(_banned_phrase)
+
+
 STRUCTURAL_PATTERNS: list[dict[str, str]] = [
     # Standalone "Period." / "Full stop." for emphasis — only when it stands as
     # its own sentence, not when a clause merely ends in the word "period".
@@ -1162,6 +1178,7 @@ def scan_for_violations(text: str, include_quoted: bool = False) -> list[Violati
     spans: list[tuple[int, int]] = []
     scan_text = mask_ignored_spans(text, include_quoted=include_quoted)
     line_starts = _line_starts(text)
+    line_context_cache: dict[int, str] = {}
 
     # Check banned phrases. Matching runs case-insensitively directly on
     # scan_text (original case, masking is length-preserving) instead of on a
@@ -1170,7 +1187,9 @@ def scan_for_violations(text: str, include_quoted: bool = False) -> list[Violati
     for phrase, info in BANNED_PHRASES.items():
         for match in _phrase_pattern_ci(phrase).finditer(scan_text):
             pos = match.start()
-            line_num, column, context = _line_col_context(text, line_starts, pos)
+            line_num, column, context = _line_col_context(
+                text, line_starts, pos, line_context_cache
+            )
 
             violations.append({
                 "phrase": phrase,
@@ -1191,7 +1210,9 @@ def scan_for_violations(text: str, include_quoted: bool = False) -> list[Violati
             continue
         for match in matches:
             pos = match.start()
-            line_num, column, context = _line_col_context(text, line_starts, pos)
+            line_num, column, context = _line_col_context(
+                text, line_starts, pos, line_context_cache
+            )
 
             violations.append({
                 # Preserve the pre-fix lowercase phrase field: STRUCTURAL_PATTERNS
