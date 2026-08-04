@@ -12934,6 +12934,156 @@
       ]
     },
     {
+      "id": "STRUCT-18",
+      "category": "scanner_false_negative",
+      "title": "Repeated rhetorical triads are an aggregate AI cadence tell",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py"
+      ],
+      "stdin": "The rollout promised faster decisions, clearer ownership, and stronger accountability. The memo called for consistent planning, disciplined execution, and transparent reporting. Leaders said the change would produce durable growth, meaningful alignment, and lasting momentum. Yet the memo named no changed process, deadline, or owner.",
+      "failure_mode": "structure_scan records triad_density but never flags it, so prose built from repeated rules of three passes clean.",
+      "correct_behavior": "Exit 1 and report triad_density after three rhetorical triads in a short prose passage.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 1
+        },
+        {
+          "type": "json",
+          "path": "flagged.triad_density",
+          "equals": true
+        }
+      ]
+    },
+    {
+      "id": "STRUCT-19",
+      "category": "scanner_false_positive",
+      "title": "Technical inventory lists may repeat factual triads",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py",
+        "--genre",
+        "docs"
+      ],
+      "stdin": "The kit contains a wrench, gauge, and seal. The service form records unit, date, and technician. The shipment includes pump, hose, and bracket. Record each factual field exactly as shown.",
+      "failure_mode": "A blanket rule-of-three detector would punish compact factual enumerations in reference documentation.",
+      "correct_behavior": "Exit 0 under --genre docs because factual inventories legitimately use repeated three-item lists.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "flags",
+          "equals": []
+        }
+      ]
+    },
+    {
+      "id": "STRUCT-20",
+      "category": "scanner_false_negative",
+      "title": "Long sentences repeatedly chained with and are an aggregate AI tell",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py"
+      ],
+      "stdin": "Each morning, the platform reviews every request and compares the account history and estimates the likely outcome before the assigned team receives a recommendation. After lunch, managers inspect the recommendation and discuss the surrounding context and approve the next action after a final regional review. Before noon, the workflow records each decision and updates the central dashboard and sends a notice to every regional owner with an open account. During review, analysts monitor the dashboard and compare weekly patterns and prepare a narrative summary for the monthly operating meeting with senior managers. On Fridays, directors read the summary and request additional context and circulate the revised account to the wider leadership group for another discussion. Without resolution, the process repeats each week and creates another layer of commentary and leaves the underlying ownership question unanswered by any named manager.",
+      "failure_mode": "Long average sentence length alone misses the specific LLM habit of repeatedly chaining clauses with 'and'.",
+      "correct_behavior": "Exit 1 and report and_heavy_long_sentence_share when at least half of six sentences are long and contain multiple uses of 'and'.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 1
+        },
+        {
+          "type": "json",
+          "path": "flagged.and_heavy_long_sentence_share",
+          "equals": true
+        }
+      ]
+    },
+    {
+      "id": "STRUCT-21",
+      "category": "scanner_false_positive",
+      "title": "Procedural documentation can legitimately chain required operations",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py",
+        "--genre",
+        "docs"
+      ],
+      "stdin": "The controller reads the header and validates the checksum and rejects the frame when either field is invalid. Next the worker opens the archive and verifies the manifest and copies the approved entries into the staging directory. A client signs the request and attaches the timestamp and sends both values in the authorization header. Each service parses the token and checks the audience and returns status 401 when the audience does not match. Before backup the job locks the database and writes the snapshot and releases the lock only after the checksum succeeds. During restore the command reads the snapshot and rebuilds the index and prints the final record count for comparison.",
+      "failure_mode": "A prose-wide conjunction rule would flag accurate step semantics in technical reference material.",
+      "correct_behavior": "Exit 0 under --genre docs because the repeated conjunctions preserve ordered technical operations.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "flags",
+          "equals": []
+        }
+      ]
+    },
+    {
+      "id": "STRUCT-22",
+      "category": "scanner_false_negative",
+      "title": "Long punctuation-sparse prose is an aggregate AI tell",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py"
+      ],
+      "stdin": "The organization launched the program after several planning sessions that produced a broad mandate without assigning a specific owner to the daily work. Senior leaders described the effort as a durable response to changing market conditions while leaving each regional team to interpret the operating model alone. Employees received a lengthy explanation that connected customer expectations with internal priorities without identifying which existing commitments would stop. The first quarterly review described encouraging movement across several workstreams although the report did not define the baseline used for that judgment. A later update repeated the original ambition in different language while offering no dates for the systems that supposedly supported the transition. By the end of the year the initiative had generated many polished summaries without producing a decision that frontline managers could apply during an actual customer call.",
+      "failure_mode": "Current metrics can record long sentences but do not catch a sustained absence of commas, semicolons, colons, parentheses, or dashes inside long prose.",
+      "correct_behavior": "Exit 1 and report sparse_internal_punctuation when 110-plus words of long-sentence prose contain almost no internal punctuation.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 1
+        },
+        {
+          "type": "json",
+          "path": "flagged.sparse_internal_punctuation",
+          "equals": true
+        }
+      ]
+    },
+    {
+      "id": "STRUCT-23",
+      "category": "scanner_false_positive",
+      "title": "Long reference prose may use few internal punctuation marks",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py",
+        "--genre",
+        "docs"
+      ],
+      "stdin": "The command reads the selected configuration from the workspace before it creates any output in the destination directory chosen by the operator. Each source record passes through the validation stage that checks required fields before the converter writes the normalized representation to disk. The program stops before conversion when a required identifier is absent because downstream tools cannot reconstruct that value from the remaining fields. Operators can rerun the command after correcting the source file because the failed attempt does not alter the original input or the destination. The final verification step reads every generated record from disk before the command reports success to the calling process. This behavior lets automated jobs treat a zero exit status as evidence that every generated record was readable at the end of the run.",
+      "failure_mode": "A punctuation-sparsity threshold without a genre guard would reject valid reference prose written as complete declarative sentences.",
+      "correct_behavior": "Exit 0 under --genre docs because sparse punctuation is not independently suspicious in technical reference material.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "flags",
+          "equals": []
+        }
+      ]
+    },
+    {
       "id": "SKILL-TITLE-01",
       "category": "headline_reconstruction",
       "title": "Rewrite slide titles as tests, mechanisms, results, or decisions",
