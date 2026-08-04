@@ -14,8 +14,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 
 
-def _write_fake_claude(bin_dir: Path, counter: Path) -> None:
-    fake = bin_dir / "claude"
+def _write_fake_codex(bin_dir: Path, counter: Path, invocations: Path) -> None:
+    fake = bin_dir / "codex"
     fake.write_text(
         """#!/usr/bin/env python3
 import os
@@ -23,15 +23,50 @@ import sys
 from pathlib import Path
 
 counter = Path(os.environ['CACHE_PROBE_COUNTER'])
+invocations = Path(os.environ['CACHE_PROBE_INVOCATIONS'])
 with counter.open('a') as fh:
     fh.write('1\\n')
-prompt = sys.argv[-1]
+with invocations.open('a') as fh:
+    fh.write(' '.join(sys.argv[1:]) + '\\n')
+if sys.argv[1:3] != ['exec', '--skip-git-repo-check']:
+    raise SystemExit('fake codex: unexpected command')
+if '-m' not in sys.argv or sys.argv[sys.argv.index('-m') + 1] != 'gpt-5.6-luna':
+    raise SystemExit('fake codex: expected -m gpt-5.6-luna')
+if '-o' in sys.argv:
+    output_path = Path(sys.argv[sys.argv.index('-o') + 1])
+elif '--output-last-message' in sys.argv:
+    output_path = Path(sys.argv[sys.argv.index('--output-last-message') + 1])
+else:
+    raise SystemExit('fake codex: missing output path')
+prompt = sys.stdin.read()
 arm = 'with' if 'Use the skill under test' in prompt else 'without'
-print(f'<final>{arm}-{os.getpid()}</final>\\nDiagnosis: fake model')
+output_path.write_text(
+    f'<final>{arm}-clean</final>\\nDiagnosis: fake codex\\n',
+    encoding='utf-8',
+)
+print('codex transcript noise: this must not appear in output.md')
 """,
         encoding="utf-8",
     )
     fake.chmod(0o755)
+
+    # A successful fake Claude must never be needed by this probe. If the
+    # runner regresses to its old hard-coded provider, fail loudly and leave a
+    # count for the final assertion below.
+    claude = bin_dir / "claude"
+    claude.write_text(
+        """#!/usr/bin/env python3
+import os
+from pathlib import Path
+
+counter = Path(os.environ['CACHE_PROBE_CLAUDE'])
+with counter.open('a') as fh:
+    fh.write('1\\n')
+raise SystemExit('fake claude must not be called')
+""",
+        encoding="utf-8",
+    )
+    claude.chmod(0o755)
 
 
 def _write_tasks(path: Path, *, prompt: str = "cache probe") -> None:
@@ -109,6 +144,8 @@ def _run(
             mode,
             "--cache-identity",
             identity,
+            "--model",
+            "gpt-5.6-luna",
         ],
         cwd=ROOT,
         env=env,
@@ -124,8 +161,16 @@ def main() -> int:
         bin_dir = tmp / "bin"
         bin_dir.mkdir()
         counter = tmp / "counter"
-        _write_fake_claude(bin_dir, counter)
-        env = dict(os.environ, PATH=f"{bin_dir}:{os.environ.get('PATH', '')}", CACHE_PROBE_COUNTER=str(counter))
+        invocations = tmp / "invocations"
+        claude_calls = tmp / "claude-calls"
+        _write_fake_codex(bin_dir, counter, invocations)
+        env = dict(
+            os.environ,
+            PATH=f"{bin_dir}:{os.environ.get('PATH', '')}",
+            CACHE_PROBE_COUNTER=str(counter),
+            CACHE_PROBE_INVOCATIONS=str(invocations),
+            CACHE_PROBE_CLAUDE=str(claude_calls),
+        )
         tasks = tmp / "tasks.jsonl"
         cache = tmp / "cache"
         _write_tasks(tasks)
@@ -133,6 +178,10 @@ def main() -> int:
         _run(tasks, cache, "fake-model-v1", env)
         first_total = _count_calls(counter)
         baseline = (tmp / "CACHE-PROBE/without_skill/output.md").read_bytes()
+        if baseline != b"without-clean\n":
+            raise AssertionError(f"Codex final extraction leaked transcript/diagnosis: {baseline!r}")
+        if b"transcript noise" in (tmp / "CACHE-PROBE/without_skill/answer_full.md").read_bytes():
+            raise AssertionError("Codex transcript leaked into answer_full.md")
         second = _run(tasks, cache, "fake-model-v1", env)
         second_delta = _count_calls(counter) - first_total
         if (tmp / "CACHE-PROBE/without_skill/output.md").read_bytes() != baseline:
@@ -164,12 +213,20 @@ def main() -> int:
         entries = list((cache / "generation-v1").glob("*/record.json"))
         if len(entries) < 3:
             raise AssertionError(f"expected separate content/identity cache entries, found {len(entries)}")
+        invocation_rows = invocations.read_text(encoding="utf-8").splitlines()
+        if not invocation_rows or any("-m gpt-5.6-luna" not in row for row in invocation_rows):
+            raise AssertionError(f"Codex invocations did not select Luna: {invocation_rows}")
+        claude_total = _count_calls(claude_calls)
         print(
             f"first={first_total} second={second_delta} identity={identity_delta} "
             f"prompt={prompt_delta} off={off_delta}"
         )
         print("without_skill cache hit=1")
         print("concurrent_same_key=true")
+        print("codex_provider=codex")
+        print("codex_model=gpt-5.6-luna")
+        print("clean_final=true")
+        print(f"claude_calls={claude_total}")
     return 0
 
 

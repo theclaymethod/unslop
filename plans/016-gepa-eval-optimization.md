@@ -107,10 +107,10 @@ Parallel execution was not retained because the two short checks add negligible
 wall time and the sequential profile is simpler.
 
 The selected profile reduced the four main control files (`AGENTS.md`,
-`CLAUDE.md`, `evals/CHECKS.md`, and the CI workflow) from 16,702 to 7,385 bytes
-and from 1,865 to 954 whitespace tokens (48.8% fewer).
+`CLAUDE.md`, `evals/CHECKS.md`, and the CI workflow) from 16,702 to 7,401 bytes
+and from 1,865 to 955 whitespace tokens (48.8% fewer).
 
-## Deterministic candidate result (2026-08-04)
+## Accepted result (2026-08-04)
 
 | Measure | Before | After | Change |
 |---|---:|---:|---:|
@@ -121,9 +121,9 @@ and from 1,865 to 954 whitespace tokens (48.8% fewer).
 | Blocking deterministic phases | 18 | 3 | 83.3% fewer |
 | Gate command tokens | 62 | 9 | 85.5% fewer |
 | Warmed behavioral model calls | about 104 | about 52 | 50% fewer |
-| Control-file whitespace tokens | 1,865 | 954 | 48.8% fewer |
+| Control-file whitespace tokens | 1,865 | 955 | 48.8% fewer |
 
-The runner currently preserves 487 PASS / 1 expected XFAIL with no failures.
+The runner currently preserves 488 PASS / 1 expected XFAIL with no failures.
 `--jobs 1` and the bounded parallel default produce identical ordered results,
 and two repeated default passes are identical. Parallel work is limited to
 guaranteed subprocess cases; in-process scanners and the contribution check's
@@ -133,14 +133,19 @@ The behavioral cache is opt-in, content-addressed, and identity-bound. It only
 reuses the immutable `without_skill` generation arm and successful parseable
 judge responses. Deterministic fake-provider cases prove cache hits,
 prompt/identity invalidation, failure rejection, and the uncached escape hatch.
-A live uncached behavioral run remains unavailable because the configured
-Claude CLI subscription is disabled. Therefore this is a deterministic
-candidate result, not a fully accepted release. No failed provider output was
-cached or used as acceptance evidence.
+The final uncached behavioral run used `gpt-5.6-luna` through Codex for both
+generation and judging. All 36 generations and 68 judgments completed without
+missing outputs or execution errors. With-skill passed 86.1% versus 80.6%
+without-skill, a positive 5.6-point delta that was not significant at this
+sample size (`p = 1.0`, `n = 18`). No failed provider output was cached or used
+as acceptance evidence. Generation did not expose token telemetry; the 68 Luna
+judge calls recorded 1,055,469 input and 7,378 output tokens (1,062,847 total).
+The resource result therefore combines an exact judge-token subtotal with the
+end-to-end model-call count rather than claiming a complete token total.
 
 The control interface is smaller, but the whole diff is not: cache safety,
 runner isolation, executable GEPA evidence, and their regressions add source
 code. Against `origin/main`, the complete working change is approximately
-1,695 lines, 5,070 whitespace words, and 55.5 KB larger. Report both
+2,013 lines, 6,350 whitespace words, and 68.0 KB larger. Report both
 measurements during review rather than using the four-file control-text
 reduction as a proxy for total codebase complexity.

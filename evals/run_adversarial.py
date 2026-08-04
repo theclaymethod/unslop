@@ -307,7 +307,7 @@ def list_gates():
             "command": "python3 evals/check.py --behavioral tune",
             "pass_criterion": "exit 0",
             "blocking": False,
-            "needs": ["skill-benchmark", "claude -p"],
+            "needs": ["skill-benchmark", "codex exec (gpt-5.6-luna)"],
         },
         {
             "id": "rubric-judge",

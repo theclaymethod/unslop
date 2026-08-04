@@ -3,8 +3,9 @@
 Local runner for the behavioral harness: turn prepared tasks into output.md
 files that `skill-benchmark grade`/`judge` can read.
 
-skill-eval-harness deliberately doesn't call a model and ships only a codex
-runner. This drives the prepared tasks through `claude -p` instead.
+Generation uses the local Codex CLI through ``model_generate.call_codex`` so
+its output-last-message extraction is shared with the other Codex checks. The
+default and canonical acceptance model is Luna.
 
   with_skill   -> the task instruction (read SKILL.md ...) + the prompt
   without_skill-> the bare prompt only (the no-skill baseline)
@@ -18,7 +19,7 @@ lift. Note that when interpreting results.
 
 Usage:
     python3 evals/run_local.py runs/tune/tasks.jsonl        # writes output.md files
-    python3 evals/run_local.py runs/tune/tasks.jsonl --jobs 4 --model sonnet
+    python3 evals/run_local.py runs/tune/tasks.jsonl --model gpt-5.6-luna
     python3 evals/run_local.py runs/tune/tasks.jsonl --dry-run
 """
 
@@ -30,13 +31,13 @@ import hashlib
 import json
 import os
 import shutil
-import subprocess
 import sys
 import tempfile
 from pathlib import Path
 
 
 CACHE_SCHEMA = "generation-v1"
+DEFAULT_CODEX_MODEL = "gpt-5.6-luna"
 PROMPT_SUFFIX = (
     "\n\nPut the final text between <final> and </final> markers; put any "
     "diagnosis after it, quoting phrase names in double quotes."
@@ -111,6 +112,7 @@ def generation_cache_key(
     payload = {
         "schema": CACHE_SCHEMA,
         "task": _task_for_cache(task),
+        "provider": "codex",
         "model": model or "<cli-default>",
         "cache_identity": cache_identity,
         "prompt_suffix": PROMPT_SUFFIX,
@@ -202,6 +204,24 @@ def _install_outputs(out_dir: Path, answer: bytes, output: bytes) -> None:
     _atomic_write(out_dir / "output.md", output)
 
 
+def _call_codex(model: str | None, prompt: str, timeout: int) -> tuple[str | None, str | None]:
+    """Call Codex through the shared safe adapter and read its final message."""
+    # The behavioral runner pins its acceptance model explicitly. Keeping a
+    # default here also makes direct invocations deterministic instead of
+    # silently selecting whatever the CLI happens to default to.
+    try:
+        # ``evals.run_local`` is also imported by offline checks; support that
+        # package seam as well as direct ``python3 evals/run_local.py``.
+        from .model_generate import call_codex
+    except ImportError:
+        from model_generate import call_codex
+
+    text, error = call_codex(model or DEFAULT_CODEX_MODEL, prompt, timeout=timeout)
+    if error:
+        return None, error
+    return text, None
+
+
 def run_one(
     task: dict,
     runs_dir: Path,
@@ -235,21 +255,14 @@ def run_one(
     for name in OUTPUT_NAMES:
         (out_dir / name).unlink(missing_ok=True)
 
-    cmd = ["claude", "-p", prompt]
-    if model:
-        cmd[1:1] = ["--model", model]
-    try:
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
-    except subprocess.TimeoutExpired:
-        return label, False, "model-call-fail timeout"
-    except (FileNotFoundError, OSError) as e:
-        return label, False, f"model-call-fail runner unavailable: {e}"
-    answer = proc.stdout.strip()
+    answer, error = _call_codex(model, prompt, timeout)
+    if error:
+        return label, False, f"model-call-fail {error}"
+    if answer is None:
+        return label, False, "model-call-fail empty output"
+    answer = answer.strip()
     if not answer:
-        return label, False, "model-call-fail " + (proc.stderr.strip()[:120] or "empty output")
-    cli_errors = ("Not logged in", "Please run /login", "Credit balance is too low")
-    if proc.returncode != 0 or any(marker in answer[:200] for marker in cli_errors):
-        return label, False, f"model-call-fail runner error, not a model answer: {answer[:120]}"
+        return label, False, "model-call-fail empty output"
     final = extract_final(answer)
     answer_bytes = (answer + "\n").encode("utf-8")
     output_bytes = (final + "\n").encode("utf-8")
@@ -265,8 +278,10 @@ def run_one(
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("tasks", help="tasks.jsonl emitted by `skill-benchmark prepare`")
-    parser.add_argument("--jobs", type=int, default=4, help="concurrent claude calls")
-    parser.add_argument("--model", default=None, help="pass --model to claude (e.g. sonnet)")
+    parser.add_argument("--jobs", type=int, default=4, help="concurrent model calls")
+    parser.add_argument(
+        "--model", default=DEFAULT_CODEX_MODEL, help="Codex model id (default: gpt-5.6-luna)"
+    )
     parser.add_argument("--timeout", type=int, default=180, help="per-call timeout (s)")
     parser.add_argument("--cache-dir", default=None, help="generation cache directory (opt-in)")
     parser.add_argument(

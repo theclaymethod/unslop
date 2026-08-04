@@ -12417,14 +12417,14 @@
     {
       "id": "ENC-06",
       "category": "robustness",
-      "title": "run_local: missing claude CLI degrades instead of tracebacking",
+      "title": "run_local: missing Codex CLI degrades instead of tracebacking",
       "target": "script",
       "command": [
         "sh",
         "-c",
         "d=$(mktemp -d) && mkdir -p \"$d/bin\" && ln -s $(command -v python3) \"$d/bin/python3\" && printf '{\"case_id\":\"enc\",\"variant\":\"without_skill\",\"prompt\":\"hi\",\"run_dir\":\"enc/without_skill\"}\\n' > \"$d/tasks.jsonl\" && PATH=\"$d/bin\" python3 evals/run_local.py \"$d/tasks.jsonl\" --jobs 1 --timeout 5"
       ],
-      "failure_mode": "subprocess.run(cmd) only catches subprocess.TimeoutExpired, so a missing `claude` binary raises an uncaught FileNotFoundError inside the thread pool and tracebacks instead of degrading the one task.",
+      "failure_mode": "A missing `codex` binary can raise an uncaught FileNotFoundError inside the thread pool and traceback instead of degrading the one task.",
       "correct_behavior": "Catch (FileNotFoundError, OSError) and return a failed-but-labeled result; the runner finishes and reports the failure instead of crashing.",
       "assertions": [
         {
@@ -12434,6 +12434,10 @@
         {
           "type": "stderr_not_contains",
           "value": "Traceback"
+        },
+        {
+          "type": "stderr_not_contains",
+          "value": "claude"
         }
       ]
     },
@@ -13112,14 +13116,14 @@
     {
       "id": "CACHE-LOCAL-01",
       "category": "harness_cache",
-      "title": "without_skill generation cache hits while with_skill and uncached runs still call",
+      "title": "Luna generation cache hits only the immutable baseline and extracts clean Codex finals",
       "target": "script",
       "command": [
         "python3",
         "evals/fixtures/cache/check_generation.py"
       ],
-      "failure_mode": "A behavioral optimization cache can reuse the mutable with_skill arm, fail to invalidate changed task or identity content, or make an uncached acceptance silently reuse a baseline answer.",
-      "correct_behavior": "With an explicit cache identity, the unchanged without_skill answer is reused on the second run while with_skill still invokes the model; changed identity or prompt content misses, and cache mode off invokes both arms.",
+      "failure_mode": "A behavioral optimization cache can reuse the mutable with_skill arm, fail to invalidate changed task or identity content, make an uncached acceptance silently reuse a baseline answer, or route generation to Claude instead of the pinned Luna Codex provider and leak the CLI transcript into output.md.",
+      "correct_behavior": "With an explicit cache identity, the unchanged without_skill answer is reused on the second run while with_skill still invokes Codex; changed identity or prompt content misses, cache mode off invokes both arms, every call selects gpt-5.6-luna, and output.md contains only the extracted final message.",
       "assertions": [
         {
           "type": "exit_code",
@@ -13136,6 +13140,56 @@
         {
           "type": "stdout_contains",
           "value": "concurrent_same_key=true"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "codex_provider=codex"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "codex_model=gpt-5.6-luna"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "clean_final=true"
+        }
+      ]
+    },
+    {
+      "id": "BEHAVIOR-ROUTE-01",
+      "category": "harness_cache",
+      "title": "Canonical cached and uncached behavioral paths stay on Luna",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/fixtures/cache/check_behavioral_luna.py"
+      ],
+      "failure_mode": "The lower-level generator test can stay green while run_behavioral.sh routes generation or either judge branch back to Claude, selects a different Codex model, or writes its probe artifacts over a real run.",
+      "correct_behavior": "The canonical wrapper selects gpt-5.6-luna for generation and judging in both uncached and read-write cache modes, never calls Claude, and supports an isolated run root for the probe.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "uncached_generation=luna"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "uncached_judge=luna"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "cached_generation=luna"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "cached_judge=luna"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "claude_calls=0"
         }
       ]
     },

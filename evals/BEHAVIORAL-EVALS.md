@@ -53,7 +53,8 @@ If you touched `SKILL.md`, `presets/`, or `references/`, run
 
 ## Run Locally
 
-The behavioral layer needs local model credentials for `claude -p`.
+The behavioral layer uses the local Codex runtime with `gpt-5.6-luna` for both
+generation and judging. It does not call Claude.
 
 ```bash
 uv tool install git+https://github.com/adewale/skill-eval-harness.git
@@ -77,6 +78,10 @@ candidate outputs miss automatically. Final acceptance must bypass every cache:
 ```bash
 evals/run_behavioral.sh tune --uncached
 ```
+
+The provider and model are pinned inside `run_behavioral.sh`, so environment
+variables cannot silently change an acceptance run. Direct experiments can use
+`run_local.py --model MODEL`, but they are not the canonical behavioral gate.
 
 Notes:
 

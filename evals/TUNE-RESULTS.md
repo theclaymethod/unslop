@@ -1,5 +1,29 @@
 # Tune Results
 
+## Luna tune run — 2026-08-04
+
+The canonical uncached acceptance used `skill-eval-harness` v0.6.0 and
+`gpt-5.6-luna` through Codex for both generation and judging. It made 36
+generation calls and 68 judge calls; all 104 completed, with no missing outputs
+or execution errors.
+
+| variant | cases | objective / combined pass rate |
+|---|---:|---:|
+| with_skill | 18 | 0.8611 |
+| without_skill | 18 | 0.8056 |
+
+The skill gained 5.6 percentage points (normalized gain 0.286). The sampled
+sign-flip test was not significant (`p = 1.0`, `n = 18`), so treat this as a
+directional result rather than evidence of stable lift. `SKILL-DEHEDGE-01` was
+the sole positive pair, there were no negative pairs, and both variants failed
+`SKILL-LITERAL-01` and `SKILL-MACRO-01` while earning half credit on
+`SKILL-WARMTH-01`.
+
+Generation did not expose token telemetry. Luna judging did: the 68 uncached
+judge calls used 1,055,469 input and 7,378 output tokens, or 1,062,847 total.
+The run therefore has an exact judge-token total but no complete end-to-end
+token count.
+
 First behavioral run, before `SKILL-WEDGE-01` was added:
 
 - Harness: `skill-eval-harness` v0.4.2.

@@ -54,7 +54,7 @@ external gate surface:
     "blocking": false,
     "needs": [
       "skill-benchmark",
-      "claude -p"
+      "codex exec (gpt-5.6-luna)"
     ]
   },
   {

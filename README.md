@@ -305,7 +305,7 @@ fast path and the manual path.
 Every behavior worth having is pinned by a row that fails without it. The suite is
 constitutional, and it's built to resist gaming.
 
-- **488 deterministic script cases (487 pass, 1 documented xfail)** in `evals/adversarial-evals.json`, run by
+- **489 deterministic script cases (488 pass, 1 documented xfail)** in `evals/adversarial-evals.json`, run by
   `python3 evals/check.py`. Each detection carries a false-negative row (the tell
   gets caught), a false-positive row (the literal sense survives), and a recall row (gating
   didn't gut detection).
@@ -413,7 +413,7 @@ unslop/
 ├── presets/                       # crisp / warm / expert / story voice deltas
 ├── scripts/                       # Scanners, voice tools, preservation, suggest, harvest
 ├── evals/
-│   ├── adversarial-evals.json     # Source of truth: 488 script cases
+│   ├── adversarial-evals.json     # Source of truth: 489 script cases
 │   ├── check.py                   # Canonical repository check
 │   ├── run_adversarial.py         # Deterministic runner (--only, --case, --list-gates)
 │   ├── shared-benchmark.json      # Generated behavioral manifest (never hand-edit)
