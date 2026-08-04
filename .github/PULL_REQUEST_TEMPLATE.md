@@ -22,8 +22,7 @@ must be red here).
 
 ## Gate results
 
-Paste the `run_adversarial.py` tail and the `check_pattern_coverage.py`
-result.
+Paste the `python3 evals/check.py` summary.
 
 ## Confirmation
 

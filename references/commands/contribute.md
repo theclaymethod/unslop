@@ -9,8 +9,8 @@ discipline, row-diff verification, and the non-maintainer fork path.
 ## Flow
 
 1. **Precheck.** `python3 scripts/contribute.py precheck /abs/path/snippet.txt`.
-   If it exits 3 the tell is already covered, so add a REC row rather than
-   opening a fresh false-negative row.
+   Stop if it exits 3. The tell is already covered, so add a REC row rather
+   than opening a fresh false-negative row.
 
 2. **User confirmation gate #1 — publication.** Show the exact snippet and ask
    whether it may go in a public repo. Offer redaction hints from
@@ -36,17 +36,17 @@ discipline, row-diff verification, and the non-maintainer fork path.
    It refuses TODO markers, checks specimen fidelity, and captures the
    red-to-green transition.
 
-6. **Full gate battery:** `run_adversarial.py`, `build_shared_benchmark.py`
-   (+`--check`), `check_taboo_parity.py`, `check_pattern_coverage.py`,
-   `kata_add_pattern.py --run`, and `skill-benchmark validate ... --strict-leakage`.
+6. **Full gate battery:** `python3 evals/check.py`.
    If `SKILL.md`, `presets/`, or `references/` changed, also run
-   `evals/run_behavioral.sh tune`.
+   `python3 evals/check.py --behavioral tune`.
 
 7. **Render the PR body:**
    `python3 scripts/contribute.py report --bundle .unslop/contrib/<slug> > pr-body.md`.
 
-8. **User confirmation gate #2 — publication of the PR.** Show the final PR body.
-   Only after the user approves do you branch, `git add` the three changed files,
-   commit, and `gh pr create` (or the fork path in `references/contribute.md` for
-   non-maintainers). Scripts and evals never call `gh` or any network command;
-   the host agent runs those after approval.
+8. **User confirmation gate #2 — publication of the PR.** Show the final PR
+   body, get approval, then branch, `git add` the three changed files, commit,
+   and use `gh pr create` (or the non-maintainer fork path in
+   `references/contribute.md`). Network access belongs to the host agent.
+
+The resulting branch contains the eval row, scanner change, and taboo-catalog
+entry.

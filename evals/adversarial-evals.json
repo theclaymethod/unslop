@@ -9509,6 +9509,7 @@
     },
     {
       "id": "CONTRIB-01",
+      "serial": true,
       "category": "contribute",
       "title": "precheck names an already covering pattern",
       "target": "script",
@@ -9528,6 +9529,7 @@
     },
     {
       "id": "CONTRIB-02",
+      "serial": true,
       "category": "contribute",
       "title": "precheck accepts a genuinely uncaught tell",
       "target": "script",
@@ -9547,6 +9549,7 @@
     },
     {
       "id": "CONTRIB-03",
+      "serial": true,
       "category": "contribute",
       "title": "scaffold preserves post-redaction specimen bytes",
       "target": "script",
@@ -9566,6 +9569,7 @@
     },
     {
       "id": "CONTRIB-04",
+      "serial": true,
       "category": "contribute",
       "title": "redaction may not alter the tell",
       "target": "script",
@@ -9585,6 +9589,7 @@
     },
     {
       "id": "CONTRIB-05",
+      "serial": true,
       "category": "contribute",
       "title": "verify enforces red-first and refuses TODO report text",
       "target": "script",
@@ -9604,6 +9609,7 @@
     },
     {
       "id": "CONTRIB-06",
+      "serial": true,
       "category": "contribute",
       "title": "report rendering matches golden markdown",
       "target": "script",
@@ -9623,6 +9629,7 @@
     },
     {
       "id": "CONTRIB-07",
+      "serial": true,
       "category": "contribute",
       "title": "scaffold output is deterministic",
       "target": "script",
@@ -9642,6 +9649,7 @@
     },
     {
       "id": "CONTRIB-08",
+      "serial": true,
       "category": "contribute",
       "title": "missing bundle exits 2",
       "target": "script",
@@ -9661,6 +9669,7 @@
     },
     {
       "id": "CONTRIB-09",
+      "serial": true,
       "category": "contribute",
       "title": "capitalized tell assertions normalize without changing stdin",
       "target": "script",
@@ -9680,6 +9689,7 @@
     },
     {
       "id": "CONTRIB-10",
+      "serial": true,
       "category": "contribute",
       "title": "precheck reports structure-only findings",
       "target": "script",
@@ -10904,6 +10914,144 @@
         {
           "type": "stderr_not_contains",
           "value": "Traceback"
+        }
+      ]
+    },
+    {
+      "id": "DOC-25",
+      "category": "scanner_detection",
+      "title": "Canonical repository check has three non-duplicated phases",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check.py",
+        "--list"
+      ],
+      "failure_mode": "Contributors and CI run a copied matrix of full-suite and subset checks, repeating behavior already exercised by the authoritative adversarial suite and making the required procedure expensive and hard to understand.",
+      "correct_behavior": "One canonical checker lists exactly the full adversarial suite, benchmark freshness, and strict leakage validation, with no repeated category slices.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "count",
+          "equals": 3
+        },
+        {
+          "type": "json",
+          "path": "phases.0.id",
+          "equals": "adversarial-suite"
+        },
+        {
+          "type": "json",
+          "path": "phases.1.id",
+          "equals": "shared-benchmark-check"
+        },
+        {
+          "type": "json",
+          "path": "phases.2.id",
+          "equals": "strict-leakage-validate"
+        }
+      ]
+    },
+    {
+      "id": "DOC-26",
+      "category": "scanner_detection",
+      "title": "GEPA check-profile search is reproducible from a pinned configuration",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/optimize_check_profile.py",
+        "--list"
+      ],
+      "failure_mode": "Optimization claims exist only as prose, without the candidate profiles, hard constraints, GEPA budget, evaluator commands, or a machine-readable result artifact needed to reproduce them.",
+      "correct_behavior": "The repository exposes the pinned GEPA version, three candidate profiles, required correctness gates, bounded proposal budget, and committed artifact path as JSON without invoking GEPA.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "json",
+          "path": "gepa_version",
+          "equals": "0.1.4"
+        },
+        {
+          "type": "json",
+          "path": "candidate_count",
+          "equals": 3
+        },
+        {
+          "type": "json",
+          "path": "max_candidate_proposals",
+          "equals": 2
+        },
+        {
+          "type": "json",
+          "path": "max_metric_calls",
+          "equals": 10
+        },
+        {
+          "type": "json",
+          "path": "artifact",
+          "equals": "evals/gepa-check-profile.json"
+        },
+        {
+          "type": "json",
+          "path": "artifact_valid",
+          "equals": true
+        }
+      ]
+    },
+    {
+      "id": "RUN-01",
+      "category": "robustness",
+      "title": "Parallel runner selects subprocess work when jobs are enabled",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/run_adversarial.py",
+        "--case",
+        "DOC-01",
+        "--case",
+        "DOC-25",
+        "--jobs",
+        "2"
+      ],
+      "failure_mode": "A jobs flag can be accepted but silently retain the sequential loop, so the advertised bounded parallel path is never exercised.",
+      "correct_behavior": "The nested runner reports that its two guaranteed-subprocess cases were submitted to a bounded worker pool, without relying on wall-clock thresholds.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "parallel dispatch: 2 subprocess cases via 2 workers"
+        }
+      ]
+    },
+    {
+      "id": "RUN-02",
+      "category": "robustness",
+      "title": "Serial subprocess cases finish before the parallel pool starts",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/fixtures/runner/check_parallel_isolation.py"
+      ],
+      "failure_mode": "The runner can label a repository-mutating case serial but still start pooled subprocesses before executing it, exposing temporary deletions and partial fixture state to concurrent checks.",
+      "correct_behavior": "A serial case completes before any parallel subprocess starts, while the remaining isolated subprocess cases still use the bounded pool.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "serial_before_parallel=true"
         }
       ]
     },
@@ -12414,6 +12562,34 @@
       ]
     },
     {
+      "id": "SPAN-04",
+      "category": "robustness",
+      "title": "buffer-reading scanner dispatches in-process without a fallback",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/run_adversarial.py",
+        "--case",
+        "SPAN-01"
+      ],
+      "failure_mode": "The in-process adversarial runner replaces stdin with a text-only StringIO, but scanner CLIs read sys.stdin.buffer; the targeted nested runner must exercise the scanner in-process instead of silently falling back to a subprocess.",
+      "correct_behavior": "The nested targeted runner passes SPAN-01 and reports one in-process dispatch with zero fallbacks on stdout.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "PASS 1"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "dispatch: 1 in-process, 0 subprocess (0 dispatch fallbacks)"
+        }
+      ]
+    },
+    {
       "id": "LANG-20",
       "category": "language_decline",
       "title": "Spanish prose declined by silhouette_scan",
@@ -12930,6 +13106,62 @@
           "type": "json",
           "path": "total_violations",
           "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "CACHE-LOCAL-01",
+      "category": "harness_cache",
+      "title": "without_skill generation cache hits while with_skill and uncached runs still call",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/fixtures/cache/check_generation.py"
+      ],
+      "failure_mode": "A behavioral optimization cache can reuse the mutable with_skill arm, fail to invalidate changed task or identity content, or make an uncached acceptance silently reuse a baseline answer.",
+      "correct_behavior": "With an explicit cache identity, the unchanged without_skill answer is reused on the second run while with_skill still invokes the model; changed identity or prompt content misses, and cache mode off invokes both arms.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "first=2 second=1 identity=2 prompt=2 off=2"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "without_skill cache hit=1"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "concurrent_same_key=true"
+        }
+      ]
+    },
+    {
+      "id": "CACHE-JUDGE-01",
+      "category": "harness_cache",
+      "title": "judge stdin cache hits, identity changes invalidate, and bad verdicts are never cached",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/fixtures/cache/check_judge.py"
+      ],
+      "failure_mode": "A judge cache can key only by case ID, reuse a verdict after its prompt or judge identity changes, or retain malformed/nonzero provider responses as if they were valid evidence.",
+      "correct_behavior": "The same valid judge prompt hits once, a changed identity misses, and repeated malformed or nonzero judge responses each invoke the fake provider again.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "valid=1 identity=1 malformed=2 error_json=2 nonzero=2"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "cached_valid_output=true"
         }
       ]
     },

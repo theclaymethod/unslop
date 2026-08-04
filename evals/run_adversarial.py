@@ -17,6 +17,7 @@ Behavioral (target=="skill") cases are skipped here; they require an agent/LLM
 judge. List them with --list-skill.
 """
 import contextlib
+from concurrent.futures import ThreadPoolExecutor
 import importlib.util
 import inspect
 import io
@@ -27,6 +28,7 @@ import os
 import signal
 import subprocess
 import sys
+import threading
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -59,6 +61,8 @@ DISPATCHABLE = {
 _MODULE_CACHE = {}
 _TIMEOUT_FALLBACK = set()  # rel_paths permanently routed to subprocess after a timeout
 STATS = {"inprocess": 0, "subprocess": 0, "dispatch_fallback": 0, "fallback_reasons": []}
+_STATS_LOCK = threading.Lock()
+DEFAULT_JOBS = min(8, max(1, os.cpu_count() or 1))
 
 if sys.stdout.isatty():
     GREEN, RED, YELLOW, BLUE, DIM, RESET = (
@@ -196,7 +200,10 @@ def _inprocess_case(ev, timeout):
             return None
 
         sys.argv = [Path(rel_path).name] + list(args)
-        sys.stdin = io.StringIO(ev.get("stdin", ""))
+        stdin_bytes = ev.get("stdin", "").encode("utf-8")
+        sys.stdin = io.TextIOWrapper(
+            io.BytesIO(stdin_bytes), encoding="utf-8", errors="replace"
+        )
         os.chdir(ROOT)
 
         sig = inspect.signature(module.main)
@@ -243,9 +250,11 @@ def _inprocess_case(ev, timeout):
 def run_case(ev, timeout=30, use_subprocess=False):
     proc = None if use_subprocess else _inprocess_case(ev, timeout)
     if proc is not None:
-        STATS["inprocess"] += 1
+        with _STATS_LOCK:
+            STATS["inprocess"] += 1
     else:
-        STATS["subprocess"] += 1
+        with _STATS_LOCK:
+            STATS["subprocess"] += 1
         try:
             proc = subprocess.run(
                 ev["command"],
@@ -266,175 +275,39 @@ def run_case(ev, timeout=30, use_subprocess=False):
     return ok, details
 
 
+def _guaranteed_subprocess(ev):
+    """Return whether *ev* cannot enter the in-process dispatcher.
+
+    Dispatchable scanner shapes stay on the main thread even when ``--jobs``
+    is enabled: their imports and calls temporarily replace ``sys.argv``,
+    ``sys.stdin``, and the process cwd. Everything else already uses the
+    isolated subprocess path and can be submitted to the bounded pool.
+    """
+    if ev.get("serial"):
+        return False
+    command = ev.get("command", ())
+    return not (
+        len(command) >= 2
+        and command[0] == "python3"
+        and command[1] in DISPATCHABLE
+    )
+
+
 def list_gates():
     return [
         {
-            "id": "adversarial-suite",
-            "command": "python3 evals/run_adversarial.py",
-            "pass_criterion": "exit 0",
-            "blocking": True,
-            "needs": [],
-        },
-        {
-            "id": "harvest-suite",
-            "command": "python3 evals/run_adversarial.py --only HARV",
-            "pass_criterion": "exit 0",
-            "blocking": True,
-            "needs": [],
-        },
-        {
-            "id": "contribute-suite",
-            "command": "python3 evals/run_adversarial.py --only CONTRIB",
-            "pass_criterion": "exit 0",
-            "blocking": True,
-            "needs": [],
-        },
-        {
-            "id": "calibrate-suite",
-            "command": "python3 evals/run_adversarial.py --only CAL",
-            "pass_criterion": "exit 0",
-            "blocking": True,
-            "needs": [],
-        },
-        {
-            "id": "shared-benchmark-check",
-            "command": "python3 evals/build_shared_benchmark.py --check",
-            "pass_criterion": "exit 0",
-            "blocking": True,
-            "needs": [],
-        },
-        {
-            "id": "strict-leakage-validate",
-            "command": "skill-benchmark validate evals/shared-benchmark.json --strict-leakage",
+            "id": "repository-check",
+            "command": "python3 evals/check.py",
             "pass_criterion": "exit 0",
             "blocking": True,
             "needs": ["skill-benchmark"],
         },
         {
-            "id": "taboo-catalog-parity",
-            "command": "python3 evals/check_taboo_parity.py",
-            "pass_criterion": "exit 0",
-            "blocking": True,
-            "needs": [],
-        },
-        {
-            "id": "pattern-coverage",
-            "command": "python3 evals/check_pattern_coverage.py",
-            "pass_criterion": "exit 0",
-            "blocking": True,
-            "needs": [],
-        },
-        {
-            "id": "voice-scorer",
-            "command": "python3 evals/check_voice.py --separation && python3 evals/check_voice.py --gi && python3 evals/check_voice.py --gaming && python3 evals/check_voice.py --profiles",
-            "pass_criterion": "exit 0",
-            "blocking": True,
-            "needs": [],
-        },
-        {
-            "id": "add-pattern-kata",
-            "command": "python3 evals/kata_add_pattern.py --run",
-            "pass_criterion": "exit 0",
-            "blocking": True,
-            "needs": [],
-        },
-        {
-            "id": "command-router-parity",
-            "command": "python3 evals/check_commands.py",
-            "pass_criterion": "exit 0",
-            "blocking": True,
-            "needs": [],
-        },
-        {
-            "id": "seeded-docs",
-            "command": "python3 evals/check_seeded_docs.py",
-            "pass_criterion": "exit 0",
-            "blocking": True,
-            "needs": [],
-        },
-        {
-            "id": "paired-fixture-hygiene",
-            "command": "python3 evals/check_pairs.py",
-            "pass_criterion": "exit 0",
-            "blocking": True,
-            "needs": [],
-        },
-        {
-            "id": "mimic-logic",
-            "command": "python3 evals/run_adversarial.py --only MIMIC --only CARD",
-            "pass_criterion": "exit 0",
-            "blocking": True,
-            "needs": [],
-        },
-        {
-            "id": "structure-climb",
-            "command": "python3 evals/run_adversarial.py --only CLIMB",
-            "pass_criterion": "exit 0",
-            "blocking": True,
-            "needs": [],
-        },
-        {
-            "id": "pack-structure",
-            "command": "python3 scripts/check_packs.py",
-            "pass_criterion": "exit 0",
-            "blocking": True,
-            "needs": [],
-        },
-        {
             "id": "behavioral-tune",
-            "command": "evals/run_behavioral.sh tune",
+            "command": "python3 evals/check.py --behavioral tune",
             "pass_criterion": "exit 0",
             "blocking": False,
             "needs": ["skill-benchmark", "claude -p"],
-        },
-        {
-            "id": "banned-phrase-scan",
-            "command": "python3 scripts/banned_phrase_scan.py < transformed.txt",
-            "pass_criterion": "exit 0",
-            "blocking": True,
-            "needs": [],
-        },
-        {
-            "id": "structure-scan",
-            "command": "python3 scripts/structure_scan.py < transformed.txt",
-            "pass_criterion": "exit 0",
-            "blocking": True,
-            "needs": [],
-        },
-        {
-            "id": "silhouette-scan",
-            "command": "python3 scripts/silhouette_scan.py < transformed.txt",
-            "pass_criterion": "exit 0",
-            "blocking": True,
-            "needs": [],
-        },
-        {
-            "id": "silhouette-check",
-            "command": "python3 evals/check_silhouette.py",
-            "pass_criterion": "exit 0",
-            "blocking": True,
-            "needs": [],
-        },
-        {
-            "id": "validate-preservation",
-            "command": "python3 scripts/validate_preservation.py original.txt transformed.txt",
-            "pass_criterion": "exit 0",
-            "blocking": True,
-            "needs": [],
-        },
-        {
-            "id": "readability-metrics",
-            "command": "python3 scripts/readability_metrics.py < transformed.txt",
-            "pass_criterion": "exit 0",
-            "blocking": True,
-            "needs": [],
-        },
-        {
-            "id": "diff-check",
-            "command": "python3 scripts/diff_check.py original.txt transformed.txt",
-            "pass_criterion": "exit 0",
-            "blocking": True,
-            "needs": [],
         },
         {
             "id": "rubric-judge",
@@ -443,15 +316,7 @@ def list_gates():
             "blocking": False,
             "needs": ["rubric judge"],
         },
-        {
-            "id": "evals-schema",
-            "command": "python3 evals/check_evals_schema.py",
-            "pass_criterion": "exit 0",
-            "blocking": True,
-            "needs": [],
-        },
     ]
-
 
 def parse_args(argv):
     parser = argparse.ArgumentParser(
@@ -482,9 +347,22 @@ def parse_args(argv):
         help="run only this exact case ID; repeatable",
     )
     parser.add_argument(
+        "--eval-file",
+        type=Path,
+        default=SUITE,
+        help="alternate adversarial suite JSON (used by runner integration checks)",
+    )
+    parser.add_argument(
         "--subprocess",
         action="store_true",
         help="escape hatch: run every case via subprocess (the pre-dispatcher path)",
+    )
+    parser.add_argument(
+        "--jobs",
+        type=int,
+        default=DEFAULT_JOBS,
+        metavar="N",
+        help=f"parallel workers for guaranteed-subprocess cases (default: {DEFAULT_JOBS})",
     )
     parser.add_argument(
         "--repeat",
@@ -492,10 +370,20 @@ def parse_args(argv):
         default=1,
         help=argparse.SUPPRESS,  # isolation-audit tool: rerun N times, diff results
     )
-    return parser.parse_args(argv)
+    args = parser.parse_args(argv)
+    if args.jobs < 1:
+        parser.error("--jobs must be at least 1")
+    return args
 
 
-def _execute(script_cases, skill_cases, strict_xfail, use_subprocess, quiet=False):
+def _execute(
+    script_cases,
+    skill_cases,
+    strict_xfail,
+    use_subprocess,
+    quiet=False,
+    jobs=DEFAULT_JOBS,
+):
     """Run one full pass over script_cases. Returns (rc, per_case) where
     per_case is an ordered list of (id, status) for equivalence/repeat diffing."""
     counts = {"PASS": 0, "FAIL": 0, "XFAIL": 0, "XPASS": 0}
@@ -506,8 +394,41 @@ def _execute(script_cases, skill_cases, strict_xfail, use_subprocess, quiet=Fals
         print(f"\n{BLUE}unslop adversarial suite — {len(script_cases)} script cases "
               f"({len(skill_cases)} skill cases skipped; --list-skill to see them){RESET}\n")
 
+    # Finish all process-global or explicitly serial work before starting the
+    # pool. This prevents repository-mutating checks from exposing temporary
+    # state to concurrent subprocesses.
+    results = {}
+    parallel_cases = []
+    if not use_subprocess and jobs > 1:
+        candidates = [ev for ev in script_cases if _guaranteed_subprocess(ev)]
+        if len(candidates) > 1:
+            parallel_cases = candidates
+
+    parallel_ids = {ev["id"] for ev in parallel_cases}
     for ev in script_cases:
-        ok, details = run_case(ev, use_subprocess=use_subprocess)
+        if ev["id"] not in parallel_ids:
+            results[ev["id"]] = run_case(ev, use_subprocess=use_subprocess)
+
+    if parallel_cases:
+        workers = min(jobs, len(parallel_cases))
+        if not quiet:
+            print(
+                f"{DIM}parallel dispatch: {len(parallel_cases)} subprocess "
+                f"cases via {workers} workers{RESET}"
+            )
+        with ThreadPoolExecutor(
+            max_workers=workers, thread_name_prefix="adversarial-subprocess"
+        ) as executor:
+            futures = {
+                ev["id"]: executor.submit(run_case, ev, 30, True)
+                for ev in parallel_cases
+            }
+            # Collect in suite order, independently of completion timing.
+            for ev in parallel_cases:
+                results[ev["id"]] = futures[ev["id"]].result()
+
+    for ev in script_cases:
+        ok, details = results[ev["id"]]
         xfail = ev.get("xfail", False)
         if ok and not xfail:
             status, color = "PASS", GREEN
@@ -571,7 +492,7 @@ def _print_dispatch_stats():
 
 def main(argv):
     args = parse_args(argv)
-    suite = json.loads(SUITE.read_text())
+    suite = json.loads(args.eval_file.read_text())
     evals = suite["evals"]
     script_cases = [e for e in evals if e.get("target") == "script"]
     skill_cases = [e for e in evals if e.get("target") == "skill"]
@@ -603,7 +524,12 @@ def main(argv):
         rc = 0
         for i in range(args.repeat):
             pass_rc, per_case = _execute(
-                script_cases, skill_cases, strict_xfail, args.subprocess, quiet=True
+                script_cases,
+                skill_cases,
+                strict_xfail,
+                args.subprocess,
+                quiet=True,
+                jobs=args.jobs,
             )
             passes.append(per_case)
             rc = rc or pass_rc
@@ -622,7 +548,13 @@ def main(argv):
         _print_dispatch_stats()
         return rc
 
-    rc, _ = _execute(script_cases, skill_cases, strict_xfail, args.subprocess)
+    rc, _ = _execute(
+        script_cases,
+        skill_cases,
+        strict_xfail,
+        args.subprocess,
+        jobs=args.jobs,
+    )
     _print_dispatch_stats()
     return rc
 

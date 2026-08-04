@@ -305,13 +305,14 @@ fast path and the manual path.
 Every behavior worth having is pinned by a row that fails without it. The suite is
 constitutional, and it's built to resist gaming.
 
-- **440 deterministic script cases (439 pass, 1 documented xfail)** in `evals/adversarial-evals.json`, run by
-  `python3 evals/run_adversarial.py`. Each detection carries a false-negative row (the tell
+- **488 deterministic script cases (487 pass, 1 documented xfail)** in `evals/adversarial-evals.json`, run by
+  `python3 evals/check.py`. Each detection carries a false-negative row (the tell
   gets caught), a false-positive row (the literal sense survives), and a recall row (gating
   didn't gut detection).
-- **24 machine-readable gates** via `python3 evals/run_adversarial.py --list-gates`, mirrored
-  in `evals/CHECKS.md`. They cover the scanners, the harvest/contribute/calibrate suites, the
-  voice scorer, pack structure, silhouette separation, and the docs themselves.
+- **Three external gates** via `python3 evals/run_adversarial.py --list-gates`, mirrored
+  in `evals/CHECKS.md`: one deterministic repository check and two explicit behavioral checks.
+  The repository check runs all scanner, contribution, calibration, voice, structure, and docs
+  rows once instead of rerunning category slices.
 - **Mutation-proof by construction.** Deleting a scanner pattern fails the coverage gate.
   Marking a passing case `xfail` fails the build. The one documented XFAIL is pinned to exactly
   one case: `FP-06`, where the literal `"delve into the mountain"` collides with the strong
@@ -321,7 +322,7 @@ constitutional, and it's built to resist gaming.
 - **Behavioral layer.** `evals/shared-benchmark.json` is generated (never hand-edited) from the
   `skill` rows, with `with_skill` and `without_skill` variants graded by an LLM judge plus
   deterministic backstops: facts that must survive, banned strings that must not appear,
-  similarity floors for do-no-harm. Its 33 cases split `tune` (17) for shaping, `holdout` (12)
+  similarity floors for do-no-harm. Its 34 cases split `tune` (18) for shaping, `holdout` (12)
   for reporting, and `holdback` (4) sealed until final confirmation.
 - **Interpreting the lift.** The base model already de-slops well, so judge-blended lift runs
   near zero and per-case deltas carry the signal. On the recorded 2026-07-06 holdout run, the
@@ -332,9 +333,9 @@ constitutional, and it's built to resist gaming.
   guards were then hardened against.
 
 ```bash
-python3 evals/run_adversarial.py            # the deterministic suite (439 pass, 1 xfail)
-python3 evals/run_adversarial.py --only FP  # one category slice, parallelizes well
-evals/run_behavioral.sh tune                # the behavioral layer (needs claude -p)
+python3 evals/check.py                       # canonical deterministic repository check
+python3 evals/run_adversarial.py --only FP  # diagnose one failing category
+python3 evals/check.py --behavioral tune     # deterministic + behavioral tune
 ```
 
 ## Model Tiering Is Measured
@@ -412,12 +413,13 @@ unslop/
 ├── presets/                       # crisp / warm / expert / story voice deltas
 ├── scripts/                       # Scanners, voice tools, preservation, suggest, harvest
 ├── evals/
-│   ├── adversarial-evals.json     # Source of truth: 440 script cases
+│   ├── adversarial-evals.json     # Source of truth: 488 script cases
+│   ├── check.py                   # Canonical repository check
 │   ├── run_adversarial.py         # Deterministic runner (--only, --case, --list-gates)
 │   ├── shared-benchmark.json      # Generated behavioral manifest (never hand-edit)
 │   ├── build_shared_benchmark.py  # Regenerates the behavioral manifest
 │   ├── run_model_parity.py        # Re-measures the tiering matrix
-│   ├── CHECKS.md                  # Machine-readable gate matrix and parallel protocol
+│   ├── CHECKS.md                  # Canonical check and external gate surface
 │   └── check_*.py                 # Parity, doc, pack, voice, and silhouette gates
 ├── docs/
 │   └── PRODUCT.md                 # Product doctrine (the why behind the repo)

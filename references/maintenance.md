@@ -2,20 +2,20 @@
 
 Every change here is eval-first: the row lands in `evals/adversarial-evals.json`
 and fails before any scanner or catalog edit makes it pass. Run
-`python3 evals/run_adversarial.py --list-gates` for the full gate matrix.
+`python3 evals/check.py` for the full repository check.
 
 ## Add a banned phrase (`--add-phrase`)
 
 1. Add a `script` false-negative row (the phrase flags) and a false-positive
    row (a literal or domain use stays clean) to `evals/adversarial-evals.json`.
-   Run `python3 evals/run_adversarial.py` and confirm the new rows fail.
+   Run the new row with `python3 evals/run_adversarial.py --case ID` and confirm it fails.
 2. Add the phrase to `scripts/banned_phrase_scan.py` `BANNED_PHRASES` with
    category, severity, and suggestion. If the word has a literal sense, gate it
    behind collocations in `STRUCTURAL_PATTERNS` instead, and add a REC recall
    row proving the jargon use still flags.
 3. Document it in `references/taboo-phrases.md` (parity is enforced by
    `python3 evals/check_taboo_parity.py`).
-4. Re-run the suite; expect green with no new xfail.
+4. Run `python3 evals/check.py`; expect green with no new xfail.
 
 ## Add a structural pattern (`--add-structure`)
 
