@@ -27,6 +27,16 @@ and `$OUTPUT` to your rewrite.
    `references/fact-preservation.md` on dense facts, `references/rubric.md` for
    strict scoring, and `references/personality-guide.md` only when a clean draft
    still reads as anonymous.
+4. Classify source clauses or spans before rewriting. A sentence can contain
+   more than one class:
+   - `finding`: a concrete semantic or style defect authorizes an edit;
+   - `evidence`: an accurate attribution, correction, limit, or observation that
+     helps establish a defect elsewhere;
+   - `protected`: already-good prose or literal domain wording.
+   Check every recommendation, imperative, safety claim, and status against
+   nearby limits and evidence. A modal or hedge does not excuse an action beyond
+   a stated limit. An accurately reported error is evidence, not a finding in
+   the current author's prose.
 
 ## Pass 2 — reconstruct
 
@@ -34,6 +44,16 @@ Rewrite under the SKILL.md **Rewrite Principles** and **Register Guards**. Cut
 the throat-clearing, keep every fact and guard word, match the preset, and never
 trade AI slop for anti-slop cadence. If a gate fails twice after rewrite,
 escalate the model tier instead of piling on prompt rules.
+
+Edit only the smallest `finding` span. Copy every `evidence` and `protected`
+span byte-for-byte, including those inside a sentence that also has a finding.
+For an unsafe or unsupported recommendation, replace the action with a stop,
+hold, qualification, or verification step; merely repeating that the draft
+recommends it is not a repair. This applies even when the recommendation is
+attributed to a draft or another source. If there are no findings, return the
+source byte-for-byte. Before returning, compare the output against the source
+and undo every edit that lacks a finding, including synonym swaps in protected
+technical language.
 
 ## Validate
 

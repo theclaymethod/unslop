@@ -90,11 +90,60 @@ import sys
 source, dest = sys.argv[1], sys.argv[2]
 rows = [json.loads(line) for line in open(source, encoding="utf-8") if line.strip()]
 for row in rows:
-    if row.get("score") is None:
-        row["score"] = 1.0 if row.get("passed") else 0.0
-    row.setdefault("threshold", 1)
+    # Boolean and scored verdicts are distinct harness schemas.  Do not mutate
+    # a boolean into a scored verdict, and do not invent missing scored evidence.
+    if row.get("verdict_kind") == "scored":
+        if row.get("score") is None or row.get("threshold") is None:
+            raise SystemExit(f"invalid scored judge verdict: {row.get('judge_task_id', '<unknown>')}")
 open(dest, "w", encoding="utf-8").write("\n".join(json.dumps(row) for row in rows) + "\n")
 PY
 
 skill-benchmark benchmark evals/shared-benchmark.json --runs "$run_dir" --split "$split" \
   --allow-scripts --judge-results "$fixed_judge" --out "$benchmark"
+
+# The harness reports metrics even when product cases fail.  The canonical
+# wrapper is an acceptance command, so require every with-skill case to be
+# complete and to clear every gate.  Baseline failures remain comparison data.
+python3 - "$benchmark" "$tasks" <<'PY'
+import json
+import sys
+
+benchmark_path, tasks_path = sys.argv[1:]
+report = json.load(open(benchmark_path, encoding="utf-8"))
+tasks = [json.loads(line) for line in open(tasks_path, encoding="utf-8") if line.strip()]
+expected = {row["case_id"] for row in tasks if row.get("variant") == "with_skill"}
+if not expected:
+    print("behavioral acceptance failed: prepared tasks have no with-skill cases", file=sys.stderr)
+    raise SystemExit(1)
+
+failed = []
+observed = []
+for row in report.get("results", []):
+    if row.get("variant") != "with_skill":
+        continue
+    observed.append(row.get("case_id"))
+    if (
+        row.get("missing_output")
+        or row.get("execution_valid") is not True
+        or row.get("combined_pass_rate") != 1.0
+    ):
+        failed.append(row.get("case_id", "<unknown>"))
+observed_set = set(observed)
+missing = expected - observed_set
+unexpected = observed_set - expected
+duplicates = {case_id for case_id in observed_set if observed.count(case_id) > 1}
+if missing or unexpected or duplicates:
+    details = []
+    if missing:
+        details.append("missing=" + ",".join(sorted(missing)))
+    if unexpected:
+        details.append("unexpected=" + ",".join(sorted(unexpected)))
+    if duplicates:
+        details.append("duplicate=" + ",".join(sorted(duplicates)))
+    print("behavioral acceptance failed: result coverage mismatch (" + "; ".join(details) + ")", file=sys.stderr)
+    raise SystemExit(1)
+if failed:
+    print("behavioral acceptance failed: " + ", ".join(sorted(set(failed))), file=sys.stderr)
+    raise SystemExit(1)
+print("behavioral acceptance passed: every with-skill case cleared every gate")
+PY

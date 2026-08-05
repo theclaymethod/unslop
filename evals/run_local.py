@@ -59,6 +59,16 @@ def extract_final(answer: str) -> str:
     return answer[start + len("<final>"):end].strip()
 
 
+def extract_output(task: dict, answer: str) -> str:
+    """Keep audit evidence visible while returning prose for rewrite tasks."""
+    final = extract_final(answer)
+    if task.get("kind") != "mode_routing":
+        return final
+    end = answer.find("</final>")
+    remainder = answer[end + len("</final>"):].strip() if end != -1 else ""
+    return "\n\n".join(part for part in (final, remainder) if part)
+
+
 def _canonical_json(value: object) -> str:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
@@ -116,7 +126,7 @@ def generation_cache_key(
         "model": model or "<cli-default>",
         "cache_identity": cache_identity,
         "prompt_suffix": PROMPT_SUFFIX,
-        "extract_protocol": "final-markers-v1",
+        "extract_protocol": "mode-aware-final-markers-v2",
     }
     return _sha256_bytes(_canonical_json(payload).encode("utf-8")), payload
 
@@ -263,7 +273,7 @@ def run_one(
     answer = answer.strip()
     if not answer:
         return label, False, "model-call-fail empty output"
-    final = extract_final(answer)
+    final = extract_output(task, answer)
     answer_bytes = (answer + "\n").encode("utf-8")
     output_bytes = (final + "\n").encode("utf-8")
     _install_outputs(out_dir, answer_bytes, output_bytes)

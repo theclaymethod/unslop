@@ -1,8 +1,36 @@
 # Tune Results
 
+## Corrected Luna hard-gate run — 2026-08-04
+
+The previous behavioral wrapper could print success while live judge assertions
+failed: harness v1 treated those assertions as soft, and the wrapper did not
+independently enforce them. That result is superseded. Live judge assertions
+are now gated, boolean and scored verdict schemas remain distinct, and the
+wrapper rejects missing, duplicate, unexpected, or failed with-skill cases.
+
+The corrected cached-development run used Luna for both generation and judging,
+made 58 generation calls and 58 consolidated judge calls, and took 739 seconds
+after the 10.8-second deterministic suite. Consolidating each case's rubric into
+one verdict roughly halves the live judgments that the old per-rubric shape
+would require. Token telemetry was unavailable, so no measured token total or
+percentage reduction is claimed.
+
+| variant | cases | combined pass rate | fully passing cases |
+|---|---:|---:|---:|
+| Luna + UNSLOP | 29 | 82.76% | 23 |
+| Plain Luna | 29 | 79.89% | 22 |
+
+The hard gate correctly returned non-zero. The with-skill failures were
+`SKILL-CONTEXT-AUDIT-01`, `SKILL-LITERAL-02`, `SKILL-MACRO-01`,
+`SKILL-RUBRIC-01`, `SKILL-SAFETY-SEMANTIC-02`, and `SKILL-TITLE-01`.
+These are tuning failures, not a release result, and the sealed holdback remains
+unopened.
+
 ## Luna tune run — 2026-08-04
 
-The canonical uncached acceptance used `skill-eval-harness` v0.6.0 and
+This earlier run is retained as historical diagnostic evidence, not acceptance
+evidence, because its live judge failures were not hard-gated. It used
+`skill-eval-harness` v0.6.0 and
 `gpt-5.6-luna` through Codex for both generation and judging. It made 36
 generation calls and 68 judge calls; all 104 completed, with no missing outputs
 or execution errors.

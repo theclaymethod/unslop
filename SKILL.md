@@ -39,6 +39,7 @@ When the user says any of these, load the named file and jump to the flow:
 | The user says | Go to |
 |---------------|-------|
 | `audit` / "just flag it" / "don't change anything" | [references/commands/cleanup.md](references/commands/cleanup.md#report-only) |
+| `review` / "review this before I publish" | [references/commands/cleanup.md](references/commands/cleanup.md#report-only) |
 | `harvest` / "what writing of mine do you have?" | [references/commands/teach.md](references/commands/teach.md#1-gather-samples-harvest) |
 | `calibrate` / "the A/B game" / "quiz me on my voice" | [references/commands/teach.md](references/commands/teach.md#calibrate) |
 | `refine` / "keep pushing until it sounds like me" | [references/commands/mimic.md](references/commands/mimic.md#refine) |
@@ -105,34 +106,28 @@ Read one preset from `presets/` before writing.
   not support.
 - Do not replace AI slop with anti-slop register: "Not X. Y.", forced punch
   endings, or runs of tiny fragments.
-- Diagnosis authorizes the edit. If no genuine issue is found, return the source
-  unchanged; do not make unexplained stylistic substitutions.
-- Diagnose meaning before phrases: compare repeated values, claims, scopes, and
-  conclusions for contradictions, swapped facts, unsupported absolutes, or
-  conclusions that outrun the evidence. Phrase-scanner candidates come second.
-- Audit quantified labels such as "no," "every," "all," "distinct," and
-  "unrestricted" against nearby exceptions or incomplete coverage. When a
-  source reports an incorrect claim made by another draft, dashboard, or
-  speaker, preserve what was actually reported and name the conflict; do not
-  silently rewrite the attributed record as though it had been correct. Keep
-  the attributed proposition intact (including its polarity and quantifier),
-  then state the conflicting evidence or qualification separately.
-- For contradictions or unsupported claims, diagnose the claim-bearing clause
-  (including its subject and reporting verb when needed), not the separate
-  evidence sentence that disproves it. Directly withdraw or qualify an unsafe,
-  universal, or unverified label; appending "but" while leaving the assertion
-  standing is not a repair.
-- Treat uncontradicted operational observations, completed procedures, and
-  first-person records as source facts. Do not demand a second citation merely
-  because the document does not narrate its proof. A semantic defect needs an
-  internal contradiction, an extrapolation beyond the measured population, or
-  a conclusion beyond an explicit limit. Do not transfer an uncontradicted
-  action from a named person to a document, system, or different actor.
-- Treat a soft single-word candidate as protected when it names a concrete
-  domain procedure, test, inspection, control, or measurement. Require a
-  specific contextual defect before editing it.
-- Rewrite surgically. Copy sentences without findings byte-for-byte, in their
-  original order and paragraph; do not polish adjacent good prose.
+- Classify before editing, in this order:
+  1. **Meaning:** compare repeated facts, scope, evidence, limits, status, and
+     recommendations. A hedge does not make an action safe. Withdraw an action
+     beyond an explicit limit and qualify a status the evidence cannot support.
+     Name each prohibited action; a general caution or hold is not enough.
+  2. **Attribution:** a wrong claim accurately reported and then corrected is
+     evidence, not an author error. Preserve what the source says another person
+     or record asserted; state the conflict separately. Attribution does not
+     shield an operative recommendation: if the recommended action exceeds a
+     limit, replace it with an explicit rejection while keeping its quantities.
+  3. **Protection:** uncontradicted observations and literal domain language are
+     not findings. Physical motion, energy transfer, tests, controls, and
+     measurements keep their precise wording.
+  4. **Style:** scanner hits are candidates, not commands. Require a contextual
+     defect before accepting a soft finding.
+- Diagnosis authorizes the edit. Copy every sentence without a finding
+  byte-for-byte, in order and in its original paragraph. No findings means an
+  exact no-op. Before returning, undo every edit that cannot be traced to a
+  finding and restore every protected technical or evidentiary span exactly.
+- Remove a requested moralizing coda instead of paraphrasing its lesson. Turn
+  abstract purpose jargon into the plain action supported by the supplied
+  facts; do not swap in corporate synonyms or invent a rationale.
 
 ## Register Guards
 

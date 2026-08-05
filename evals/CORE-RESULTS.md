@@ -76,11 +76,13 @@ the measured development machine, completed in about 11 seconds with 510
 passes, one documented expected failure, and no unexpected failures. This is
 engineering evidence, not product proof.
 
-The complete tune behavioral run completed in about 15 minutes on its first
-cache-populating run. Immutable plain-Luna generations and judge verdicts are
-cached by model, prompt, code, and configuration identity; UNSLOP treatment
-generations are always regenerated. Exact token consumption was not available
-from the harness, so no token-reduction percentage is claimed.
+The corrected tune behavioral hard-gate run completed in 739 seconds after the
+10.8-second deterministic suite. It used one all-conditions judgment per case
+and arm rather than repeating the source and output for every rubric sentence.
+Immutable plain-Luna generations and judge verdicts are cached by model, prompt,
+code, and configuration identity; UNSLOP treatment generations are always
+regenerated. Exact token consumption was unavailable, so no token-reduction
+percentage is claimed. The tune gate is currently red; see `TUNE-RESULTS.md`.
 
 ## Next valid experiment
 

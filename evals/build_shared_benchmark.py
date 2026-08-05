@@ -65,6 +65,10 @@ SPLITS: dict[str, str] = {
     "SKILL-OBSERVATION-01": "tune",
     "SKILL-ATTRIBUTION-02": "tune",
     "SKILL-OBSERVATION-02": "tune",
+    "SKILL-ATTRIBUTION-03": "tune",
+    "SKILL-LITERAL-02": "tune",
+    "SKILL-SAFETY-SEMANTIC-02": "tune",
+    "SKILL-STATUS-01": "tune",
     # holdout — measure, do not tune
     "SKILL-DEHEDGE-02": "holdout",
     "SKILL-LIST-01": "holdout",
@@ -127,6 +131,10 @@ DOMAIN: dict[str, str] = {
     "SKILL-OBSERVATION-01": "safety",
     "SKILL-ATTRIBUTION-02": "operations",
     "SKILL-OBSERVATION-02": "operations",
+    "SKILL-ATTRIBUTION-03": "technical",
+    "SKILL-LITERAL-02": "technical",
+    "SKILL-SAFETY-SEMANTIC-02": "safety",
+    "SKILL-STATUS-01": "manufacturing",
 }
 
 # Difficulty is a coarse hint for reporting, not a gate.
@@ -375,15 +383,22 @@ SKILL_INVOKED: set[str] = set()
 
 def build_case(src: dict) -> dict:
     cid = src["id"]
-    judge_assertions = [
-        {
-            "name": f"{cid.lower()}-judge-{i + 1}",
+    rubric = [a["check"] for a in src["assertions"] if a["type"] == "judge"]
+    judge_assertions = []
+    if rubric:
+        judge_assertions.append({
+            "name": f"{cid.lower()}-judge",
             "type": "judge",
-            "rubric": [a["check"]],
-        }
-        for i, a in enumerate(src["assertions"])
-        if a["type"] == "judge"
-    ]
+            # One all-conditions verdict retains every requirement while
+            # avoiding repeated source, output, and judge preamble tokens.
+            "rubric": rubric,
+            # Behavioral assertions define product behavior.  Harness v1
+            # otherwise treats live judges as soft commentary, allowing a
+            # benchmark to report success while every substantive judgment
+            # for a case fails.
+            "severity": "gate",
+            "oracle": "live",
+        })
 
     assertions = list(judge_assertions)
     assertions.extend(DETERMINISTIC_ASSERTIONS.get(cid, []))

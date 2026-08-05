@@ -209,9 +209,10 @@ def main() -> int:
             and "SOURCE DIAGNOSTICS" not in baseline_prompt
         )
         contextual_audit_prompt = (
-            "CONTEXTUAL AUDIT PRIORITY" in with_skill_prompt
-            and "copy every sentence without a finding byte-for-byte" in with_skill_prompt
-            and "CONTEXTUAL AUDIT PRIORITY" not in baseline_prompt
+            "merge protocol" in with_skill_prompt.lower()
+            and "a hedge does not legalize an action" in with_skill_prompt.lower()
+            and "copy every sentence without a finding byte-for-byte" in with_skill_prompt.lower()
+            and "MERGE PROTOCOL" not in baseline_prompt
             and with_skill_prompt.index("SOURCE START")
             < with_skill_prompt.index("SOURCE DIAGNOSTICS")
         )

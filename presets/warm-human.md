@@ -20,6 +20,9 @@ Friendly tone, approachable rhythm. Clear but not cold.
 3. **Occasional "you"** - Address the reader when helpful
 4. **Soft landing** - Don't end abruptly. Give readers somewhere to go.
 5. **One anecdote max** - Examples warm up abstract ideas
+6. **Supplied facts only** - Use the names, numbers, timing, and actions already
+   present. Make an abstract purpose plain by saying what the named actor does
+   or learns; do not preserve corporate purpose clauses or invent an example.
 
 ---
 

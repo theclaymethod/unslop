@@ -397,6 +397,11 @@ Prefer:
 - "Each capstone must clear three gates."
 - "Can one packet reconstruct both products?"
 
+For a bad or conflicting evaluation, name the discrepancy or its human/system
+cause. Do not preserve tool agency by changing "the judge lies" into "the judge
+gives a false verdict"; for example, use "One response receives conflicting
+labels" when that is the supported claim.
+
 Rewrite:
 
 - Calendar or program containers delivering outcomes: "Week 1 ends with a

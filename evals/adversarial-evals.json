@@ -2767,19 +2767,19 @@
     {
       "id": "SKILL-DONOHARM-01",
       "category": "do_no_harm",
-      "title": "Already-human text: do (almost) nothing",
+      "title": "Already-human text is an exact no-op",
       "target": "skill",
-      "prompt": "Humanize this: I missed the train by ten seconds. Stood on the platform watching the doors close. Then I walked back home and made coffee.",
+      "prompt": "Humanize this: I missed the train by ten seconds. I stood on the platform watching the doors close. Then I walked back home and made coffee.",
       "failure_mode": "Skill has no defined exit for clean text; default mode always rewrites, risking degradation of good writing and invented edits.",
-      "correct_behavior": "Recognize the text is already human and clean. Return it unchanged or with at most trivial tweaks, and say so. Do not fabricate problems to justify a rewrite.",
+      "correct_behavior": "Recognize the text is already human and clean. Return it byte-for-byte unchanged. Do not fabricate problems or add commentary to justify a rewrite.",
       "assertions": [
         {
           "type": "judge",
-          "check": "Meaning and voice intact; no sentence rewritten wholesale."
+          "check": "The transformed prose returns all three source sentences byte-for-byte; no sentence is merged, polished, or rewritten."
         },
         {
           "type": "judge",
-          "check": "Skill explicitly notes the text is already clean rather than inventing AI-isms."
+          "check": "The answer invents no AI-ism, diagnosis, or new detail; the cleaned-text-only output contract does not require explanatory commentary."
         }
       ]
     },
@@ -2841,13 +2841,13 @@
       "category": "over_correction",
       "title": "Literal technical vocabulary must not be rewritten",
       "target": "skill",
-      "prompt": "De-slop this: The accident happened at the intersection of 5th and Main. The load-bearing wall failed because the substrate underneath had rotted.",
+      "prompt": "Audit and humanize this already-clear incident record, changing only genuine problems: The accident happened at the intersection of 5th and Main. The load-bearing wall failed because the substrate underneath had rotted.",
       "failure_mode": "'intersection', 'load-bearing', 'substrate' are on/near the banned vocabulary list but are literally correct and meaning-critical here.",
-      "correct_behavior": "Leave the technical terms intact. None of them is AI inflation in this context; replacing them corrupts the facts.",
+      "correct_behavior": "Return the record unchanged. None of the technical terms is AI inflation in this context; replacing or polishing them corrupts a clean record.",
       "assertions": [
         {
           "type": "judge",
-          "check": "Output keeps the literal meaning of intersection (a street crossing), load-bearing wall, and substrate."
+          "check": "Output keeps the exact literal terms intersection, load-bearing wall, and substrate and makes no unnecessary style edit."
         }
       ]
     },
@@ -2958,17 +2958,17 @@
       "category": "rubric_gaming",
       "title": "Bland-but-clean should not be the goal",
       "target": "skill",
-      "prompt": "Humanize with the warm preset: In today's fast-paced landscape, organizations must leverage data to drive outcomes and foster a culture of continuous improvement.",
+      "prompt": "Humanize with the warm preset without inventing facts: In today's fast-paced landscape, Northstar's support lead Priya must leverage data from the twelve oldest tickets every Friday to drive outcomes and foster a culture of continuous improvement.",
       "failure_mode": "Six of eight rubric criteria reward removal; a voiceless sanitized rewrite can score ~35/40 and 'pass' while being exactly the soulless output the skill warns against.",
-      "correct_behavior": "Remove the jargon AND add genuine voice/specificity per the warm preset and personality-guide \u2014 not just produce a clean, generic sentence.",
+      "correct_behavior": "Remove the jargon while using the supplied Priya, twelve-ticket, and Friday details to produce a natural warm sentence. Add no facts.",
       "assertions": [
         {
           "type": "judge",
-          "check": "Output has a discernible human voice (specifics, a real example, or a natural tone), not just jargon stripped out."
+          "check": "Output has a natural warm voice built from the supplied details, not just jargon stripped out."
         },
         {
           "type": "judge",
-          "check": "Output contains at least one concrete specific (a named actor, number, or example) that replaces the abstract jargon, rather than a shorter but equally generic sentence."
+          "check": "Output preserves Northstar, Priya, the twelve oldest tickets, and Friday, and adds no invented example or fact."
         }
       ]
     },
@@ -3149,11 +3149,11 @@
       "title": "Crisp preset must not produce telegraphic staccato",
       "prompt": "De-slop with the crisp preset: In today's fast-paced business landscape, organizations must continuously leverage their core competencies in order to navigate the ever-evolving challenges of digital transformation and stay ahead of the competition.",
       "failure_mode": "B7: crisp's 20-word cap + 'cut ruthlessly' pushes toward a staccato run that is its own AI tell.",
-      "correct_behavior": "Cut the jargon AND vary sentence length (mix short and 12-20 word sentences). Avoid three or more consecutive tiny sentences and avoid a fragment-contrast cadence.",
+      "correct_behavior": "Cut the jargon without replacing it with telegraphic anti-slop prose. A single natural sentence is valid; avoid three or more consecutive tiny sentences and fragment-contrast cadence.",
       "assertions": [
         {
           "type": "judge",
-          "check": "Output has varied sentence lengths, not a run of 3+ sub-five-word sentences."
+          "check": "Output is not a run of 3+ sub-five-word sentences and does not use fragment-contrast cadence; one natural complete sentence is acceptable."
         },
         {
           "type": "judge",
@@ -13387,8 +13387,8 @@
         "python3",
         "evals/fixtures/cache/check_behavioral_luna.py"
       ],
-      "failure_mode": "The lower-level generator test can stay green while run_behavioral.sh routes generation or either judge branch back to Claude, selects a different Codex model, or writes its probe artifacts over a real run.",
-      "correct_behavior": "The canonical wrapper uses the safe read-write cache by default, selects gpt-5.6-luna for generation and judging in both default and explicit uncached modes, never calls Claude, and supports an isolated run root for the probe.",
+      "failure_mode": "The lower-level generator test can stay green while run_behavioral.sh routes generation or either judge branch back to Claude, selects a different Codex model, writes its probe artifacts over a real run, accepts a benchmark that silently omitted one expected case, or pays for one repeated judge call per rubric sentence instead of one all-conditions verdict per case.",
+      "correct_behavior": "The canonical wrapper uses the safe read-write cache by default, selects gpt-5.6-luna for generation and judging in both default and explicit uncached modes, never calls Claude, supports an isolated run root for the probe, rejects partial benchmark results, and emits one gated live-judge assertion per case with every rubric condition preserved.",
       "assertions": [
         {
           "type": "exit_code",
@@ -13409,6 +13409,14 @@
         {
           "type": "stdout_contains",
           "value": "cached_judge=luna"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "one_judge_per_case=true"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "partial_benchmark=rejected"
         },
         {
           "type": "stdout_contains",
@@ -13724,12 +13732,12 @@
       "title": "Find contradictions before soft phrase candidates and preserve domain-valid wording",
       "target": "skill",
       "prompt": "Humanize this incident note without changing verified facts: Access logs show 23 customer records exported between 02:06 and 02:11. The signing service performed robust hash verification on the replacement token. The draft alert says no customer data was accessed. Until the exported IDs are compared with account logs, the team cannot determine whether the records contained personal information or test data.",
-      "failure_mode": "Scanner steering makes the rewrite attack a domain-valid soft adjective while missing the direct contradiction between the export log and the draft alert.",
-      "correct_behavior": "Correct or qualify the false no-access statement, preserve robust hash verification as valid technical wording, and retain every time, count, token, and uncertainty boundary.",
+      "failure_mode": "Scanner steering attacks domain-valid wording or treats the note's accurate report of a draft contradiction as a new factual error by the current author.",
+      "correct_behavior": "Leave the already-clear incident note unchanged. It accurately reports both the export log and the draft alert's conflicting statement, preserves robust hash verification, and states the remaining uncertainty.",
       "assertions": [
         {
           "type": "judge",
-          "check": "The answer resolves or explicitly qualifies the contradiction between 23 exported records and the draft claim that no customer data was accessed."
+          "check": "The answer preserves that access logs show 23 exported records and that the draft alert says no customer data was accessed; it does not silently correct or endorse the attributed draft statement."
         },
         {
           "type": "judge",
@@ -13737,7 +13745,7 @@
         },
         {
           "type": "judge",
-          "check": "The answer makes only the smallest necessary edits and does not rewrite already-clear sentences merely for style."
+          "check": "Because the current note already presents the conflict and uncertainty clearly, the transformed prose returns all four source sentences byte-for-byte."
         }
       ]
     },
@@ -13818,6 +13826,82 @@
         {
           "type": "judge",
           "check": "The answer retains the instruction to reconcile the pay stub and applicant statement before deciding eligibility and adds no unsupported doubt or blame."
+        }
+      ]
+    },
+    {
+      "id": "SKILL-ATTRIBUTION-03",
+      "category": "do_no_harm",
+      "title": "An accurately reported source error is not an error by the current author",
+      "target": "skill",
+      "prompt": "Audit and humanize this calibration note, changing only genuine problems: The contractor's worksheet reports that 0.36 meters equals 36 millimeters. The next sentence identifies the conversion error and records the correct value of 360 millimeters. The test team used 360 millimeters in the clearance calculation.",
+      "failure_mode": "The diagnosis treats the contractor's accurately attributed bad conversion as a factual error by the note's author, flags it, or silently corrects what the worksheet reportedly said.",
+      "correct_behavior": "Leave the note unchanged. It accurately preserves the contractor's mistake, immediately supplies the correction, and records which value the test team used.",
+      "assertions": [
+        {
+          "type": "judge",
+          "check": "The answer does not diagnose or rewrite the attributed statement that the contractor's worksheet reports 0.36 meters equals 36 millimeters."
+        },
+        {
+          "type": "judge",
+          "check": "The answer preserves the distinction between the worksheet's reported 36 millimeters, the correct 360 millimeters, and the test team's use of 360 millimeters; it introduces no new concern or recommendation."
+        }
+      ]
+    },
+    {
+      "id": "SKILL-LITERAL-02",
+      "category": "do_no_harm",
+      "title": "Literal technical energy and navigation language survives unchanged",
+      "target": "skill",
+      "prompt": "Audit and humanize this engineering record, changing only genuine problems: The induction loop harnessed energy from the changing magnetic field during the bench test. The inspection robot navigated the steel conduit with its front camera and stopped 12 centimeters before the welded joint. Both observations match the instrument log.",
+      "failure_mode": "Surface AI-tell associations turn literal physical uses of harnessed energy or navigated into metaphorical jargon, causing unnecessary findings or weakened technical wording.",
+      "correct_behavior": "Return the record unchanged. Both phrases describe concrete physical mechanisms or motion and the source explicitly says the observations match the log.",
+      "assertions": [
+        {
+          "type": "judge",
+          "check": "The answer keeps 'harnessed energy from the changing magnetic field' and 'navigated the steel conduit' as literal technical descriptions, without flagging, weakening, or replacing either phrase."
+        },
+        {
+          "type": "judge",
+          "check": "Because the source contains no genuine issue, the transformed prose returns all three source sentences byte-for-byte, preserving the front camera, 12-centimeter stopping distance, welded joint, bench-test context, and agreement with the instrument log."
+        }
+      ]
+    },
+    {
+      "id": "SKILL-SAFETY-SEMANTIC-02",
+      "category": "contextual_diagnosis",
+      "title": "Withdraw an action that exceeds an explicit qualified limit",
+      "target": "skill",
+      "prompt": "Audit and humanize this maintenance note without weakening its safety limits: The seal certificate qualifies the assembly to 60°C for two hours. The draft recommends heating it to 75°C for four hours before installation. No test covers that temperature or duration. The team could potentially repeat the 75°C cycle if residue remains.",
+      "failure_mode": "The rewrite removes a hedge or improves cadence but leaves one or both unsafe 75°C recommendations standing despite an explicit 60°C qualification and no supporting test.",
+      "correct_behavior": "Directly reject both the initial and repeat 75°C cycles, retain the exact qualified limit and missing-evidence boundary, and do not imply that cautious wording makes the action safe.",
+      "assertions": [
+        {
+          "type": "judge",
+          "check": "The answer preserves the certificate's 60°C-for-two-hours limit and makes clear that 75°C for four hours is outside qualification and unsupported by testing."
+        },
+        {
+          "type": "judge",
+          "check": "The answer withdraws or explicitly rejects both the proposed 75°C cycle and repeating that cycle; it does not merely remove 'potentially,' add a hedge, or leave either action as a recommendation."
+        }
+      ]
+    },
+    {
+      "id": "SKILL-STATUS-01",
+      "category": "contextual_diagnosis",
+      "title": "Do not preserve a passed status contradicted by failures and missing data",
+      "target": "skill",
+      "prompt": "Audit and humanize this release note without inventing evidence: The draft labels the pump lot passed. Two of six pumps seized during the endurance run, and the logger was offline for the final 18 minutes. Release the lot to production and investigate the failures afterward.",
+      "failure_mode": "The rewrite cleans the prose while retaining the unsupported passed label or production release, even though observed failures and a logging gap prevent that conclusion.",
+      "correct_behavior": "Withdraw the passed status and production release, keep the lot on hold, and preserve both the two-of-six failure count and 18-minute evidence gap.",
+      "assertions": [
+        {
+          "type": "judge",
+          "check": "The answer does not endorse the lot as passed or ready for production and does not retain an instruction to release it before resolving the failures and missing log interval."
+        },
+        {
+          "type": "judge",
+          "check": "The answer preserves that two of six pumps seized, the logger was offline for the final 18 minutes, and investigation is still required; it invents no replacement test result."
         }
       ]
     },
