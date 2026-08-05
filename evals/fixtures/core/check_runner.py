@@ -292,6 +292,22 @@ def main() -> int:
                 "change_coverage": {"passed": True},
             }
         )
+        soft_silhouette_with_advisory_burstiness = not _validation_blockers(
+            {
+                "preservation": {"passed": True, "warnings": []},
+                "attribution_preservation": {"passed": True},
+                "banned_phrase": {"raw_result": []},
+                "structure": {"flags": [{"metric": "sentence_burstiness"}]},
+                "silhouette": {
+                    "penalty": 1.0,
+                    "flags": [
+                        {"metric": "silhouette_penalty", "severity": "soft"}
+                    ],
+                },
+                "readability": {"flags": []},
+                "change_coverage": {"passed": True},
+            }
+        )
         reviewed_noop_advisory = (
             not _validation_blockers(
                 {
@@ -524,6 +540,11 @@ def main() -> int:
             str(bool(reviewed_noop_advisory)).lower()
         )
     )
+    print(
+        "soft_silhouette_with_advisory_burstiness={}".format(
+            str(bool(soft_silhouette_with_advisory_burstiness)).lower()
+        )
+    )
     print("empty_findings_noop={}".format(str(bool(empty_findings_noop)).lower()))
     print("clean_short_circuit={}".format(str(bool(clean_short_circuit)).lower()))
     print("canonical_evidence={}".format(str(bool(canonical_evidence)).lower()))
@@ -548,6 +569,7 @@ def main() -> int:
         and preservation_warning_advisory
         and attribution_polarity_guard
         and soft_silhouette_advisory
+        and soft_silhouette_with_advisory_burstiness
         and reviewed_noop_advisory
         and empty_findings_noop
         and clean_short_circuit

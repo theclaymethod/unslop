@@ -13900,6 +13900,10 @@
         },
         {
           "type": "stdout_contains",
+          "value": "soft_silhouette_with_advisory_burstiness=true"
+        },
+        {
+          "type": "stdout_contains",
           "value": "empty_findings_noop=true"
         },
         {
@@ -13965,6 +13969,7 @@
         {"type": "exit_code", "equals": 0},
         {"type": "stdout_contains", "value": "public=21 tune=7 holdout=14 sealed=7 excluded=8"},
         {"type": "stdout_contains", "value": "dirty=5 clean=9 issues=5 protected=24 constraints=78"},
+        {"type": "stdout_contains", "value": "tune clean-short-circuit eligible=5"},
         {"type": "stdout_contains", "value": "source selection: deterministic=true public_sealed_overlap=0 raw_pool=hash-bound"}
       ]
     },

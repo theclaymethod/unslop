@@ -197,7 +197,7 @@ def main() -> int:
         return fail("public cases do not exactly match preregistered source ranks")
     if (dirty_holdout, clean_holdout) != (5, 9):
         return fail("holdout dirty/clean composition drifted")
-    if tune_short_circuit_eligible != 2:
+    if tune_short_circuit_eligible != 5:
         return fail("tune clean-short-circuit coverage drifted")
 
     if holdback.get("schema") != "unslop-core-holdback-metadata-v2":
@@ -245,7 +245,7 @@ def main() -> int:
     print("core benchmark v2: public=21 tune=7 holdout=14 sealed=7 excluded=8")
     print("holdout: dirty=5 clean=9 issues=5 protected=24 constraints=78")
     print(f"scanner-visible gold issues={scanner_gold}; semantic/style gold issues=5")
-    print("tune clean-short-circuit eligible=2")
+    print("tune clean-short-circuit eligible=5")
     print("source selection: deterministic=true public_sealed_overlap=0 raw_pool=hash-bound")
     return 0
 

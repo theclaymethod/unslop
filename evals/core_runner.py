@@ -709,9 +709,8 @@ def _validation_blockers(validation: Dict[str, Any]) -> List[str]:
         and structure_flags[0].get("metric") == "sentence_burstiness"
         and not any("staccato" in str(flag).lower() for flag in readability_flags)
     )
-    for finding in structure_flags:
-        if isolated_burstiness:
-            continue
+    blocking_structure_flags = [] if isolated_burstiness else structure_flags
+    for finding in blocking_structure_flags:
         blockers.append(
             "structure {}: {}".format(
                 finding.get("metric"), finding.get("suggestion", finding.get("detail", "fix"))
@@ -726,7 +725,9 @@ def _validation_blockers(validation: Dict[str, Any]) -> List[str]:
     # A silhouette score is a statistical resemblance, not a concrete defect.
     # Require either a non-soft silhouette finding or corroboration from the
     # structure scanner before refusing an otherwise valid rewrite.
-    silhouette_corroborated = bool(structure_flags) or not silhouette_is_only_soft
+    silhouette_corroborated = (
+        bool(blocking_structure_flags) or not silhouette_is_only_soft
+    )
     if (
         isinstance(penalty, (int, float))
         and penalty >= 1.0
