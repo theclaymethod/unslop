@@ -17,6 +17,7 @@ eval coverage while every other gate stays green. Run from the skill root:
   python3 evals/check_pattern_coverage.py              # both checks
   python3 evals/check_pattern_coverage.py --coverage   # pattern coverage only
   python3 evals/check_pattern_coverage.py --protections # category protection only
+  python3 evals/check_pattern_coverage.py --no-performance-guard # correctness only
 """
 import argparse
 import re
@@ -24,7 +25,7 @@ import sys
 import time
 from pathlib import Path
 
-from _check_support import ROOT, load_evals  # noqa: E402
+from _check_support import ROOT, load_contract_examples, load_evals  # noqa: E402
 
 sys.path.insert(0, str(ROOT))
 
@@ -34,6 +35,7 @@ from scripts.banned_phrase_scan import BANNED_PHRASES, STRUCTURAL_PATTERNS  # no
 def load_corpus(evals):
     """Return [(source_id, lowercased_text)] for every script-row input."""
     corpus = []
+    fixture_refs = {}
     for e in evals:
         if e.get("target") != "script":
             continue
@@ -42,17 +44,24 @@ def load_corpus(evals):
             corpus.append((f"{e['id']}:stdin", stdin.lower()))
         for part in e.get("command", []):
             if isinstance(part, str) and "fixtures" in part:
-                path = ROOT / part
-                if path.is_dir():
-                    for sub in sorted(path.rglob("*")):
-                        if sub.is_file():
-                            try:
-                                text = sub.read_text().lower()
-                            except (UnicodeDecodeError, OSError):
-                                continue
-                            corpus.append((f"{e['id']}:{sub.relative_to(ROOT)}", text))
-                elif path.exists():
-                    corpus.append((f"{e['id']}:{part}", path.read_text().lower()))
+                fixture_refs.setdefault((ROOT / part).resolve(), e["id"])
+
+    # Many eval rows reference the same fixture directory. Read each fixture
+    # once instead of walking and reopening that directory for every row.
+    files = {}
+    for path, case_id in fixture_refs.items():
+        if path.is_dir():
+            for sub in path.rglob("*"):
+                if sub.is_file():
+                    files.setdefault(sub.resolve(), case_id)
+        elif path.exists():
+            files.setdefault(path, case_id)
+    for path, case_id in sorted(files.items(), key=lambda item: str(item[0])):
+        try:
+            text = path.read_text().lower()
+        except (UnicodeDecodeError, OSError):
+            continue
+        corpus.append((f"{case_id}:{path.relative_to(ROOT)}", text))
     return corpus
 
 
@@ -66,8 +75,7 @@ def check_coverage(corpus):
     struct_covered = 0
     for pat in STRUCTURAL_PATTERNS:
         regex = re.compile(pat["pattern"])
-        hits = [sid for sid, text in corpus if regex.search(text)]
-        if hits:
+        if any(regex.search(text) for _, text in corpus):
             struct_covered += 1
         else:
             struct_uncovered.append(pat)
@@ -134,6 +142,11 @@ def main(argv):
     parser = argparse.ArgumentParser(description="Scanner pattern-coverage gate.")
     parser.add_argument("--coverage", action="store_true", help="run only the coverage check")
     parser.add_argument("--protections", action="store_true", help="run only the protection check")
+    parser.add_argument(
+        "--no-performance-guard",
+        action="store_true",
+        help="check correctness without the maintenance-lane wall-time budget",
+    )
     args = parser.parse_args(argv)
     run_coverage = args.coverage
     run_protections = args.protections
@@ -142,7 +155,8 @@ def main(argv):
 
     start = time.perf_counter()
     evals = load_evals()
-    corpus = load_corpus(evals)
+    scanner_examples = load_contract_examples("scanner-examples")
+    corpus = load_corpus(evals + scanner_examples)
 
     ok = True
     out = []
@@ -151,14 +165,14 @@ def main(argv):
         ok = ok and c_ok
         out += c_lines
     if run_protections:
-        p_ok, p_lines = check_protections(evals)
+        p_ok, p_lines = check_protections(scanner_examples)
         ok = ok and p_ok
         out += p_lines
 
     elapsed = time.perf_counter() - start
     print("\n".join(out))
     print(f"pattern-coverage gate {'OK' if ok else 'FAILED'} ({elapsed:.2f}s over {len(corpus)} corpus texts)")
-    if elapsed > 10:
+    if elapsed > 10 and not args.no_performance_guard:
         print("performance guard tripped: check exceeded 10s", file=sys.stderr)
         return 1
     return 0 if ok else 1

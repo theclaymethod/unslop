@@ -64,6 +64,8 @@ def main():
             _,data=scan_banned(wp)
             cats=[v.get('category') for v in data.get('violations',[])]
             hit=info['target'] in cats
+            if info.get('exact_total') is not None:
+                hit = hit and data.get('total_violations') == info['exact_total']
             desc=','.join(cats) or '-'
         if not hit: ok=False
         rows.append((slug,info['target'],desc,'yes' if without_clean else 'no'))

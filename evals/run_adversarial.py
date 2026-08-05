@@ -31,9 +31,196 @@ import sys
 import threading
 from pathlib import Path
 
+from eval_groups import (
+    GATE_ORDER,
+    GATE_LANES,
+    CORE_CONTRACT_EXAMPLE_BUDGET,
+    select_group,
+    select_lane,
+    validate_core_contract_budget,
+    validate_topology,
+)
+
 ROOT = Path(__file__).resolve().parent.parent
 SUITE = Path(__file__).resolve().parent / "adversarial-evals.json"
 EXPECTED_XFAIL = {"FP-06"}
+BATCHED_PAIR_PREFIXES = ("PAIR-", "PAIRM-")
+PAIR_MANIFEST_PATH = ROOT / "evals" / "fixtures" / "pairs" / "manifest.json"
+_TOOL_CONTRACT_BY_COMMAND = {
+    **{
+        ("python3", "evals/check_climb.py", f"--{flag}"): "CLIMB-CONTRACT-01"
+        for flag in (
+            "converge", "capped", "control", "preservation", "directives",
+            "coverage", "codex-adapter",
+        )
+    },
+    **{
+        ("python3", "evals/check_contrib.py", f"CONTRIB-{index:02d}"):
+            "CONTRIB-CONTRACT-01"
+        for index in range(1, 11)
+    },
+    **{
+        ("python3", "evals/check_mimic.py", f"--{flag}"):
+            "MIMIC-LOOP-CONTRACT-01"
+        for flag in ("acceptance", "patience", "divergence", "stuffed-attack")
+    },
+    **{
+        ("python3", "evals/check_mimic.py", f"--{flag}"):
+            "MIMIC-GATES-CONTRACT-01"
+        for flag in ("live-path", "copy-gate", "fact-gate", "determinism")
+    },
+    **{
+        ("python3", "evals/check_mimic.py", f"--{flag}"):
+            "MIMIC-SUPPORT-CONTRACT-01"
+        for flag in ("stats", "split-refusal", "directives")
+    },
+    **{
+        ("python3", "evals/check_mimic.py", f"--{flag}"):
+            "CARD-CONTRACT-01"
+        for flag in (
+            "card-determinism", "card-budget", "card-facts", "card-layout",
+            "card-never-does", "coverage-gap", "no-fabrication",
+            "card-profile-mismatch",
+        )
+    },
+    **{
+        ("python3", "evals/check_voice.py", f"--{flag}"):
+            "VOICE-CONTRACT-01"
+        for flag in (
+            "separation", "gi", "gaming", "copy-violation", "copy-clean",
+            "determinism", "short", "profiles",
+        )
+    },
+}
+_BATCHED_EXIT_ASSERTION = [{"type": "exit_code", "equals": 0}]
+_AGGREGATE_CONTRACT_SHAPES = {
+    "DOC-08": {
+        "command": ["python3", "evals/check_pairs.py"],
+        "assertions": _BATCHED_EXIT_ASSERTION,
+    },
+    "CLIMB-CONTRACT-01": {
+        "command": ["python3", "evals/check_climb.py", "--all"],
+        "assertions": _BATCHED_EXIT_ASSERTION + [
+            {"type": "stdout_contains", "value": "climb contract: 7/7 passed"}
+        ],
+    },
+    "CONTRIB-CONTRACT-01": {
+        "command": ["python3", "evals/check_contrib.py", "--all"],
+        "assertions": _BATCHED_EXIT_ASSERTION + [
+            {"type": "stdout_contains", "value": "contrib contract: 10/10 passed"},
+            {"type": "stdout_contains", "value": "contrib bundles restored: true"},
+        ],
+    },
+    "MIMIC-LOOP-CONTRACT-01": {
+        "command": ["python3", "evals/check_mimic.py", "--contract-loop"],
+        "assertions": _BATCHED_EXIT_ASSERTION + [
+            {"type": "stdout_contains", "value": "mimic-loop contract: 4/4 passed"}
+        ],
+    },
+    "MIMIC-GATES-CONTRACT-01": {
+        "command": ["python3", "evals/check_mimic.py", "--contract-gates"],
+        "assertions": _BATCHED_EXIT_ASSERTION + [
+            {"type": "stdout_contains", "value": "mimic-gates contract: 4/4 passed"}
+        ],
+    },
+    "MIMIC-SUPPORT-CONTRACT-01": {
+        "command": ["python3", "evals/check_mimic.py", "--contract-support"],
+        "assertions": _BATCHED_EXIT_ASSERTION + [
+            {"type": "stdout_contains", "value": "mimic-support contract: 3/3 passed"}
+        ],
+    },
+    "CARD-CONTRACT-01": {
+        "command": ["python3", "evals/check_mimic.py", "--all-card"],
+        "assertions": _BATCHED_EXIT_ASSERTION + [
+            {"type": "stdout_contains", "value": "card contract: 8/8 passed"}
+        ],
+    },
+    "VOICE-CONTRACT-01": {
+        "command": ["python3", "evals/check_voice.py", "--all"],
+        "assertions": _BATCHED_EXIT_ASSERTION + [
+            {"type": "stdout_contains", "value": "voice contract: 8/8 passed"}
+        ],
+    },
+}
+
+
+def _active_contract_ids(rows):
+    """Return aggregate IDs only when their complete row shape is canonical."""
+    active = set()
+    for row in rows:
+        expected = _AGGREGATE_CONTRACT_SHAPES.get(row.get("id"))
+        if expected and all(row.get(field) == value for field, value in expected.items()):
+            active.add(row["id"])
+    return active
+
+
+def _batched_tool_row(row, selected_ids):
+    """Batch only an exact legacy row whose aggregate contract is present.
+
+    New flags, changed assertions, and missing aggregate rows automatically stay
+    on the individual path, preventing compaction from hiding new coverage.
+    """
+    contract_id = _TOOL_CONTRACT_BY_COMMAND.get(tuple(row.get("command", ())))
+    return (
+        contract_id in selected_ids
+        and row.get("assertions") == _BATCHED_EXIT_ASSERTION
+    )
+
+
+def _batched_pair_row(row, selected_ids, pair_manifest):
+    """Batch only a pair row exactly represented by DOC-08's manifest contract."""
+    if "DOC-08" not in selected_ids or not row.get("id", "").startswith(BATCHED_PAIR_PREFIXES):
+        return False
+    command = row.get("command")
+    assertions = row.get("assertions")
+    if not isinstance(command, list) or len(command) != 3 or not isinstance(assertions, list):
+        return False
+    if command[0] != "python3":
+        return False
+    script, fixture = command[1], Path(command[2])
+    name = fixture.name
+    if fixture.as_posix() != f"evals/fixtures/pairs/{name}":
+        return False
+    matched = None
+    for suffix in ("_with.txt", "_without.txt", "_with.md", "_without.md"):
+        if name.endswith(suffix):
+            matched = suffix
+            slug = name[: -len(suffix)]
+            break
+    if matched is None or slug not in pair_manifest:
+        return False
+    info = pair_manifest[slug]
+    target = info.get("target") if isinstance(info, dict) else None
+    kind = info.get("kind") if isinstance(info, dict) else None
+    with_fixture = matched in {"_with.txt", "_with.md"}
+    if kind == "structure":
+        if script == "scripts/structure_scan.py":
+            expected = (
+                [{"type": "json", "path": f"flagged.{target}", "equals": True}]
+                if with_fixture
+                else _BATCHED_EXIT_ASSERTION
+            )
+        elif script == "scripts/banned_phrase_scan.py":
+            expected = [{"type": "json", "path": "total_violations", "equals": 0}]
+        else:
+            return False
+    elif kind == "phrase":
+        if script == "scripts/banned_phrase_scan.py":
+            expected = (
+                [
+                    {"type": "json", "path": "total_violations", "gte": 1},
+                    {"type": "violation_category_equals", "value": target},
+                ]
+                if with_fixture
+                else [{"type": "json", "path": "total_violations", "equals": 0}]
+            )
+        elif script == "scripts/structure_scan.py" and not with_fixture:
+            expected = _BATCHED_EXIT_ASSERTION
+        else:
+            return False
+    else:
+        return False
+    return assertions == expected
 
 # Scanners dispatched in-process instead of via subprocess. Chosen as the
 # highest-census command shapes (see plans/011 census) that are dual-mode
@@ -42,9 +229,7 @@ EXPECTED_XFAIL = {"FP-06"}
 # A scanner needing source changes to be dispatchable is a plan STOP — do not
 # add one here without re-auditing it per the plan's Global-state hazard note.
 DISPATCHABLE = {
-    "scripts/banned_phrase_scan.py",
     "scripts/structure_scan.py",
-    "scripts/validate_preservation.py",
     "scripts/silhouette_scan.py",
     "scripts/readability_metrics.py",
     "scripts/diff_check.py",
@@ -296,25 +481,40 @@ def _guaranteed_subprocess(ev):
 def list_gates():
     return [
         {
-            "id": "repository-check",
-            "command": "python3 evals/check.py",
+            "id": "core-outcome",
+            "command": "python3 evals/run_adversarial.py --group core-outcome",
             "pass_criterion": "exit 0",
             "blocking": True,
-            "needs": ["skill-benchmark"],
+            "needs": [],
+            "lane": GATE_LANES["core-outcome"],
+            "budget": {"max_examples": CORE_CONTRACT_EXAMPLE_BUDGET},
         },
         {
-            "id": "behavioral-tune",
+            "id": "deterministic-safety",
+            "command": "python3 evals/run_adversarial.py --group deterministic-safety",
+            "pass_criterion": "exit 0",
+            "blocking": True,
+            "needs": [],
+            "lane": GATE_LANES["deterministic-safety"],
+            "budget": {"max_examples": None},
+        },
+        {
+            "id": "integrity-and-tools",
+            "command": "python3 evals/run_adversarial.py --group integrity-and-tools",
+            "pass_criterion": "exit 0",
+            "blocking": True,
+            "needs": [],
+            "lane": GATE_LANES["integrity-and-tools"],
+            "budget": {"max_examples": None},
+        },
+        {
+            "id": "behavioral",
             "command": "python3 evals/check.py --behavioral tune",
             "pass_criterion": "exit 0",
             "blocking": False,
             "needs": ["skill-benchmark", "codex exec (gpt-5.6-luna)"],
-        },
-        {
-            "id": "rubric-judge",
-            "command": "Judge transformed output against the skill rubric",
-            "pass_criterion": "non-deterministic rubric pass",
-            "blocking": False,
-            "needs": ["rubric judge"],
+            "lane": GATE_LANES["behavioral"],
+            "budget": {"max_examples": None},
         },
     ]
 
@@ -347,6 +547,19 @@ def parse_args(argv):
         help="run only this exact case ID; repeatable",
     )
     parser.add_argument(
+        "--group",
+        choices=GATE_ORDER,
+        help="run the examples inside one documented evaluation gate",
+    )
+    parser.add_argument(
+        "--lane",
+        choices=("core-contract", "maintenance"),
+        help=(
+            "run an explicit lane: the five-example core-contract gate or the "
+            "exhaustive deterministic maintenance matrix"
+        ),
+    )
+    parser.add_argument(
         "--eval-file",
         type=Path,
         default=SUITE,
@@ -358,11 +571,23 @@ def parse_args(argv):
         help="escape hatch: run every case via subprocess (the pre-dispatcher path)",
     )
     parser.add_argument(
+        "--compact",
+        action="store_true",
+        help="print only failures, expected limitations, and the final summary",
+    )
+    parser.add_argument(
         "--jobs",
         type=int,
         default=DEFAULT_JOBS,
         metavar="N",
         help=f"parallel workers for guaranteed-subprocess cases (default: {DEFAULT_JOBS})",
+    )
+    parser.add_argument(
+        "--timeout",
+        type=int,
+        default=30,
+        metavar="SECONDS",
+        help="per-case subprocess timeout (default: 30)",
     )
     parser.add_argument(
         "--repeat",
@@ -373,6 +598,12 @@ def parse_args(argv):
     args = parser.parse_args(argv)
     if args.jobs < 1:
         parser.error("--jobs must be at least 1")
+    if args.timeout < 1:
+        parser.error("--timeout must be at least 1")
+    if args.group and (args.only or args.case):
+        parser.error("--group cannot be combined with --only or --case")
+    if args.lane and (args.group or args.only or args.case):
+        parser.error("--lane cannot be combined with --group, --only, or --case")
     return args
 
 
@@ -382,7 +613,11 @@ def _execute(
     strict_xfail,
     use_subprocess,
     quiet=False,
+    compact=False,
     jobs=DEFAULT_JOBS,
+    timeout=30,
+    expected_xfail=EXPECTED_XFAIL,
+    lane=None,
 ):
     """Run one full pass over script_cases. Returns (rc, per_case) where
     per_case is an ordered list of (id, status) for equivalence/repeat diffing."""
@@ -391,8 +626,11 @@ def _execute(
     observed_xpass = set()
     per_case = []
     if not quiet:
-        print(f"\n{BLUE}unslop adversarial suite — {len(script_cases)} script cases "
-              f"({len(skill_cases)} skill cases skipped; --list-skill to see them){RESET}\n")
+        if lane:
+            display_lane = "core-contract plumbing (zero-token)" if lane == "core-contract" else lane
+            print(f"{BLUE}lane: {display_lane}{RESET}")
+        print(f"\n{BLUE}unslop contract — {len(script_cases)} deterministic examples "
+              f"({len(skill_cases)} behavioral examples in this lane){RESET}\n")
 
     # Finish all process-global or explicitly serial work before starting the
     # pool. This prevents repository-mutating checks from exposing temporary
@@ -407,7 +645,9 @@ def _execute(
     parallel_ids = {ev["id"] for ev in parallel_cases}
     for ev in script_cases:
         if ev["id"] not in parallel_ids:
-            results[ev["id"]] = run_case(ev, use_subprocess=use_subprocess)
+            results[ev["id"]] = run_case(
+                ev, timeout=timeout, use_subprocess=use_subprocess
+            )
 
     if parallel_cases:
         workers = min(jobs, len(parallel_cases))
@@ -420,7 +660,7 @@ def _execute(
             max_workers=workers, thread_name_prefix="adversarial-subprocess"
         ) as executor:
             futures = {
-                ev["id"]: executor.submit(run_case, ev, 30, True)
+                ev["id"]: executor.submit(run_case, ev, timeout, True)
                 for ev in parallel_cases
             }
             # Collect in suite order, independently of completion timing.
@@ -444,7 +684,7 @@ def _execute(
             observed_xpass.add(ev["id"])
         counts[status] += 1
         per_case.append((ev["id"], status))
-        if not quiet:
+        if not quiet and (not compact or status != "PASS"):
             print(f"  {color}{status:6}{RESET} {ev['id']:14} {ev['title']}")
             if status in ("FAIL", "XPASS"):
                 print(f"         {DIM}{details}{RESET}")
@@ -456,12 +696,12 @@ def _execute(
               f"{RED}FAIL {counts['FAIL']} (regressions){RESET}\n")
 
     xfail_ok = True
-    if strict_xfail and observed_xfail != EXPECTED_XFAIL:
+    if strict_xfail and observed_xfail != expected_xfail:
         xfail_ok = False
         if not quiet:
             print(
                 f"{RED}Unexpected XFAIL set: observed {sorted(observed_xfail)}, "
-                f"expected {sorted(EXPECTED_XFAIL)}. New xfail requires updating "
+                f"expected {sorted(expected_xfail)}. New xfail requires updating "
                 f"EXPECTED_XFAIL and CRITIQUE.md.{RESET}"
             )
     if observed_xpass and not quiet:
@@ -494,6 +734,19 @@ def main(argv):
     args = parse_args(argv)
     suite = json.loads(args.eval_file.read_text())
     evals = suite["evals"]
+    # Explicit slices are diagnostic and may target a temporary, not-yet-grouped
+    # row (the add-a-pattern kata relies on this). Enforce topology for normal
+    # gate runs, where the grouping contract is part of the product surface.
+    topology_errors = (
+        validate_topology(evals)
+        if args.eval_file.resolve() == SUITE.resolve() and not (args.only or args.case)
+        else []
+    )
+    if not topology_errors and args.eval_file.resolve() == SUITE.resolve() and not (args.only or args.case):
+        topology_errors.extend(validate_core_contract_budget(evals))
+    if topology_errors:
+        print("invalid eval topology:\n  " + "\n  ".join(topology_errors), file=sys.stderr)
+        return 2
     script_cases = [e for e in evals if e.get("target") == "script"]
     skill_cases = [e for e in evals if e.get("target") == "skill"]
 
@@ -507,14 +760,39 @@ def main(argv):
             print(f"  {e['id']:24} [{e['category']}] {e['title']}")
         return 0
 
-    if args.only:
+    if args.lane:
+        selected = select_lane(evals, args.lane)
+        script_cases = [e for e in selected if e.get("target") == "script"]
+        skill_cases = [e for e in selected if e.get("target") == "skill"]
+    elif args.group:
+        selected = select_group(evals, args.group)
+        script_cases = [e for e in selected if e.get("target") == "script"]
+        skill_cases = [e for e in selected if e.get("target") == "skill"]
+    elif args.only or args.case:
         prefixes = tuple(args.only)
-        script_cases = [e for e in script_cases if e["id"].startswith(prefixes)]
-    if args.case:
         wanted = set(args.case)
-        script_cases = [e for e in script_cases if e["id"] in wanted]
+        script_cases = [
+            e for e in script_cases
+            if (prefixes and e["id"].startswith(prefixes)) or e["id"] in wanted
+        ]
+
+    # Legacy pair/tool wrappers are skipped only when their exact aggregate
+    # contract is present. Changed rows automatically stay on the direct path.
+    if not args.only and not args.case:
+        canonical_suite = args.eval_file.resolve() == SUITE.resolve()
+        active_contracts = _active_contract_ids(script_cases) if canonical_suite else set()
+        try:
+            pair_manifest = json.loads(PAIR_MANIFEST_PATH.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError):
+            pair_manifest = {}
+        script_cases = [
+            row for row in script_cases
+            if not _batched_pair_row(row, active_contracts, pair_manifest)
+            and not (canonical_suite and _batched_tool_row(row, active_contracts))
+        ]
 
     strict_xfail = not args.only and not args.case
+    expected_xfail = EXPECTED_XFAIL.intersection(e["id"] for e in script_cases)
 
     if args.repeat > 1:
         # Isolation audit: rerun the full pass N times in one process and
@@ -530,6 +808,9 @@ def main(argv):
                 args.subprocess,
                 quiet=True,
                 jobs=args.jobs,
+                timeout=args.timeout,
+                expected_xfail=expected_xfail,
+                lane=args.lane,
             )
             passes.append(per_case)
             rc = rc or pass_rc
@@ -553,7 +834,11 @@ def main(argv):
         skill_cases,
         strict_xfail,
         args.subprocess,
+        compact=args.compact,
         jobs=args.jobs,
+        timeout=args.timeout,
+        expected_xfail=expected_xfail,
+        lane=args.lane,
     )
     _print_dispatch_stats()
     return rc

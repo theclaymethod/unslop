@@ -5,18 +5,18 @@
   ],
   "aggregate_scores": [
     5.0,
-    18.485162378862682
+    18.355527740593974
   ],
   "attempts": [
     {
-      "command_tokens": 62,
+      "command_tokens": 19,
       "correct": true,
       "failures": [],
-      "model_calls": 104,
-      "phases": 18,
+      "model_calls": 48,
+      "phases": 7,
       "profile": "existing-ci",
       "samples": [
-        18.473114375025034
+        6.252733041997999
       ],
       "scores": {
         "command_tokens": 1.0,
@@ -25,17 +25,17 @@
         "runtime": 1.0,
         "simplicity": 1.0
       },
-      "seconds": 18.473114375025034
+      "seconds": 6.252733041997999
     },
     {
-      "command_tokens": 62,
+      "command_tokens": 19,
       "correct": true,
       "failures": [],
-      "model_calls": 104,
-      "phases": 18,
+      "model_calls": 48,
+      "phases": 7,
       "profile": "existing-ci",
       "samples": [
-        18.875750542036258
+        6.492038249998586
       ],
       "scores": {
         "command_tokens": 1.0,
@@ -44,12 +44,12 @@
         "runtime": 1.0,
         "simplicity": 1.0
       },
-      "seconds": 18.875750542036258
+      "seconds": 6.492038249998586
     },
     {
       "correct": false,
       "missing": [
-        "strict-leakage-validate"
+        "canonical-full"
       ],
       "profile": "missing-leakage",
       "scores": {
@@ -61,14 +61,14 @@
       }
     },
     {
-      "command_tokens": 62,
+      "command_tokens": 19,
       "correct": true,
       "failures": [],
-      "model_calls": 104,
-      "phases": 18,
+      "model_calls": 48,
+      "phases": 7,
       "profile": "existing-ci",
       "samples": [
-        18.531246041005943
+        6.107112125002459
       ],
       "scores": {
         "command_tokens": 1.0,
@@ -77,45 +77,45 @@
         "runtime": 1.0,
         "simplicity": 1.0
       },
-      "seconds": 18.531246041005943
+      "seconds": 6.107112125002459
     },
     {
-      "command_tokens": 9,
+      "command_tokens": 3,
       "correct": true,
       "failures": [],
-      "model_calls": 52,
-      "phases": 3,
+      "model_calls": 24,
+      "phases": 1,
       "profile": "canonical",
       "samples": [
-        7.210416624962818
+        3.0614865419993293
       ],
       "scores": {
-        "command_tokens": 6.888888888888889,
+        "command_tokens": 6.333333333333333,
         "correctness": 1.0,
         "model_calls": 2.0,
-        "runtime": 2.5700659205807685,
-        "simplicity": 6.0
+        "runtime": 1.9948191968905924,
+        "simplicity": 7.0
       },
-      "seconds": 7.210416624962818
+      "seconds": 3.0614865419993293
     },
     {
-      "command_tokens": 9,
+      "command_tokens": 3,
       "correct": true,
       "failures": [],
-      "model_calls": 52,
-      "phases": 3,
+      "model_calls": 24,
+      "phases": 1,
       "profile": "canonical",
       "samples": [
-        7.137632500031032
+        3.0200420410001243
       ],
       "scores": {
-        "command_tokens": 6.888888888888889,
+        "command_tokens": 6.333333333333333,
         "correctness": 1.0,
         "model_calls": 2.0,
-        "runtime": 2.596273489973794,
-        "simplicity": 6.0
+        "runtime": 2.0221944072606397,
+        "simplicity": 7.0
       },
-      "seconds": 7.137632500031032
+      "seconds": 3.0200420410001243
     }
   ],
   "config": {
@@ -126,103 +126,20 @@
     "max_candidate_proposals": 2,
     "max_metric_calls": 10,
     "phase_commands": {
-      "add-pattern-kata": [
+      "canonical-full": [
         [
           "python3",
-          "evals/kata_add_pattern.py",
-          "--run"
+          "evals/check.py",
+          "--full"
         ]
       ],
-      "adversarial-suite": [
+      "complexity-repeat": [
         [
           "python3",
-          "evals/run_adversarial.py"
+          "evals/check_complexity_budget.py"
         ]
       ],
-      "calibrate-suite": [
-        [
-          "python3",
-          "evals/run_adversarial.py",
-          "--only",
-          "CAL"
-        ]
-      ],
-      "command-router-parity": [
-        [
-          "python3",
-          "evals/check_commands.py"
-        ]
-      ],
-      "contribute-suite": [
-        [
-          "python3",
-          "evals/run_adversarial.py",
-          "--only",
-          "CONTRIB"
-        ]
-      ],
-      "evals-schema": [
-        [
-          "python3",
-          "evals/check_evals_schema.py"
-        ]
-      ],
-      "harvest-suite": [
-        [
-          "python3",
-          "evals/run_adversarial.py",
-          "--only",
-          "HARV"
-        ]
-      ],
-      "mimic-logic": [
-        [
-          "python3",
-          "evals/run_adversarial.py",
-          "--only",
-          "MIMIC",
-          "--only",
-          "CARD"
-        ]
-      ],
-      "pack-structure": [
-        [
-          "python3",
-          "scripts/check_packs.py"
-        ]
-      ],
-      "paired-fixture-hygiene": [
-        [
-          "python3",
-          "evals/check_pairs.py"
-        ]
-      ],
-      "pattern-coverage": [
-        [
-          "python3",
-          "evals/check_pattern_coverage.py"
-        ]
-      ],
-      "seeded-docs": [
-        [
-          "python3",
-          "evals/check_seeded_docs.py"
-        ]
-      ],
-      "shared-benchmark-check": [
-        [
-          "python3",
-          "evals/build_shared_benchmark.py",
-          "--check"
-        ]
-      ],
-      "silhouette-check": [
-        [
-          "python3",
-          "evals/check_silhouette.py"
-        ]
-      ],
-      "strict-leakage-validate": [
+      "leakage-repeat": [
         [
           "skill-benchmark",
           "validate",
@@ -230,40 +147,41 @@
           "--strict-leakage"
         ]
       ],
-      "structure-climb": [
+      "maintenance-repeat": [
         [
           "python3",
-          "evals/run_adversarial.py",
-          "--only",
-          "CLIMB"
+          "evals/check.py",
+          "--maintenance"
         ]
       ],
-      "taboo-catalog-parity": [
+      "preservation-repeat": [
         [
           "python3",
-          "evals/check_taboo_parity.py"
+          "evals/check_preservation_contract.py"
         ]
       ],
-      "voice-scorer": [
+      "product-maintenance-only": [
         [
           "python3",
-          "evals/check_voice.py",
-          "--separation"
+          "evals/check.py"
         ],
         [
           "python3",
-          "evals/check_voice.py",
-          "--gi"
-        ],
+          "evals/check.py",
+          "--maintenance"
+        ]
+      ],
+      "scanner-repeat": [
         [
           "python3",
-          "evals/check_voice.py",
-          "--gaming"
-        ],
+          "evals/check_scanner_contract.py"
+        ]
+      ],
+      "shared-repeat": [
         [
           "python3",
-          "evals/check_voice.py",
-          "--profiles"
+          "evals/build_shared_benchmark.py",
+          "--check"
         ]
       ]
     },
@@ -271,50 +189,34 @@
       "canonical": {
         "behavioral_cache_mode": "read-write",
         "phases": [
-          "adversarial-suite",
-          "shared-benchmark-check",
-          "strict-leakage-validate"
+          "canonical-full"
         ]
       },
       "existing-ci": {
         "behavioral_cache_mode": "off",
         "phases": [
-          "adversarial-suite",
-          "harvest-suite",
-          "contribute-suite",
-          "calibrate-suite",
-          "shared-benchmark-check",
-          "strict-leakage-validate",
-          "taboo-catalog-parity",
-          "pattern-coverage",
-          "voice-scorer",
-          "add-pattern-kata",
-          "command-router-parity",
-          "seeded-docs",
-          "paired-fixture-hygiene",
-          "mimic-logic",
-          "structure-climb",
-          "pack-structure",
-          "silhouette-check",
-          "evals-schema"
+          "canonical-full",
+          "maintenance-repeat",
+          "scanner-repeat",
+          "preservation-repeat",
+          "complexity-repeat",
+          "shared-repeat",
+          "leakage-repeat"
         ]
       },
       "missing-leakage": {
         "behavioral_cache_mode": "read-write",
         "phases": [
-          "adversarial-suite",
-          "shared-benchmark-check"
+          "product-maintenance-only"
         ]
       }
     },
     "required": [
-      "adversarial-suite",
-      "shared-benchmark-check",
-      "strict-leakage-validate"
+      "canonical-full"
     ],
     "samples": 1,
-    "tune_generation_cases": 18,
-    "tune_judge_assertions": 34
+    "tune_generation_cases": 12,
+    "tune_judge_assertions": 12
   },
   "gepa_version": "0.1.4",
   "objective_scores": [
@@ -326,11 +228,11 @@
       "simplicity": 1.0
     },
     {
-      "command_tokens": 6.888888888888889,
+      "command_tokens": 6.333333333333333,
       "correctness": 1.0,
       "model_calls": 2.0,
-      "runtime": 2.596273489973794,
-      "simplicity": 6.0
+      "runtime": 2.0221944072606397,
+      "simplicity": 7.0
     }
   ],
   "schema": 1,

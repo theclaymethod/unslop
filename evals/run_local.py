@@ -36,7 +36,7 @@ import tempfile
 from pathlib import Path
 
 
-CACHE_SCHEMA = "generation-v1"
+CACHE_SCHEMA = "generation-v2"
 DEFAULT_CODEX_MODEL = "gpt-5.6-luna"
 PROMPT_SUFFIX = (
     "\n\nPut the final text between <final> and </final> markers; put any "
@@ -62,10 +62,17 @@ def extract_final(answer: str) -> str:
 def extract_output(task: dict, answer: str) -> str:
     """Keep audit evidence visible while returning prose for rewrite tasks."""
     final = extract_final(answer)
-    if task.get("kind") != "mode_routing":
+    prompt = task.get("prompt", "").lower()
+    explicit_report_only = any(
+        marker in prompt
+        for marker in ("do not rewrite", "don't rewrite", "report only", "audit only")
+    )
+    if task.get("kind") != "mode_routing" and not explicit_report_only:
         return final
     end = answer.find("</final>")
     remainder = answer[end + len("</final>"):].strip() if end != -1 else ""
+    if explicit_report_only:
+        return remainder or final
     return "\n\n".join(part for part in (final, remainder) if part)
 
 
@@ -110,6 +117,12 @@ def _task_for_cache(task: dict) -> dict:
         path = Path(str(raw))
         fixture_rows.append({"path": str(path), "sha256": _sha256_path(path)})
     content["input_files"] = fixture_rows
+    raw_skill_paths = content.pop("skill_paths", []) or []
+    if content.get("variant") == "with_skill":
+        content["skill_paths"] = [
+            {"path": str(raw), "sha256": _sha256_path(Path(str(raw)))}
+            for raw in raw_skill_paths
+        ]
     return content
 
 
@@ -246,7 +259,7 @@ def run_one(
     out_dir = runs_dir / task["run_dir"]
     out_dir.mkdir(parents=True, exist_ok=True)
     prompt = build_prompt(task)
-    cacheable = task.get("variant") == "without_skill" and cache_mode != "off"
+    cacheable = cache_mode != "off"
     key_payload = None
     key = None
     if cacheable:
@@ -298,9 +311,21 @@ def main() -> None:
         "--cache-mode",
         choices=("off", "read-write"),
         default="off",
-        help="reuse successful without_skill outputs; default off",
+        help="reuse successful outputs with content-based invalidation; default off",
     )
     parser.add_argument("--cache-identity", default=None, help="explicit model/runner identity for cache keys")
+    parser.add_argument(
+        "--case",
+        action="append",
+        default=[],
+        metavar="ID",
+        help="run only this case ID; repeatable",
+    )
+    parser.add_argument(
+        "--variant",
+        choices=("with_skill", "without_skill"),
+        help="run only one benchmark arm",
+    )
     parser.add_argument("--dry-run", action="store_true", help="print prompts, call nothing")
     args = parser.parse_args()
 
@@ -312,6 +337,14 @@ def main() -> None:
     tasks_path = Path(args.tasks)
     runs_dir = tasks_path.parent
     tasks = [json.loads(line) for line in tasks_path.read_text().splitlines() if line.strip()]
+    if args.case:
+        wanted = set(args.case)
+        tasks = [task for task in tasks if task.get("case_id") in wanted]
+        missing = wanted - {task.get("case_id") for task in tasks}
+        if missing:
+            parser.error("unknown --case: " + ", ".join(sorted(missing)))
+    if args.variant:
+        tasks = [task for task in tasks if task.get("variant") == args.variant]
 
     if args.dry_run:
         for t in tasks:

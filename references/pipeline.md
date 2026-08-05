@@ -1,5 +1,26 @@
 # Tiered Execution Pipeline
 
+## Core release protocol: Luna versus Luna
+
+The product comparison uses `gpt-5.6-luna` for both arms on the same unfamiliar
+source. The treatment arm receives the frozen UNSLOP contract, scanner candidates,
+span-bounded rewrite flow, and validation gates. The raw arm receives neutral
+editorial guidance and no UNSLOP rules, repository access, scanner output, or
+validation feedback. A blinded `gpt-5.6-sol` judge sees randomized candidate
+labels. Report per-case calls, uncached input tokens, output tokens, elapsed time,
+detection precision and recall, repair success, preservation, damage, clean no-op,
+net improvement, and paired wins.
+
+Run a fresh public split only after its corpus, annotations, thresholds, model
+controls, runner, scorer, acceptance code, and per-case budgets are frozen. Open
+the sealed holdback only after public acceptance passes. The current beta has no
+fresh valid paired result: the newest independently annotated corpus failed its
+preregistered composition floor before either arm ran. Earlier paired runs are
+directional evidence only.
+
+The cross-provider tables below are ancillary engineering history. They do not
+answer the core release question and do not substitute for Luna-vs-Luna evidence.
+
 The skill still works with one agent, but orchestrators should use the cheapest executor that can do each job.
 
 ## Tier 0: Deterministic Gates

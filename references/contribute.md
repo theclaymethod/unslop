@@ -12,8 +12,8 @@ python3 scripts/contribute.py precheck /absolute/path/to/snippet.txt
 ```
 
 If the snippet is already flagged, the command exits 3 and prints the covering
-patterns/categories. Stop there. Add a REC row instead of a new false-negative
-row.
+patterns/categories. Stop there. Add a REC example instead of a new
+false-negative example.
 
 ## 2. User Confirmation Gate #1
 
@@ -46,17 +46,17 @@ working material for the agent and reviewer.
 Follow `references/maintenance.md` in this order:
 
 1. Copy `.unslop/contrib/<slug>/row_fn.json` into
-   `evals/adversarial-evals.json`.
-2. Renumber the copied row from the live maxima in
-   `evals/adversarial-evals.json`; do not keep the `CONTRIB-FN-*` bundle id in
-   the committed suite.
-3. Add the literal-use FP row for the category, and add a REC row if an existing
+   `evals/fixtures/contracts/scanner-examples.json`.
+2. Renumber the copied example from the live maxima in that table; do not keep
+   the `CONTRIB-FN-*` bundle id in the committed contract. Set `exact_total` to
+   the resulting `examples` array length.
+3. Add the literal-use FP example for the category, and add a REC example if an existing
    word is being gated behind collocations.
-4. Run the new rows before implementing the pattern and confirm the FN row is
-   red while the FP and any REC rows encode the intended boundary.
+4. Run the scanner contract before implementation and confirm the FN example is
+   red while the FP and any REC examples encode the intended boundary.
 5. Update the scanner and `references/taboo-phrases.md`.
 6. Re-run `python3 scripts/contribute.py verify --bundle .unslop/contrib/<slug>`.
-7. Before treating the row as ready, diff it against
+7. Before treating the example as ready, diff it against
    `.unslop/contrib/<slug>/row_fn.json` and verify that only expected suite
    fields changed, such as the id, category grouping, or row ordering; the
    specimen stdin and assertion intent must still match because redaction or
@@ -74,14 +74,7 @@ red-to-green transition for the FN row, and records offline gate tails.
 ## 6. Run the Full Gate Battery
 
 ```bash
-python3 evals/build_shared_benchmark.py
-python3 evals/check.py
-```
-
-If `SKILL.md`, `presets/`, or `references/` changed, also run:
-
-```bash
-python3 evals/check.py --behavioral tune
+python3 evals/check.py --full
 ```
 
 ## 7. Render the Report
@@ -96,7 +89,7 @@ Show the final PR body to the user. Only after the user approves publication:
 
 ```bash
 git switch -c add-<slug>
-git add evals/adversarial-evals.json scripts/banned_phrase_scan.py references/taboo-phrases.md
+git add evals/fixtures/contracts/scanner-examples.json scripts/banned_phrase_scan.py references/taboo-phrases.md
 git commit -m "Add <slug> AI-ism pattern"
 gh pr create --title "Add <category> pattern: <tell>" --body-file /tmp/pr-body.md
 ```

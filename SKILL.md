@@ -13,6 +13,10 @@ metadata:
 
 Humanize AI-generated prose. Audit first. Rewrite only when the user asks for a rewrite.
 
+For every audit or rewrite, read [references/core-contract.md](references/core-contract.md).
+It is the single behavior contract. Command files define routing and mechanics;
+presets supply optional voice, but neither can override the core contract.
+
 ## Routing
 
 **When the user invokes a sub-command (`/unslop teach ...`, `/unslop cleanup
@@ -46,18 +50,7 @@ When the user says any of these, load the named file and jump to the flow:
 | voice check / "does this sound like me?" | [references/commands/mimic.md](references/commands/mimic.md#voice-check) |
 | "found a new AI-ism" / "add this tell" | [references/commands/contribute.md](references/commands/contribute.md) |
 
-The shared doctrine below (register guards, validation gates and blocking
-semantics, output formats, the script and reference tables) applies to every
-command. The command files hold the flows; this file holds the constitution.
-
-## When to Use
-
-- User asks to humanize, de-slop, clean up, or make text sound natural.
-- Drafts contain obvious AI tells: throat-clearing, scaffolded conclusions,
-  inflated significance, em-dash abuse, or staccato fragment drama.
-- User asks for an audit, scan, or review of prose before publishing.
-
-## Arguments
+## Interface
 
 | Argument | Description | Default |
 |----------|-------------|---------|
@@ -65,18 +58,6 @@ command. The command files hold the flows; this file holds the constitution.
 | `--strict` | Fail if rubric score < 32/40 | false |
 | `--report` | Flag AI patterns without changing the text (cleanup) | false |
 | Input | Text to transform (argument, file path, or stdin) | required |
-
-## Scripts
-
-| Script | Purpose |
-|--------|---------|
-| `scripts/voice_profile.py` | Build a deterministic stylometric voice profile from same-genre samples. |
-| `scripts/voice_score.py` | Score a candidate against a voice profile with impostor-calibrated metrics and copy-gate reporting. |
-| `scripts/voice_card.py` | Distill a profile plus samples into a layered, pack-sized voice card (core sheet plus per-situation sheets). |
-| `evals/run_mimic_refine.py` | Iterative `--refine` hill-climb toward a voice under the removal gates, with A/DEV splits and a divergence guard. |
-| `evals/mimic_stats.py` | Paired BCa-bootstrap and sign-flip stats for comparing mimic outputs to baselines. |
-
-## Voice Presets
 
 Read one preset from `presets/` before writing.
 
@@ -87,105 +68,8 @@ Read one preset from `presets/` before writing.
 | `expert` | Authoritative, confident | Thought leadership, articles |
 | `story` | Narrative flow, show don't tell | Case studies, personal posts |
 
-## Rewrite Principles
-
-- Cut throat-clearing and scaffolding. Start with the claim.
-- Replace inflated importance with the concrete fact.
-- For headings and slide titles, name the test, mechanism, result, decision, or
-  completion criterion. Rewrite calendar/container agency ("Week 1 ends with
-  ..."), tool personification ("the judge lies"), vague uplift transformations
-  ("taste becomes infrastructure"), generic topic handles, and counting/journey
-  frames. Do not ban accurate causal subjects such as "examples calibrate the
-  judge." See `references/taboo-phrases.md` § Headings and Slide Titles.
-- Prefer short, direct sentences, but avoid telegraphic staccato.
-- Use em-dashes sparingly. A single appositive dash can be fine; clusters are a
-  tell. Never trade a dash for a comma splice; if a dash is wrong, use a period.
-- Facts are sacred: numbers, names, dates, URLs, quotes, code identifiers, units,
-  and scope words must survive.
-- Do not invent first-person experience, anecdotes, or certainty the source does
-  not support.
-- Do not replace AI slop with anti-slop register: "Not X. Y.", forced punch
-  endings, or runs of tiny fragments.
-- Classify before editing, in this order:
-  1. **Meaning:** compare repeated facts, scope, evidence, limits, status, and
-     recommendations. A hedge does not make an action safe. Withdraw an action
-     beyond an explicit limit and qualify a status the evidence cannot support.
-     Name each prohibited action; a general caution or hold is not enough.
-  2. **Attribution:** a wrong claim accurately reported and then corrected is
-     evidence, not an author error. Preserve what the source says another person
-     or record asserted; state the conflict separately. Attribution does not
-     shield an operative recommendation: if the recommended action exceeds a
-     limit, replace it with an explicit rejection while keeping its quantities.
-  3. **Protection:** uncontradicted observations and literal domain language are
-     not findings. Physical motion, energy transfer, tests, controls, and
-     measurements keep their precise wording.
-  4. **Style:** scanner hits are candidates, not commands. Require a contextual
-     defect before accepting a soft finding.
-- Diagnosis authorizes the edit. Copy every sentence without a finding
-  byte-for-byte, in order and in its original paragraph. No findings means an
-  exact no-op. Before returning, undo every edit that cannot be traced to a
-  finding and restore every protected technical or evidentiary span exactly.
-- Remove a requested moralizing coda instead of paraphrasing its lesson. Turn
-  abstract purpose jargon into the plain action supported by the supplied
-  facts; do not swap in corporate synonyms or invent a rationale.
-
-## Register Guards
-
-Before removing a hedge or strengthening a sentence, check whether the register
-requires it:
-
-- Legal: keep hedges, negations, exceptions, section references, liability terms,
-  and scope words.
-- Medical/scientific: keep uncertainty, study limits, cohort limits, causation
-  limits, and adverse-effect qualifiers.
-- Security/safety: keep forceful absolutes such as "never", "must", "all input",
-  and "do not" when they define a rule.
-- Technical docs: keep precise terms, flags, API names, version numbers, file
-  paths, and code semantics.
-
-If a gate fails twice after rewrite, escalate model tier rather than adding more
-prompt rules. The failure is execution quality.
-
-## Validation
-
-Run after every rewrite or voiced draft:
-
-```bash
-python3 scripts/validate_preservation.py original.txt transformed.txt
-python3 scripts/banned_phrase_scan.py <<< "$OUTPUT"
-python3 scripts/structure_scan.py <<< "$OUTPUT"
-python3 scripts/silhouette_scan.py <<< "$OUTPUT"
-python3 scripts/readability_metrics.py <<< "$OUTPUT"
-python3 scripts/diff_check.py original.txt transformed.txt
-```
-
-Blocking output failures:
-
-- Any hard banned-phrase hit.
-- Any `anti_slop_register` hit, even if soft.
-- Any `structure_scan.py` flag unless the actual genre justifies `--genre docs` or
-  `--genre social`. An isolated soft `sentence_burstiness` warning is advisory:
-  block only when the cadence is visibly mechanical or another structure or
-  staccato finding corroborates it.
-- A `silhouette_scan.py` flag (`silhouette_penalty >= 1.0`) when a concrete
-  structure finding corroborates it or the silhouette finding is not soft. An
-  uncorroborated soft silhouette score is advisory: it is a statistical
-  resemblance, not proof that concise formal prose needs reconstruction.
-- Preservation warnings that show a dropped or changed negation, hedge, scope
-  word, number, date, name, quote, URL, unit, or code identifier. The default
-  gate warns without failing; run `validate_preservation.py --strict` for legal,
-  medical, security, or scientific text so these exit non-zero.
-- Staccato cadence in readability metrics.
-- Rubric score below 32/40 in strict mode.
-
-When a `structure_scan.py` or `silhouette_scan.py` flag persists after a rewrite,
-don't re-prompt with vague "fix the structure" — no model self-checks macro shape.
-Feed the scanners' findings back as targeted directives and regenerate with
-`evals/run_structure_climb.py` (generate→scan→directive→regenerate, preservation-guarded;
-see `references/pipeline.md`, "Macro structure under the climb").
-
-Validation scripts are necessary but not enough. Re-read negations, conditionals,
-scope, certainty, and party relationships yourself.
+Rewrite, preservation, register, and validation behavior lives only in
+`references/core-contract.md`; do not recreate or override those rules here.
 
 ## Output Format
 
@@ -220,46 +104,28 @@ For strict or requested analysis:
 - Score: [X]/40
 ```
 
-## Quick Examples
-
-**Input:**
-> Here's the thing: building products is hard. Not because the technology is complex. Because people are complex. Let that sink in.
-
-**Output (crisp):**
-> Building products is hard, and not because the technology is complex. People are complex, and they are the part you cannot refactor.
-
-**Input:**
-> In today's fast-paced business environment, it's becoming increasingly important for organizations to leverage their core competencies while navigating the complex landscape of digital transformation.
-
-**Output (crisp):**
-> Companies need to use their strengths while going digital.
-
 ## Reference Files
 
 | File | When to Read |
 |------|-------------|
 | `references/commands/*.md` | The routed command flows (rewrite, cleanup, teach, mimic, contribute). |
 | `references/pipeline.md` | Orchestrated tiered execution for multi-agent harnesses. |
-| `references/mimic.md` | Teach/mimic internals: card anatomy, scoring, baselines, the `--refine` loop. |
-| `references/harvest.md` | Harvest adapter internals, contamination tripwire, privacy rules. |
-| `references/calibrate.md` | The teach A/B calibration game: pairs, scoring, conflict surfacing. |
-| `references/packs/*.md` | Small detector-agent rule packs. |
 | `references/taboo-phrases.md` | Authoritative phrase catalog and scanner categories. |
 | `references/fact-preservation.md` | Constraint preservation rules. |
-| `references/rubric.md` | Strict scoring. |
-| `references/edit-library.md` | Transformation examples when a pattern is unclear. |
-| `references/personality-guide.md` | Adding genuine voice without fake personality. |
-| `references/maintenance.md` | Pattern add/list procedures and Wikipedia sync. |
+| `references/rewrite-examples.md` | Executable before/after examples. |
+| `references/{mimic,harvest,calibrate}.md` | Voice-tool internals loaded by their routed command. |
+| `references/{rubric,edit-library,maintenance}.md` | Strict scoring, examples, and contribution procedures. |
 | `presets/*.md` | Voice-specific deltas. |
-| `assets/examples/*.md` | Extended before/after examples by content type. |
 
 ## Maintenance
 
-The eval suite defines the product. Add or change patterns eval-first in
-`evals/adversarial-evals.json`; do not edit `evals/evals.json`. New scanner
-patterns need one false-negative row and one false-positive protection row. Agent
-behavior changes need a `skill` row and a regenerated shared benchmark. For the
+The eval contracts define the product. Add scanner examples eval-first in
+`evals/fixtures/contracts/scanner-examples.json`; use
+`evals/adversarial-evals.json` for agent behavior and routing. Do not edit legacy
+`evals/evals.json`. New patterns need a false-negative example and a
+false-positive protection example. Agent behavior changes need a `skill` row
+and a regenerated shared benchmark. For the
 concrete procedures (add a phrase or structure, list current patterns, sync with
 Wikipedia's signs-of-AI-writing page), read `references/maintenance.md`. Found a
 new AI-ism in the wild? `references/commands/contribute.md` turns the exact
-snippet into an eval row and a structured PR, keeping both user-confirmation gates.
+snippet into a contract example and a structured PR, keeping both user-confirmation gates.

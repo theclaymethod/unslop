@@ -28,6 +28,7 @@ import time
 from pathlib import Path
 
 from _check_support import ROOT
+from _contract_batch import run_contract
 
 FIX = ROOT / "evals" / "fixtures" / "climb"
 PROMPT = FIX / "task_prompt.txt"
@@ -222,6 +223,33 @@ def check_codex_adapter():
             text, err = model_generate.call_codex("fake-model", "hello prompt", timeout=10)
             success_ok = err is None and text is not None and "hello prompt" in text
 
+            args_path = Path(td) / "isolated-args.json"
+            os.environ["FAKE_CODEX_ARGS_PATH"] = str(args_path)
+            invocation_events = []
+            text_iso, err_iso = model_generate.call_codex(
+                "fake-model", "isolated prompt", timeout=10, cwd=td, isolated=True,
+                event_sink=invocation_events,
+            )
+            isolated_args = json.loads(args_path.read_text()) if args_path.exists() else []
+            configs = [
+                isolated_args[index + 1]
+                for index, value in enumerate(isolated_args[:-1])
+                if value == "-c"
+            ]
+            isolation_ok = (
+                err_iso is None
+                and text_iso is not None
+                and "--ignore-user-config" in isolated_args
+                and "--ignore-rules" in isolated_args
+                and any(
+                    config.startswith("skills.config=")
+                    and ("enabled=false" in config or config == "skills.config=[]")
+                    for config in configs
+                )
+                and '"type":"unslop.invocation_metrics"' in "".join(invocation_events)
+            )
+            os.environ.pop("FAKE_CODEX_ARGS_PATH", None)
+
             os.environ["FAKE_CODEX_MODE"] = "fail"
             text2, err2 = model_generate.call_codex("fake-model", "x", timeout=10)
             fail_ok = text2 is None and err2 is not None and "exit 2" in err2
@@ -239,11 +267,12 @@ def check_codex_adapter():
         finally:
             os.environ["PATH"] = old_path
             os.environ.pop("FAKE_CODEX_MODE", None)
+            os.environ.pop("FAKE_CODEX_ARGS_PATH", None)
 
-        ok = success_ok and fail_ok and empty_ok and hang_ok
+        ok = success_ok and isolation_ok and fail_ok and empty_ok and hang_ok
         print(json.dumps({
             "success_ok": success_ok, "fail_ok": fail_ok,
-            "empty_ok": empty_ok, "hang_ok": hang_ok,
+            "isolation_ok": isolation_ok, "empty_ok": empty_ok, "hang_ok": hang_ok,
             "hang_elapsed_s": round(elapsed, 2),
         }, sort_keys=True))
         return 0 if ok else 1
@@ -262,9 +291,12 @@ CHECKS = {
 
 def main(argv):
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--all", action="store_true")
     for name in CHECKS:
         parser.add_argument(f"--{name}", action="store_true")
     args = parser.parse_args(argv)
+    if args.all:
+        return run_contract("climb", CHECKS)
     for name, fn in CHECKS.items():
         if getattr(args, name.replace("-", "_")):
             return fn()

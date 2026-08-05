@@ -18,12 +18,7 @@ TODO_MARKER = "TODO:"
 SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
 
 GATE_COMMANDS = [
-    ["python3", "evals/run_adversarial.py", "--only", "CONTRIB"],
-    ["python3", "evals/run_adversarial.py"],
-    ["python3", "evals/build_shared_benchmark.py", "--check"],
-    ["python3", "evals/check_taboo_parity.py"],
-    ["python3", "evals/check_pattern_coverage.py"],
-    ["python3", "evals/kata_add_pattern.py", "--run"],
+    ["python3", "evals/check.py", "--full"],
 ]
 
 
@@ -117,13 +112,9 @@ def row_fn(slug: str, tell: str, snippet: str) -> dict[str, object]:
     assertion_tell = tell.casefold()
     return {
         "id": f"CONTRIB-FN-{slug}",
-        "category": "scanner_false_negative",
-        "title": f"New AI-ism fixture: {tell}",
         "target": "script",
-        "command": ["python3", "scripts/banned_phrase_scan.py"],
+        "category": "scanner_false_negative",
         "stdin": snippet,
-        "failure_mode": "The scanner misses the contributed tell from the exact specimen.",
-        "correct_behavior": "The scanner reports at least one violation containing the contributed tell.",
         "assertions": [
             {"type": "json", "path": "total_violations", "gte": 1},
             {"type": "violation_phrase_contains", "value": assertion_tell},
@@ -136,12 +127,8 @@ def row_fp_template(slug: str, category: str, tell: str) -> dict[str, object]:
         "id": f"CONTRIB-FP-{slug}",
         "category": "scanner_false_positive",
         "protects": category,
-        "title": f"Literal-use protection for {tell}",
         "target": "script",
-        "command": ["python3", "scripts/banned_phrase_scan.py"],
         "stdin": "TODO: add a literal or domain-specific use that should remain clean.",
-        "failure_mode": "A broad pattern could flag legitimate prose.",
-        "correct_behavior": "No violations for the protected literal/domain use.",
         "assertions": [{"type": "json", "path": "total_violations", "equals": 0}],
     }
 
@@ -252,7 +239,7 @@ def cmd_scaffold(args: argparse.Namespace) -> int:
 
 def run_row(row: dict[str, object]) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        row["command"],
+        ["python3", "scripts/banned_phrase_scan.py"],
         input=str(row.get("stdin", "")),
         capture_output=True,
         text=True,

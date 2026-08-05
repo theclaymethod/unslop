@@ -1,20 +1,16 @@
 #!/usr/bin/env python3
-"""Validate documented SKILL.md example outputs against shipping gates."""
+"""Validate canonical rewrite example outputs against shipping gates."""
 import re
 import subprocess
 import sys
 
 from _check_support import ROOT  # noqa: E402
 
-SKILL = ROOT / "SKILL.md"
+EXAMPLES = ROOT / "references" / "rewrite-examples.md"
 
 
 def example_outputs(text):
-    match = re.search(r"## Quick Examples\n(?P<body>.*?)(?:\n## |\Z)", text, re.S)
-    if not match:
-        raise RuntimeError("Quick Examples section not found")
-    body = match.group("body")
-    blocks = re.findall(r"\*\*Output[^:]*:\*\*\n> (?P<output>[^\n]+)", body)
+    blocks = re.findall(r"\*\*Output[^:]*:\*\*\n> (?P<output>[^\n]+)", text)
     if not blocks:
         raise RuntimeError("No documented output examples found")
     return [block.strip() for block in blocks]
@@ -33,7 +29,7 @@ def run_gate(command, text):
 
 def main():
     failures = []
-    for idx, output in enumerate(example_outputs(SKILL.read_text()), 1):
+    for idx, output in enumerate(example_outputs(EXAMPLES.read_text()), 1):
         for command in (
             ["python3", "scripts/banned_phrase_scan.py"],
             ["python3", "scripts/readability_metrics.py"],

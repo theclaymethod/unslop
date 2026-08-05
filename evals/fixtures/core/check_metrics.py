@@ -73,6 +73,24 @@ def main() -> int:
     }
     predictions = {
         "schema": "unslop-core-predictions-v1",
+        "evidence": [
+            {
+                "case_id": "fixture-1",
+                "semantic_diagnosis": {
+                    "invocation_events": '{"type":"unslop.invocation_metrics","model":"gpt-5.6-luna","elapsed_seconds":1.25,"input_tokens":100,"cached_input_tokens":40,"output_tokens":10}\n'
+                },
+                "generation": {
+                    "with_skill": {
+                        "invocation_events": '{"type":"unslop.invocation_metrics","model":"gpt-5.6-luna","elapsed_seconds":2.5,"input_tokens":200,"cached_input_tokens":100,"output_tokens":20}\n'
+                    }
+                },
+                "judge": {
+                    "invocation_events": '{"type":"unslop.invocation_metrics","model":"gpt-5.6-sol","elapsed_seconds":0.75,"input_tokens":70,"cached_input_tokens":20,"output_tokens":7}\n'
+                },
+            },
+            {"case_id": "fixture-2"},
+            {"case_id": "fixture-clean"},
+        ],
         "runs": [
             {
                 "case_id": "fixture-1",
@@ -132,11 +150,26 @@ def main() -> int:
     print(f"net_improvement={metrics['net_improvement']:.6f}")
     print(f"clean_noop_rate={metrics['clean_noop_rate']:.6f}")
     print(f"deterministic_overrides={len(result.get('deterministic_overrides', []))}")
+    operational = result["operational"]
+    usage_ok = (
+        operational.get("model_calls") == 3
+        and operational.get("elapsed_seconds") == 4.5
+        and operational.get("input_tokens") == 370
+        and operational.get("cached_input_tokens") == 160
+        and operational.get("output_tokens") == 37
+    )
+    print(
+        f"usage_calls={operational.get('model_calls')} "
+        f"input_tokens={operational.get('input_tokens')} "
+        f"cached_input_tokens={operational.get('cached_input_tokens')} "
+        f"output_tokens={operational.get('output_tokens')} "
+        f"elapsed_seconds={operational.get('elapsed_seconds')}"
+    )
     shotgun = [{"start": 0, "end": 100}, {"start": 0, "end": 100}]
     gold = [{"start": 10, "end": 20}, {"start": 60, "end": 70}]
     shotgun_rejected = match_findings(shotgun, gold, 100) == (0, 2, 2)
     print(f"shotgun_rejected={str(shotgun_rejected).lower()}")
-    return 0 if shotgun_rejected else 1
+    return 0 if shotgun_rejected and usage_ok else 1
 
 
 if __name__ == "__main__":

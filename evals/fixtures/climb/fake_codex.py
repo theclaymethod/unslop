@@ -14,11 +14,16 @@ Parses just enough of ``codex exec ... -o OUT_PATH [-m MODEL] -`` to find the
 """
 
 import os
+import json
 import sys
 import time
 
 
 def main(argv):
+    args_path = os.environ.get("FAKE_CODEX_ARGS_PATH")
+    if args_path:
+        with open(args_path, "w") as f:
+            json.dump(argv, f)
     out_path = None
     for i, a in enumerate(argv):
         if a == "-o" and i + 1 < len(argv):

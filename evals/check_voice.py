@@ -8,6 +8,7 @@ import tempfile
 from pathlib import Path
 
 from _check_support import ROOT  # noqa: E402
+from _contract_batch import run_contract  # noqa: E402
 
 SCRIPTS = ROOT / "scripts"
 sys.path.insert(0, str(SCRIPTS))
@@ -164,6 +165,7 @@ def check_profiles():
 
 def main(argv):
     parser = argparse.ArgumentParser()
+    parser.add_argument("--all", action="store_true")
     parser.add_argument("--separation", action="store_true")
     parser.add_argument("--gi", action="store_true")
     parser.add_argument("--gaming", action="store_true")
@@ -173,6 +175,18 @@ def main(argv):
     parser.add_argument("--short", action="store_true")
     parser.add_argument("--profiles", action="store_true")
     args = parser.parse_args(argv)
+    if args.all:
+        checks = {
+            "separation": check_separation,
+            "gi": check_gi,
+            "gaming": check_gaming,
+            "copy-violation": lambda: check_copy(True),
+            "copy-clean": lambda: check_copy(False),
+            "determinism": check_determinism,
+            "short": check_short,
+            "profiles": check_profiles,
+        }
+        return run_contract("voice", checks)
     if args.separation:
         return check_separation()
     if args.gi:

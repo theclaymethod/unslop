@@ -10,6 +10,7 @@ this file turns their recorded evidence into reproducible metrics.
 from __future__ import annotations
 
 import argparse
+from datetime import datetime
 import hashlib
 import json
 import sys
@@ -18,33 +19,51 @@ from pathlib import Path
 
 try:
     from .core_runner import (
+        SILHOUETTE_REFERENCE_PATH,
         RunnerError,
         _attribution_preservation,
         _change_coverage,
         _generation_prompt,
+        _is_unsafe_action_finding,
         _judge_prompt,
         _needs_with_skill_generation,
         _retry_directives,
         _retry_prompt,
+        _semantic_resolution,
         _semantic_prompt,
+        _semantic_judgment_prompt,
+        _shipping_contract,
         _source_diagnostics,
         _validate_generation,
+        _validation_battery,
         _validation_blockers,
+        _validation_stack_sha256,
+        _validate_semantic_judgment,
+        load_silhouette_reference,
     )
 except ImportError:
     from core_runner import (
+        SILHOUETTE_REFERENCE_PATH,
         RunnerError,
         _attribution_preservation,
         _change_coverage,
         _generation_prompt,
+        _is_unsafe_action_finding,
         _judge_prompt,
         _needs_with_skill_generation,
         _retry_directives,
         _retry_prompt,
+        _semantic_resolution,
         _semantic_prompt,
+        _semantic_judgment_prompt,
+        _shipping_contract,
         _source_diagnostics,
         _validate_generation,
+        _validation_battery,
         _validation_blockers,
+        _validation_stack_sha256,
+        _validate_semantic_judgment,
+        load_silhouette_reference,
     )
 
 
@@ -83,6 +102,101 @@ def _reject_tool_events(raw_events: str, label: str) -> None:
                 stack.extend(value.values())
             elif isinstance(value, list):
                 stack.extend(value)
+
+
+def _verify_live_events(
+    raw_events: str,
+    raw_response: str,
+    label: str,
+    expected_model: str,
+) -> None:
+    """Bind a claimed live response to a complete Codex event envelope."""
+    _reject_tool_events(raw_events, label)
+    events: list[dict] = []
+    for line_number, line in enumerate(raw_events.splitlines(), 1):
+        if not line.strip():
+            continue
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError as exc:
+            raise InputError(
+                f"{label}: malformed live event line {line_number}"
+            ) from exc
+        if not isinstance(event, dict):
+            raise InputError(f"{label}: live event line {line_number} is not an object")
+        events.append(event)
+    event_types = [event.get("type") for event in events]
+    for required_type in ("thread.started", "turn.started", "turn.completed"):
+        if event_types.count(required_type) != 1:
+            raise InputError(f"{label}: live events require one {required_type}")
+    agent_messages = [
+        event.get("item", {}).get("text")
+        for event in events
+        if event.get("type") == "item.completed"
+        and isinstance(event.get("item"), dict)
+        and event["item"].get("type") == "agent_message"
+    ]
+    if len(agent_messages) != 1 or agent_messages[0].strip() != raw_response.strip():
+        raise InputError(f"{label}: live agent message is not bound to raw response")
+    completed = next(event for event in events if event.get("type") == "turn.completed")
+    usage = completed.get("usage")
+    metrics = [
+        event for event in events if event.get("type") == "unslop.invocation_metrics"
+    ]
+    if not isinstance(usage, dict) or len(metrics) != 1:
+        raise InputError(f"{label}: live usage evidence is incomplete")
+    metric = metrics[0]
+    if metric.get("model") != expected_model:
+        raise InputError(f"{label}: live event model does not match provenance")
+    for field in ("input_tokens", "cached_input_tokens", "output_tokens"):
+        if not isinstance(usage.get(field), int) or metric.get(field) != usage[field]:
+            raise InputError(f"{label}: live {field} evidence is missing or inconsistent")
+    if not isinstance(metric.get("elapsed_seconds"), (int, float)) or metric[
+        "elapsed_seconds"
+    ] <= 0:
+        raise InputError(f"{label}: live elapsed-time evidence is missing")
+
+
+def _verify_semantic_judgment_record(
+    record: object,
+    *,
+    source: str,
+    findings: list[dict],
+    rewrite: str,
+    label: str,
+    judge_model: str,
+    allow_offline: bool,
+) -> dict:
+    if not isinstance(record, dict):
+        raise InputError(f"{label}: semantic safety judgment evidence is required")
+    expected_prompt = _semantic_judgment_prompt(source, findings, rewrite)
+    if record.get("prompt") != expected_prompt:
+        raise InputError(f"{label}: semantic safety judgment prompt is stale")
+    _verify_hash(record, "prompt", "prompt_sha256", label)
+    _verify_hash(record, "raw_response", "response_sha256", label)
+    _verify_hash(
+        record, "invocation_events", "invocation_events_sha256", label
+    )
+    raw = _extract_json_object(record.get("raw_response"))
+    if raw != record.get("model_parsed"):
+        raise InputError(f"{label}: semantic safety raw response is stale")
+    try:
+        parsed = _validate_semantic_judgment(raw, findings)
+    except RunnerError as exc:
+        raise InputError(f"{label}: invalid semantic safety judgment: {exc}") from exc
+    if parsed != record.get("parsed"):
+        raise InputError(f"{label}: semantic safety parsed verdict is stale")
+    events = record.get("invocation_events")
+    if not isinstance(events, str):
+        raise InputError(f"{label}: semantic safety invocation events are missing")
+    _reject_tool_events(events, label)
+    if not allow_offline:
+        if not events.strip():
+            raise InputError(f"{label}: live semantic safety events are missing")
+        _verify_live_events(
+            events, record["raw_response"], label, judge_model
+        )
+    return parsed
 
 
 def _load(path: Path) -> dict:
@@ -132,7 +246,7 @@ def verify_prediction_evidence(
     root = predictions.get("provenance")
     if not isinstance(root, dict):
         raise InputError("prediction root provenance is required")
-    if root.get("runner") != "evals/core_runner.py" or root.get("provider") != "codex":
+    if root.get("runner") != "evals/core_runner.py":
         raise InputError("predictions were not produced by the core runner")
     if root.get("model") != "gpt-5.6-luna":
         raise InputError("generation model must be pinned to gpt-5.6-luna")
@@ -142,8 +256,44 @@ def verify_prediction_evidence(
         raise InputError("offline response fixtures are not acceptance evidence")
     if root.get("offline_responses") not in {True, False}:
         raise InputError("offline response provenance must be boolean")
+    expected_provider = "fixture" if root["offline_responses"] else "codex"
+    if root.get("provider") != expected_provider:
+        raise InputError(
+            f"prediction provider must be {expected_provider} for this response mode"
+        )
     if root.get("workflow") != "semantic_diagnose_rewrite_validate_retry":
         raise InputError("prediction workflow is not the shipping acceptance workflow")
+    generated_at = root.get("generated_at_utc")
+    try:
+        parsed_generated_at = datetime.fromisoformat(generated_at)
+    except (TypeError, ValueError) as exc:
+        raise InputError("prediction generation timestamp is required") from exc
+    if parsed_generated_at.tzinfo is None:
+        raise InputError("prediction generation timestamp must include a timezone")
+    if root.get("manifest_sha256") != _sha256(
+        json.dumps(manifest, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    ):
+        raise InputError("prediction manifest fingerprint is missing or stale")
+    source_fingerprints = {
+        "runner_source_sha256": REPO_ROOT / "evals" / "core_runner.py",
+        "model_adapter_source_sha256": REPO_ROOT / "evals" / "model_generate.py",
+    }
+    for field, path in source_fingerprints.items():
+        try:
+            current_hash = hashlib.sha256(path.read_bytes()).hexdigest()
+        except OSError as exc:
+            raise InputError(f"cannot verify {field}: {exc}") from exc
+        if root.get(field) != current_hash:
+            raise InputError(f"prediction {field} is missing or stale")
+    if root.get("validation_stack_sha256") != _validation_stack_sha256():
+        raise InputError("prediction validation stack fingerprint is missing or stale")
+    cli_version = root.get("codex_cli_version")
+    if not isinstance(cli_version, str) or not cli_version:
+        raise InputError("Codex CLI version provenance is required")
+    if root.get("provider") == "codex" and cli_version == "unavailable":
+        raise InputError("live evidence requires an available Codex CLI version")
+    if not isinstance(root.get("generation_timeout_seconds"), int):
+        raise InputError("generation timeout provenance is required")
     if (
         root.get("isolated_workspace") is not True
         or root.get("user_config_loaded") is not False
@@ -156,17 +306,13 @@ def verify_prediction_evidence(
     shipping_contract = predictions.get("shipping_contract")
     if not isinstance(shipping_contract, dict):
         raise InputError("resolved shipping contract provenance is required")
+    canonical_shipping_contract = json.loads(json.dumps(_shipping_contract()))
+    if shipping_contract != canonical_shipping_contract:
+        raise InputError("resolved shipping contract differs from current source files")
     resolved_contract = shipping_contract.get("resolved_contract")
-    if (
-        not isinstance(resolved_contract, str)
-        or shipping_contract.get("resolved_sha256") != _sha256(resolved_contract)
-    ):
-        raise InputError("resolved shipping contract hash is invalid")
-    expected_components = {
-        "SKILL.md",
-        "references/commands/rewrite.md",
-        "presets/crisp-human.md",
-    }
+    if not isinstance(resolved_contract, str):
+        raise InputError("resolved shipping contract is invalid")
+    expected_components = {"references/core-contract.md"}
     components = shipping_contract.get("components")
     if not isinstance(components, dict) or set(components) != expected_components:
         raise InputError("shipping contract components are incomplete")
@@ -181,6 +327,29 @@ def verify_prediction_evidence(
             raise InputError(f"cannot verify shipping component {name}: {exc}") from exc
         if component.get("source_sha256") != _sha256(current_source):
             raise InputError(f"shipping contract component {name} is stale")
+    expected_behavior_sources = {
+        "SKILL.md",
+        "references/commands/rewrite.md",
+        "presets/crisp-human.md",
+    }
+    behavior_sources = shipping_contract.get("behavior_sources")
+    if (
+        not isinstance(behavior_sources, dict)
+        or set(behavior_sources) != expected_behavior_sources
+    ):
+        raise InputError("shipping behavior-source fingerprints are incomplete")
+    for name, expected_hash in behavior_sources.items():
+        try:
+            current_source = (REPO_ROOT / name).read_text(encoding="utf-8")
+        except (OSError, UnicodeError) as exc:
+            raise InputError(f"cannot verify shipping behavior source {name}: {exc}") from exc
+        if expected_hash != _sha256(current_source):
+            raise InputError(f"shipping behavior source {name} is stale")
+    binding = resolved_contract + json.dumps(
+        behavior_sources, sort_keys=True, separators=(",", ":")
+    )
+    if shipping_contract.get("resolved_sha256") != _sha256(binding):
+        raise InputError("resolved shipping contract hash is invalid")
     if root.get("shipping_contract_sha256") != shipping_contract["resolved_sha256"]:
         raise InputError("root shipping contract provenance mismatch")
 
@@ -207,7 +376,10 @@ def verify_prediction_evidence(
         evidence = evidence_by_case.get(case_id)
         if not isinstance(provenance, dict) or not isinstance(evidence, dict):
             raise InputError(f"{case_id}/{arm}: provenance and canonical evidence are required")
-        if provenance.get("model") != root["model"] or provenance.get("provider") != "codex":
+        if (
+            provenance.get("model") != root["model"]
+            or provenance.get("provider") != root["provider"]
+        ):
             raise InputError(f"{case_id}/{arm}: model provenance mismatch")
         if provenance.get("judge_model") != root["judge_model"]:
             raise InputError(f"{case_id}/{arm}: judge model provenance mismatch")
@@ -233,8 +405,11 @@ def verify_prediction_evidence(
         )
         if semantic.get("prompt") != _semantic_prompt(case):
             raise InputError(f"{case_id}: semantic diagnosis prompt is stale")
+        semantic_model_output = _extract_json_object(semantic["raw_response"])
+        if semantic.get("model_parsed") != semantic_model_output:
+            raise InputError(f"{case_id}: semantic model_parsed differs from raw response")
         semantic_canonical = _validate_generation(
-            _extract_json_object(semantic["raw_response"]), case["source"]
+            semantic_model_output, case["source"]
         )
         if semantic.get("parsed") != semantic_canonical:
             raise InputError(f"{case_id}: semantic diagnosis differs from raw response")
@@ -242,7 +417,16 @@ def verify_prediction_evidence(
             raise InputError(f"{case_id}: semantic diagnosis edited the source")
         if not allow_offline and not semantic["invocation_events"].strip():
             raise InputError(f"{case_id}: live semantic invocation events are missing")
-        _reject_tool_events(semantic["invocation_events"], f"{case_id} semantic diagnosis")
+        _reject_tool_events(
+            semantic["invocation_events"], f"{case_id} semantic diagnosis"
+        )
+        if not allow_offline:
+            _verify_live_events(
+                semantic["invocation_events"],
+                semantic["raw_response"],
+                f"{case_id} semantic diagnosis",
+                root["model"],
+            )
         _verify_hash(generation, "prompt", "prompt_sha256", f"{case_id}/{arm} generation")
         _verify_hash(generation, "raw_response", "response_sha256", f"{case_id}/{arm} generation")
         _verify_hash(
@@ -254,9 +438,28 @@ def verify_prediction_evidence(
         clean_short_circuit = (
             arm == "with_skill" and provenance.get("clean_short_circuit") is True
         )
-        if not allow_offline and not clean_short_circuit and not generation["invocation_events"].strip():
+        safe_fallback = (
+            arm == "with_skill"
+            and provenance.get("safe_fallback") is True
+            and generation.get("safe_fallback") is True
+        )
+        if (
+            not allow_offline
+            and not clean_short_circuit
+            and not safe_fallback
+            and not generation["invocation_events"].strip()
+        ):
             raise InputError(f"{case_id}/{arm}: live invocation events are missing")
-        _reject_tool_events(generation["invocation_events"], f"{case_id}/{arm} generation")
+        _reject_tool_events(
+            generation["invocation_events"], f"{case_id}/{arm} generation"
+        )
+        if not allow_offline and not clean_short_circuit and not safe_fallback:
+            _verify_live_events(
+                generation["invocation_events"],
+                generation["raw_response"],
+                f"{case_id}/{arm} generation",
+                root["model"],
+            )
         if provenance.get("generation_prompt_sha256") != generation["prompt_sha256"]:
             raise InputError(f"{case_id}/{arm}: stale generation prompt provenance")
         if provenance.get("generation_response_sha256") != generation["response_sha256"]:
@@ -278,6 +481,24 @@ def verify_prediction_evidence(
         parsed_generation = generation.get("parsed")
         if parsed_generation != canonical_generation:
             raise InputError(f"{case_id}/{arm}: normalized generation differs from raw response")
+        high_risk_findings = [
+            finding
+            for finding in semantic_canonical.get("findings", [])
+            if _is_unsafe_action_finding(finding)
+        ]
+        final_semantic_judgment = None
+        if arm == "with_skill" and high_risk_findings and not safe_fallback:
+            final_semantic_judgment = _verify_semantic_judgment_record(
+                generation.get("semantic_judgment"),
+                source=case["source"],
+                findings=high_risk_findings,
+                rewrite=canonical_generation["rewrite"],
+                label=f"{case_id}/{arm} semantic safety judgment",
+                judge_model=root["judge_model"],
+                allow_offline=allow_offline,
+            )
+        elif generation.get("semantic_judgment") is not None:
+            raise InputError(f"{case_id}/{arm}: unexpected semantic safety judgment")
         if run.get("findings") != parsed_generation.get("findings"):
             raise InputError(f"{case_id}/{arm}: scored findings differ from generation evidence")
         if run.get("rewrite") != parsed_generation.get("rewrite"):
@@ -289,12 +510,22 @@ def verify_prediction_evidence(
         }
         required_validation = {
             "preservation", "banned_phrase", "structure", "silhouette", "readability", "diff",
-            "change_coverage", "attribution_preservation", "reviewed_noop",
+            "change_coverage", "semantic_resolution", "attribution_preservation", "reviewed_noop",
         }
         if not isinstance(source_diagnostics, dict) or not required_diagnostics <= set(source_diagnostics):
             raise InputError(f"{case_id}/{arm}: source diagnostics are incomplete")
         if source_diagnostics.get("source_sha256") != _sha256(case["source"]):
             raise InputError(f"{case_id}/{arm}: source diagnostics are stale")
+        # Diagnostics are derived evidence. Recompute their complete canonical
+        # form from the immutable manifest source before using scanner findings
+        # or extracted preservation constraints to reconstruct prompts/scores.
+        canonical_source_diagnostics = json.loads(
+            json.dumps(_source_diagnostics(case))
+        )
+        if source_diagnostics != canonical_source_diagnostics:
+            raise InputError(
+                f"{case_id}/{arm}: source diagnostics differ from manifest-derived evidence"
+            )
         initial_generation_prompt = _generation_prompt(
             case=case,
             arm=arm,
@@ -316,9 +547,6 @@ def verify_prediction_evidence(
             # freshly recomputed diagnostics before comparing it.  In-memory
             # diagnostics can contain tuples (for example repeated-word rows)
             # that JSON correctly restores as lists.
-            canonical_source_diagnostics = json.loads(
-                json.dumps(_source_diagnostics(case))
-            )
             if (
                 provenance.get("generation_attempts") != 0
                 or generation["invocation_events"].strip()
@@ -335,7 +563,28 @@ def verify_prediction_evidence(
         if attempts is not None:
             if not isinstance(attempts, list) or len(attempts) < 2:
                 raise InputError(f"{case_id}/{arm}: retry attempts are malformed")
-            if provenance.get("generation_attempts") != len(attempts):
+            fallback_attempts = [
+                attempt for attempt in attempts
+                if isinstance(attempt, dict) and attempt.get("safe_fallback") is True
+            ]
+            if (
+                len(fallback_attempts) > 1
+                or (bool(fallback_attempts) != safe_fallback)
+                or (fallback_attempts and fallback_attempts[0] is not attempts[-1])
+            ):
+                raise InputError(f"{case_id}/{arm}: safe fallback evidence is malformed")
+            expected_model_attempts = len(attempts) - (1 if safe_fallback else 0)
+            maximum_model_attempts = (
+                3
+                if arm == "with_skill" and high_risk_findings
+                else (2 if arm == "with_skill" else 1)
+            )
+            if expected_model_attempts > maximum_model_attempts:
+                raise InputError(
+                    f"{case_id}/{arm}: generation attempts exceed bounded maximum "
+                    f"{maximum_model_attempts}"
+                )
+            if provenance.get("generation_attempts") != expected_model_attempts:
                 raise InputError(f"{case_id}/{arm}: retry attempt count is stale")
             for attempt_index, attempt in enumerate(attempts):
                 label = f"{case_id}/{arm} attempt {attempt_index + 1}"
@@ -348,6 +597,20 @@ def verify_prediction_evidence(
                 _verify_hash(
                     attempt, "invocation_events", "invocation_events_sha256", label
                 )
+                if (
+                    not allow_offline
+                    and attempt.get("safe_fallback") is not True
+                    and not attempt["invocation_events"].strip()
+                ):
+                    raise InputError(f"{label}: live invocation events are missing")
+                _reject_tool_events(attempt["invocation_events"], label)
+                if not allow_offline and attempt.get("safe_fallback") is not True:
+                    _verify_live_events(
+                        attempt["invocation_events"],
+                        attempt["raw_response"],
+                        label,
+                        root["model"],
+                    )
                 attempt_raw = _extract_json_object(attempt["raw_response"])
                 if attempt_raw != attempt.get("model_parsed"):
                     raise InputError(f"{label}: parsed generation differs from raw response")
@@ -357,6 +620,43 @@ def verify_prediction_evidence(
                 attempt_validation = attempt.get("validation")
                 if not isinstance(attempt_validation, dict):
                     raise InputError(f"{label}: validation is missing")
+                attempt_is_fallback = attempt.get("safe_fallback") is True
+                if arm == "with_skill" and high_risk_findings and not attempt_is_fallback:
+                    attempt_semantic_judgment = _verify_semantic_judgment_record(
+                        attempt.get("semantic_judgment"),
+                        source=case["source"],
+                        findings=high_risk_findings,
+                        rewrite=attempt_generation["rewrite"],
+                        label=f"{label} semantic safety judgment",
+                        judge_model=root["judge_model"],
+                        allow_offline=allow_offline,
+                    )
+                    if attempt_validation.get("semantic_judgment") != attempt_semantic_judgment:
+                        raise InputError(f"{label}: semantic safety validation is stale")
+                elif attempt.get("semantic_judgment") is not None:
+                    raise InputError(f"{label}: unexpected semantic safety judgment")
+                canonical_attempt_validation = _validation_battery(
+                    case["source"],
+                    attempt_generation["rewrite"],
+                    source_diagnostics.get("constraints", {}).get("constraints", []),
+                    source_diagnostics.get("genre", "prose"),
+                    load_silhouette_reference(SILHOUETTE_REFERENCE_PATH),
+                    attempt_generation["findings"],
+                    (
+                        semantic_canonical.get("findings", [])
+                        if arm == "with_skill" and not attempt_is_fallback
+                        else []
+                    ),
+                )
+                canonical_attempt_validation = json.loads(
+                    json.dumps(canonical_attempt_validation)
+                )
+                static_attempt_validation = dict(attempt_validation)
+                static_attempt_validation.pop("semantic_judgment", None)
+                if static_attempt_validation != canonical_attempt_validation:
+                    raise InputError(
+                        f"{label}: validation battery differs from canonical recomputation"
+                    )
                 if attempt_index < len(attempts) - 1:
                     directives = _retry_directives(
                         attempt_generation,
@@ -370,6 +670,16 @@ def verify_prediction_evidence(
                     )
                 elif _validation_blockers(attempt_validation):
                     raise InputError(f"{label}: final retry still fails shipping validation")
+            if safe_fallback:
+                if (
+                    arm != "with_skill"
+                    or run.get("findings") != []
+                    or run.get("rewrite") != case["source"]
+                    or attempts[-1].get("invocation_events", "").strip()
+                    or attempts[-2].get("safe_fallback") is True
+                    or not _validation_blockers(attempts[-2].get("validation", {}))
+                ):
+                    raise InputError(f"{case_id}/{arm}: invalid safe fallback")
             final_attempt = attempts[-1]
             for key in (
                 "prompt", "prompt_sha256", "raw_response", "response_sha256",
@@ -383,6 +693,11 @@ def verify_prediction_evidence(
             raise InputError(f"{case_id}/{arm}: generation prompt is stale")
         if not isinstance(validation, dict) or not required_validation <= set(validation):
             raise InputError(f"{case_id}/{arm}: post-rewrite validation is incomplete")
+        if final_semantic_judgment is not None:
+            if validation.get("semantic_judgment") != final_semantic_judgment:
+                raise InputError(f"{case_id}/{arm}: semantic safety validation is stale")
+        elif "semantic_judgment" in validation:
+            raise InputError(f"{case_id}/{arm}: unexpected semantic safety validation")
         validation_scan = validation.get("banned_phrase")
         if (
             not isinstance(validation_scan, dict)
@@ -401,6 +716,40 @@ def verify_prediction_evidence(
         )
         if validation.get("change_coverage") != canonical_coverage:
             raise InputError(f"{case_id}/{arm}: change coverage differs from scored rewrite")
+        canonical_semantic_resolution = _semantic_resolution(
+            case["source"],
+            run["rewrite"],
+            (
+                semantic_canonical.get("findings", [])
+                if arm == "with_skill" and not safe_fallback
+                else []
+            ),
+            run["findings"],
+        )
+        if validation.get("semantic_resolution") != canonical_semantic_resolution:
+            raise InputError(
+                f"{case_id}/{arm}: semantic resolution differs from scored rewrite"
+            )
+        canonical_validation = _validation_battery(
+            case["source"],
+            run["rewrite"],
+            source_diagnostics.get("constraints", {}).get("constraints", []),
+            source_diagnostics.get("genre", "prose"),
+            load_silhouette_reference(SILHOUETTE_REFERENCE_PATH),
+            run["findings"],
+            (
+                semantic_canonical.get("findings", [])
+                if arm == "with_skill" and not safe_fallback
+                else []
+            ),
+        )
+        canonical_validation = json.loads(json.dumps(canonical_validation))
+        static_validation = dict(validation)
+        static_validation.pop("semantic_judgment", None)
+        if static_validation != canonical_validation:
+            raise InputError(
+                f"{case_id}/{arm}: validation battery differs from canonical recomputation"
+            )
         canonical_attribution = _attribution_preservation(case["source"], run["rewrite"])
         if validation.get("attribution_preservation") != canonical_attribution:
             raise InputError(f"{case_id}/{arm}: attribution preservation differs from scored rewrite")
@@ -418,6 +767,13 @@ def verify_prediction_evidence(
         if not allow_offline and not judge["invocation_events"].strip():
             raise InputError(f"{case_id}/{arm}: live judge invocation events are missing")
         _reject_tool_events(judge["invocation_events"], f"{case_id}/{arm} judge")
+        if not allow_offline:
+            _verify_live_events(
+                judge["invocation_events"],
+                judge["raw_response"],
+                f"{case_id}/{arm} judge",
+                root["judge_model"],
+            )
         if provenance.get("judge_prompt_sha256") != judge["prompt_sha256"]:
             raise InputError(f"{case_id}/{arm}: stale judge prompt provenance")
         if provenance.get("judge_response_sha256") != judge["response_sha256"]:
@@ -586,6 +942,18 @@ def _ratio(numerator: int, denominator: int) -> float:
     return numerator / denominator if denominator else 1.0
 
 
+def _finalize_detection(counts: dict[str, int]) -> dict[str, Any]:
+    return {
+        "detection_precision": round(
+            _ratio(counts["tp"], counts["tp"] + counts["fp"]), 6
+        ),
+        "detection_recall": round(
+            _ratio(counts["tp"], counts["tp"] + counts["fn"]), 6
+        ),
+        "counts": dict(counts),
+    }
+
+
 def _optional_ratio(numerator: int, denominator: int) -> float | None:
     return numerator / denominator if denominator else None
 
@@ -667,6 +1035,94 @@ def _accumulate_run(
         bucket["noop_ok"] += run["rewrite"] == case["source"]
 
 
+def _operational_usage(predictions: dict) -> dict:
+    """Aggregate runner-emitted timing and token telemetry without duplication."""
+    records: list[dict] = []
+    records_by_case: dict[str, list[dict]] = defaultdict(list)
+
+    def collect(raw: object, case_id: str) -> None:
+        if not isinstance(raw, str):
+            return
+        for line in raw.splitlines():
+            try:
+                event = json.loads(line)
+            except (TypeError, json.JSONDecodeError):
+                continue
+            if isinstance(event, dict) and event.get("type") == "unslop.invocation_metrics":
+                records.append(event)
+                records_by_case[case_id].append(event)
+
+    evidence_rows = predictions.get("evidence")
+    if isinstance(evidence_rows, list):
+        for evidence in evidence_rows:
+            if not isinstance(evidence, dict):
+                continue
+            case_id = evidence.get("case_id")
+            if not isinstance(case_id, str) or not case_id:
+                continue
+            records_by_case.setdefault(case_id, [])
+            semantic = evidence.get("semantic_diagnosis")
+            if isinstance(semantic, dict):
+                collect(semantic.get("invocation_events"), case_id)
+            generations = evidence.get("generation")
+            if isinstance(generations, dict):
+                for generation in generations.values():
+                    if not isinstance(generation, dict):
+                        continue
+                    attempts = generation.get("attempts")
+                    sources = attempts if isinstance(attempts, list) else [generation]
+                    for attempt in sources:
+                        if isinstance(attempt, dict):
+                            collect(attempt.get("invocation_events"), case_id)
+                            semantic_judgment = attempt.get("semantic_judgment")
+                            if isinstance(semantic_judgment, dict):
+                                collect(
+                                    semantic_judgment.get("invocation_events"), case_id
+                                )
+            judge = evidence.get("judge")
+            if isinstance(judge, dict):
+                collect(judge.get("invocation_events"), case_id)
+
+    def summarize(rows: list[dict]) -> dict:
+        totals = {
+            "model_calls": len(rows),
+            "elapsed_seconds": round(
+                sum(
+                    float(record.get("elapsed_seconds", 0))
+                    for record in rows
+                    if isinstance(record.get("elapsed_seconds", 0), (int, float))
+                ),
+                6,
+            ),
+            "input_tokens": sum(
+                record.get("input_tokens", 0)
+                for record in rows
+                if isinstance(record.get("input_tokens", 0), int)
+            ),
+            "cached_input_tokens": sum(
+                record.get("cached_input_tokens", 0)
+                for record in rows
+                if isinstance(record.get("cached_input_tokens", 0), int)
+            ),
+            "output_tokens": sum(
+                record.get("output_tokens", 0)
+                for record in rows
+                if isinstance(record.get("output_tokens", 0), int)
+            ),
+        }
+        totals["uncached_input_tokens"] = max(
+            0, totals["input_tokens"] - totals["cached_input_tokens"]
+        )
+        return totals
+
+    totals = summarize(records)
+    totals["by_case"] = {
+        case_id: summarize(case_records)
+        for case_id, case_records in sorted(records_by_case.items())
+    }
+    return totals
+
+
 def score(
     manifest: dict,
     predictions: dict,
@@ -701,6 +1157,19 @@ def score(
     paired_flags: dict[str, dict[str, bool]] = defaultdict(dict)
     seen: set[tuple[str, str]] = set()
     deterministic_overrides: list[dict[str, Any]] = []
+    with_skill_runs = 0
+    with_skill_safe_fallbacks = 0
+    evidence_by_case = {
+        row.get("case_id"): row
+        for row in predictions.get("evidence", [])
+        if isinstance(row, dict) and isinstance(row.get("case_id"), str)
+    }
+    raw_audit_counts = {"tp": 0, "fp": 0, "fn": 0}
+    raw_audit_by_split: dict[str, dict[str, int]] = defaultdict(
+        lambda: {"tp": 0, "fp": 0, "fn": 0}
+    )
+    raw_audit_by_case: dict[str, dict[str, int]] = {}
+    raw_audit_cases = 0
     for run in runs:
         if not isinstance(run, dict):
             raise InputError("every prediction run must be an object")
@@ -720,6 +1189,26 @@ def score(
         provenance = run.get("provenance")
         if not isinstance(provenance, dict) or not provenance.get("model"):
             raise InputError(f"{case_id}/{arm}: model provenance is required")
+        if arm == "with_skill":
+            with_skill_runs += 1
+            with_skill_safe_fallbacks += provenance.get("safe_fallback") is True
+            evidence = evidence_by_case.get(case_id, {})
+            semantic = evidence.get("semantic_diagnosis", {})
+            raw_response = semantic.get("raw_response")
+            if isinstance(raw_response, str):
+                model_parsed = _extract_json_object(raw_response)
+                raw_findings = _validate_generation(
+                    model_parsed, case["source"]
+                )["findings"]
+                raw_tp, raw_fp, raw_fn = match_findings(
+                    raw_findings, case.get("issues", []), len(case["source"])
+                )
+                raw_case = {"tp": raw_tp, "fp": raw_fp, "fn": raw_fn}
+                raw_audit_by_case[case_id] = raw_case
+                raw_audit_cases += 1
+                for key, value in raw_case.items():
+                    raw_audit_counts[key] += value
+                    raw_audit_by_split[case["split"]][key] += value
 
         findings = run.get("findings", [])
         if not isinstance(findings, list):
@@ -840,6 +1329,7 @@ def score(
             "ties": ties,
             "with_skill_win_rate": round(with_wins / compared, 6),
         }
+    operational_usage = _operational_usage(predictions)
     return {
         "schema": METRIC_SCHEMA,
         "split_filter": split,
@@ -849,6 +1339,27 @@ def score(
         "with_skill_minus_without_skill": lift,
         "paired_comparison": paired,
         "deterministic_overrides": deterministic_overrides,
+        "raw_source_audit": {
+            "available_cases": raw_audit_cases,
+            "overall": _finalize_detection(raw_audit_counts),
+            "by_split": {
+                name: _finalize_detection(counts)
+                for name, counts in sorted(raw_audit_by_split.items())
+            },
+            "by_case": {
+                case_id: _finalize_detection(counts)
+                for case_id, counts in sorted(raw_audit_by_case.items())
+            },
+            "note": "Raw Luna source-audit spans after unique-only offset repair; no deterministic semantic normalization is applied.",
+        },
+        "operational": {
+            "with_skill_runs": with_skill_runs,
+            "with_skill_safe_fallbacks": with_skill_safe_fallbacks,
+            "with_skill_safe_fallback_rate": round(
+                with_skill_safe_fallbacks / with_skill_runs, 6
+            ) if with_skill_runs else 0.0,
+            **operational_usage,
+        },
     }
 
 

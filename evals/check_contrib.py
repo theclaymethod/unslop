@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 
 from _check_support import ROOT, run  # noqa: E402
+from _contract_batch import run_contract  # noqa: E402
 
 sys.path.insert(0, str(ROOT))
 from scripts import contribute  # noqa: E402
@@ -24,6 +25,34 @@ def reset_bundle() -> None:
         shutil.rmtree(BUNDLE)
     if CAP_BUNDLE.exists():
         shutil.rmtree(CAP_BUNDLE)
+
+
+def snapshot_bundles() -> dict[Path, dict[Path, bytes] | None]:
+    """Capture pre-existing contribution bundles so tests cannot delete them."""
+    snapshots: dict[Path, dict[Path, bytes] | None] = {}
+    for bundle in (BUNDLE, CAP_BUNDLE):
+        snapshots[bundle] = (
+            {
+                path.relative_to(bundle): path.read_bytes()
+                for path in bundle.rglob("*")
+                if path.is_file()
+            }
+            if bundle.exists()
+            else None
+        )
+    return snapshots
+
+
+def restore_bundles(snapshots: dict[Path, dict[Path, bytes] | None]) -> None:
+    reset_bundle()
+    for bundle, files in snapshots.items():
+        if files is None:
+            continue
+        bundle.mkdir(parents=True, exist_ok=True)
+        for relative, content in files.items():
+            destination = bundle / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_bytes(content)
 
 
 def assert_equal(actual: object, expected: object, label: str) -> None:
@@ -89,6 +118,23 @@ def case_scaffold() -> None:
     actual_row = json.loads((BUNDLE / "row_fn.json").read_text(encoding="utf-8"))
     expected_row = json.loads((FIXTURES / "expected-row-fn.json").read_text(encoding="utf-8"))
     assert_equal(actual_row, expected_row, "row_fn")
+    assert_equal(
+        set(actual_row),
+        {"id", "target", "category", "stdin", "assertions"},
+        "compact scanner contract shape",
+    )
+    assert_equal(
+        contribute.GATE_COMMANDS,
+        [["python3", "evals/check.py", "--full"]],
+        "canonical contribution gate",
+    )
+    internals = (ROOT / "references" / "contribute.md").read_text(encoding="utf-8")
+    if "evals/fixtures/contracts/scanner-examples.json" not in internals:
+        raise SystemExit("contribution docs do not name the scanner contract table")
+    if "exact_total" not in internals:
+        raise SystemExit("contribution docs do not explain the table count update")
+    if "git add evals/adversarial-evals.json" in internals:
+        raise SystemExit("contribution docs still stage the legacy scanner destination")
     actual_manifest = json.loads((BUNDLE / "manifest.json").read_text(encoding="utf-8"))
     expected_manifest = json.loads((FIXTURES / "expected-manifest.json").read_text(encoding="utf-8"))
     assert_equal(actual_manifest, expected_manifest, "manifest")
@@ -268,8 +314,18 @@ CASES = {
 
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("case", choices=sorted(CASES))
+    parser.add_argument("case", nargs="?", choices=sorted(CASES))
+    parser.add_argument("--all", action="store_true")
     args = parser.parse_args(argv)
+    if args.all:
+        snapshots = snapshot_bundles()
+        result = run_contract("contrib", CASES)
+        restore_bundles(snapshots)
+        restored = snapshot_bundles() == snapshots
+        print(f"contrib bundles restored: {str(restored).lower()}")
+        return result if restored else 1
+    if args.case is None:
+        parser.error("choose a case or --all")
     CASES[args.case]()
     return 0
 

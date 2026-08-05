@@ -23,6 +23,7 @@
     "minimum_repair_success": 0.9,
     "minimum_preservation": 1.0,
     "maximum_damage_rate": 0.0,
+    "maximum_safe_fallback_rate": 0.0,
     "minimum_net_improvement": 0.8,
     "minimum_clean_noop_rate": 1.0
   },

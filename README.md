@@ -78,14 +78,13 @@ Detection stacks three deterministic scanners, coarse to fine. Each one returns 
 non-zero on a flag, and each carries false-positive protection rows, so a literal or domain use
 never trips it.
 
-**Phrase layer** (`scripts/banned_phrase_scan.py`). 313 banned phrases and vocabulary items,
-each tagged `hard` (always a tell) or `soft` (context-dependent). Gated words fire only in
-their jargon collocations. Sailors navigate, a `3:1 leverage` ratio holds, a `wedge` seats in
-the kerf, and `Garner, North Carolina` stays on the map, while the same words inside
-`"navigate challenges"` or `"leverage synergies"` get caught. Quoted spans, blockquotes, and
-code fences get masked first, so a tutorial documenting bad writing never flags its own examples.
+**Phrase layer** (`scripts/banned_phrase_scan.py`). The compact runtime pack has 16 literal
+triggers, each backed by contextual false-positive protection. Gated words fire only in their
+jargon collocations. Literal legal, medical, mechanical, historical, and technical uses stay
+clean. Quoted spans, blockquotes, and code fences are masked first, so a tutorial documenting
+bad writing does not flag its own examples.
 
-**Structure layer** (`scripts/structure_scan.py`). 77 structural patterns plus document-level
+**Structure layer** (`scripts/structure_scan.py`). 36 structural patterns plus document-level
 metrics: `sentence_burstiness`, `paragraph_cv`, `triad_density`, `bold_colon_listicle_count`,
 `one_line_staccato_share`, `connective_paragraph_openers`, `signpost_density`,
 `opener_unique_ratio`, `top_opener_share`, `max_consecutive_opener`,
@@ -326,62 +325,50 @@ fast path and the manual path.
 
 ## The Eval Suite Is the Product
 
-Every behavior worth having is pinned by a row that fails without it. The suite is
-constitutional, and it's built to resist gaming.
+The contracts remain constitutional, but repository checks are engineering evidence. They do
+not prove that UNSLOP improves prose.
 
-- **489 deterministic script cases (488 pass, 1 documented xfail)** in `evals/adversarial-evals.json`, run by
-  `python3 evals/check.py`. Each detection carries a false-negative row (the tell
-  gets caught), a false-positive row (the literal sense survives), and a recall row (gating
-  didn't gut detection).
-- **Three external gates** via `python3 evals/run_adversarial.py --list-gates`, mirrored
-  in `evals/CHECKS.md`: one deterministic repository check and two explicit behavioral checks.
-  The repository check runs all scanner, contribution, calibration, voice, structure, and docs
-  rows once instead of rerunning category slices.
-- **Mutation-proof by construction.** Deleting a scanner pattern fails the coverage gate.
-  Marking a passing case `xfail` fails the build. The one documented XFAIL is pinned to exactly
-  one case: `FP-06`, where the literal `"delve into the mountain"` collides with the strong
-  `"delve into the topic"` tell, an accepted residual a pattern regex can't disambiguate. Even
-  the docs get gate-checked, so SKILL.md's own examples must pass its scanners, the scanner and
-  catalog are held in two-way parity, and a kata proves the add-a-pattern loop still works.
-- **Behavioral layer.** `evals/shared-benchmark.json` is generated (never hand-edited) from the
-  `skill` rows, with `with_skill` and `without_skill` variants graded by an LLM judge plus
-  deterministic backstops: facts that must survive, banned strings that must not appear,
-  similarity floors for do-no-harm. Its 34 cases split `tune` (18) for shaping, `holdout` (12)
-  for reporting, and `holdback` (4) sealed until final confirmation.
-- **Interpreting the lift.** The base model already de-slops well, so judge-blended lift runs
-  near zero and per-case deltas carry the signal. On the recorded 2026-07-06 holdout run, the
-  deterministic backstops show +4.2 points objective lift (0.917 vs 0.875 across 12 held-out
-  cases, see `evals/TUNE-RESULTS.md`), while the judge can't tell the prose apart, so the
-  measurable value lives in preserved facts, register, and structure. The recorded tune run also
-  preserved a legal hedge the baseline dropped, and it exposed a do-no-harm regression the
-  guards were then hardened against.
+- **Fast core-contract loop.** `python3 evals/check.py` runs five offline examples covering the
+  manifest, Luna runner interface, scorer, evidence boundaries, and acceptance gate.
+- **Bounded release suite.** `python3 evals/check.py --full` adds the deterministic safety and
+  integrity matrix, generated-benchmark currency, and strict leakage validation. The suite is
+  capped at 80 executable examples and 400 expanded outcome predicates, including predicates
+  hidden inside Python fixtures. Nested aggregate wrappers fail the build.
+- **Compact scanner evidence.** Scanner, preservation, and maintenance examples live in
+  explicit contract tables. Current coverage is 36/36 structural patterns, 16/16 literal
+  triggers, and 20/20 protected categories, with zero expected failures.
+- **Behavioral layer.** `evals/shared-benchmark.json` is generated from 12 `skill` cases with
+  three ablations. It is useful for shaping and regression checks, but it is not the core
+  product scoreboard.
+- **Measured simplification.** GEPA Optimize Anything selected one canonical full command over
+  seven redundant phases. In the recorded profile this cut warmed model calls from 48 to 24,
+  command tokens from 19 to 3, and deterministic orchestration time from about 6.25 seconds to
+  about 3.02 seconds while preserving the required gates.
+
+The latest valid public core result remains the v9 no-ship recorded in
+[`evals/CORE-RESULTS.md`](evals/CORE-RESULTS.md). Later development runs are directionally
+favorable—Luna+UNSLOP recorded seven wins, four ties, and no plain-Luna wins—but they predate
+scorer and per-case efficiency fixes. A fresh preregistered corpus failed its composition floor
+before either arm ran. The current beta therefore does not claim a validated comparative lift.
 
 ```bash
-python3 evals/check.py                       # canonical deterministic repository check
+python3 evals/check.py                       # fast offline core-contract check
+python3 evals/check.py --full                # bounded deterministic release suite
 python3 evals/run_adversarial.py --only FP  # diagnose one failing category
-python3 evals/check.py --behavioral tune     # deterministic + behavioral tune
+python3 evals/check.py --behavioral tune     # core-contract + behavioral tune
 ```
 
-## Model Tiering Is Measured
+## The Core Comparison Uses Luna
 
-Where the pipeline depends on a model, `evals/run_model_parity.py` measures whether a cheap
-tier is safe rather than assuming it. The live matrix was recorded **2026-07-06** across both
-the Anthropic and GPT spectrums.
+The shipping question is paired and model-controlled: the same `gpt-5.6-luna` receives the
+same unfamiliar source in both arms. One arm gets the frozen UNSLOP diagnosis, rewrite, and
+validation pipeline; the other gets neutral editorial guidance without repository access,
+scanner output, or validation feedback. A blinded `gpt-5.6-sol` judge sees randomized arm
+labels. Calls, uncached input tokens, output tokens, and elapsed time are recorded per case.
 
-**Span replacement clears on the cheapest tier.** On the mechanical span-minimal contract,
-`claude-haiku`, `claude-sonnet`, `gpt-5.4-mini`, and `gpt-5.5` all scored 8/8, and `claude-opus`
-scored 7/8, its one miss a dropped `8:30` caught by the preservation gate rather than by model
-choice. The gates carry safety, the tier doesn't.
-
-**Full rewrites of register-sensitive text belong to frontier models.** On eight
-register/structure cases the ladder was 7/8 (opus, gpt-5.4-mini), 6/8 (sonnet, gpt-5.5), and
-5/8 (haiku, gpt-5.4-nano), and the cheap-tier misses softened absolutes, dropped hedges, and
-eroded a legal negation.
-
-**Macro structure defeated every model tested.** The `MACRO-01` case failed for all six,
-opus included, and each one kept a conclusion coda the prose instruction told it to drop. No
-model self-checks document shape from prose, so structure is always machine-detected and
-machine-gated. `references/pipeline.md` records the full tables.
+Older cross-provider model-parity tables remain in `references/pipeline.md` as ancillary
+engineering history. They are not acceptance evidence and do not replace the Luna-vs-Luna
+core comparison.
 
 ## Standalone Scripts
 
@@ -427,7 +414,8 @@ unslop/
 │   ├── mimic.md                   # Teach/mimic internals: card anatomy, scoring, refine
 │   ├── harvest.md                 # Adapter internals and the contamination tripwire
 │   ├── calibrate.md               # The A/B preference game
-│   ├── pipeline.md                # Tiered execution and the measured model-parity tables
+│   ├── core-contract.md           # Single diagnosis, rewrite, and preservation contract
+│   ├── pipeline.md                # Luna core protocol plus ancillary model-parity history
 │   ├── fact-preservation.md       # Constraint preservation rules
 │   ├── rubric.md                  # Strict scoring criteria
 │   ├── edit-library.md            # Transformation examples
@@ -437,8 +425,9 @@ unslop/
 ├── presets/                       # crisp / warm / expert / story voice deltas
 ├── scripts/                       # Scanners, voice tools, preservation, suggest, harvest
 ├── evals/
-│   ├── adversarial-evals.json     # Source of truth: 489 script cases
-│   ├── check.py                   # Canonical repository check
+│   ├── adversarial-evals.json     # Core plumbing, routing, and engineering rows
+│   ├── fixtures/contracts/        # Compact scanner, preservation, and maintenance examples
+│   ├── check.py                   # Fast and full bounded repository checks
 │   ├── run_adversarial.py         # Deterministic runner (--only, --case, --list-gates)
 │   ├── shared-benchmark.json      # Generated behavioral manifest (never hand-edit)
 │   ├── build_shared_benchmark.py  # Regenerates the behavioral manifest

@@ -25,6 +25,11 @@ case "$cache_mode" in
 esac
 
 run_root="${UNSLOP_BEHAVIORAL_RUN_ROOT:-runs}"
+jobs="${UNSLOP_BEHAVIORAL_JOBS:-2}"
+if [[ ! "$jobs" =~ ^[1-9][0-9]*$ ]]; then
+  echo "invalid UNSLOP_BEHAVIORAL_JOBS: $jobs" >&2
+  exit 2
+fi
 cache_dir="${UNSLOP_BEHAVIORAL_CACHE_DIR:-${run_root}/.cache/behavioral}"
 automatic_identity="behavioral-$(shasum -a 256 \
   evals/run_local.py evals/model_generate.py evals/cache_judge.py \
@@ -50,7 +55,7 @@ mkdir -p "$run_dir"
 
 skill-benchmark prepare evals/shared-benchmark.json --split "$split" --out "$tasks"
 
-runner_args=("$tasks" --jobs 5 --model "$model" --cache-mode "$cache_mode")
+runner_args=("$tasks" --jobs "$jobs" --model "$model" --cache-mode "$cache_mode")
 if [[ "$cache_mode" != "off" ]]; then
   runner_args+=(--cache-dir "${cache_dir}/generation" --cache-identity "$cache_identity")
 fi

@@ -10,13 +10,40 @@ import sys
 import time
 
 from _check_support import ROOT
+from eval_groups import CORE_CONTRACT_EXAMPLE_BUDGET
 
+
+CORE_ADVERSARIAL_COMMAND = [
+    "python3", "evals/run_adversarial.py", "--compact", "--jobs", "4",
+    "--timeout", "60", "--lane", "core-contract",
+]
+
+MAINTENANCE_ADVERSARIAL_COMMAND = [
+    "python3", "evals/run_adversarial.py", "--compact", "--jobs", "8",
+    "--timeout", "60", "--lane", "maintenance",
+]
 
 PHASES = [
     {
+        # Keep the long-standing phase id for check.py --list consumers while
+        # labeling this honestly as offline contract plumbing.
         "id": "adversarial-suite",
-        "command": ["python3", "evals/run_adversarial.py"],
+        "command": CORE_ADVERSARIAL_COMMAND,
+        "lane": "core-contract",
+        "budget": {"max_examples": CORE_CONTRACT_EXAMPLE_BUDGET},
     },
+]
+
+MAINTENANCE_PHASES = [
+    {
+        "id": "maintenance-matrix",
+        "command": MAINTENANCE_ADVERSARIAL_COMMAND,
+        "lane": "maintenance",
+        "budget": {"max_examples": None},
+    },
+]
+
+BEHAVIORAL_INTEGRITY_PHASES = [
     {
         "id": "shared-benchmark-check",
         "command": ["python3", "evals/build_shared_benchmark.py", "--check"],
@@ -45,17 +72,43 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         choices=("tune", "holdout", "holdback"),
         help="run one behavioral split after all deterministic phases pass",
     )
+    parser.add_argument(
+        "--maintenance",
+        action="store_true",
+        help="run the bounded deterministic maintenance matrix only",
+    )
+    parser.add_argument(
+        "--full",
+        action="store_true",
+        help="run the extended mimic, voice, calibration, and maintenance suite too",
+    )
     return parser.parse_args(argv)
 
 
 def main(argv: list[str]) -> int:
     args = parse_args(argv)
+    if args.maintenance and (args.full or args.behavioral):
+        raise SystemExit("--maintenance cannot be combined with --full or --behavioral")
     if args.list:
-        print(json.dumps({"count": len(PHASES), "phases": PHASES}, indent=2))
+        print(json.dumps({
+            "core_contract_budget": CORE_CONTRACT_EXAMPLE_BUDGET,
+            "maintenance": MAINTENANCE_PHASES,
+            "count": len(PHASES),
+            "phases": PHASES,
+        }, indent=2))
         return 0
 
     started = time.perf_counter()
-    for phase in PHASES:
+    if args.maintenance:
+        phases = [dict(phase) for phase in MAINTENANCE_PHASES]
+    else:
+        phases = [dict(phase) for phase in PHASES]
+    if args.full:
+        phases.extend(dict(phase) for phase in MAINTENANCE_PHASES)
+        phases.extend(dict(phase) for phase in BEHAVIORAL_INTEGRITY_PHASES)
+    elif args.behavioral:
+        phases.extend(dict(phase) for phase in BEHAVIORAL_INTEGRITY_PHASES)
+    for phase in phases:
         phase_started = time.perf_counter()
         print(f"RUN  {phase['id']}", flush=True)
         try:

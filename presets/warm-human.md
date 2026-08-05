@@ -117,4 +117,5 @@ Not:
 | "Super," "awesome," "amazing" | Instagram energy |
 | "Let's dive in!" | AI tell |
 | "I hope this helps!" | Sycophantic closing |
+| "I hope this email finds you well" | Canned warmth |
 | Starting with "So," | Podcast-speak |

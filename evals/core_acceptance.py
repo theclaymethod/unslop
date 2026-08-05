@@ -19,10 +19,20 @@ from typing import Any
 
 try:  # Running as ``python -m evals.core_acceptance``.
     from .core_metrics import score
-    from .core_runner import ARMS, _shipping_contract, _validation_blockers
+    from .core_runner import (
+        ARMS,
+        _shipping_contract,
+        _validation_blockers,
+        _validation_stack_sha256,
+    )
 except ImportError:  # Running as ``python evals/core_acceptance.py``.
     from core_metrics import score
-    from core_runner import ARMS, _shipping_contract, _validation_blockers
+    from core_runner import (
+        ARMS,
+        _shipping_contract,
+        _validation_blockers,
+        _validation_stack_sha256,
+    )
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -79,7 +89,8 @@ def _manifest_hash_key(manifest_path: Path, frozen_inputs: dict[str, Any]) -> st
             return key
     reserved = {
         "shipping_contract_sha256", "core_runner_sha256", "core_metrics_sha256",
-        "scanner_sha256",
+        "core_acceptance_sha256", "protocol_sha256",
+        "model_adapter_source_sha256", "validation_stack_sha256", "scanner_sha256",
     }
     remaining = [
         key
@@ -109,11 +120,18 @@ def _verify_frozen_inputs(
         "shipping_contract_sha256",
         "core_runner_sha256",
         "core_metrics_sha256",
+        "core_acceptance_sha256",
+        "protocol_sha256",
+        "model_adapter_source_sha256",
+        "validation_stack_sha256",
         "scanner_sha256",
     }
     missing = sorted(key for key in required if key not in frozen_inputs)
     if missing:
         raise AcceptanceError("frozen_inputs missing: " + ", ".join(missing))
+    protocol_path_value = frozen_inputs.get("protocol_path")
+    if not isinstance(protocol_path_value, str) or not protocol_path_value:
+        raise AcceptanceError("frozen_inputs.protocol_path must be a path")
     expected = {key: _require_hash(frozen_inputs[key], f"frozen_inputs.{key}") for key in required}
 
     actual_manifest = _sha256_file(manifest_path, "frozen manifest")
@@ -130,6 +148,41 @@ def _verify_frozen_inputs(
     if actual_metrics != expected["core_metrics_sha256"]:
         raise AcceptanceError(
             f"core_metrics.py hash mismatch: expected {expected['core_metrics_sha256']}, got {actual_metrics}"
+        )
+    actual_acceptance = _sha256_file(
+        ROOT / "evals" / "core_acceptance.py", "core_acceptance.py"
+    )
+    if actual_acceptance != expected["core_acceptance_sha256"]:
+        raise AcceptanceError(
+            "core_acceptance.py hash mismatch: expected {}, got {}".format(
+                expected["core_acceptance_sha256"], actual_acceptance
+            )
+        )
+    protocol_path = Path(protocol_path_value)
+    if not protocol_path.is_absolute():
+        protocol_path = ROOT / protocol_path
+    actual_protocol = _sha256_file(protocol_path, "frozen protocol")
+    if actual_protocol != expected["protocol_sha256"]:
+        raise AcceptanceError(
+            "frozen protocol hash mismatch: expected {}, got {}".format(
+                expected["protocol_sha256"], actual_protocol
+            )
+        )
+    actual_adapter = _sha256_file(
+        ROOT / "evals" / "model_generate.py", "model_generate.py"
+    )
+    if actual_adapter != expected["model_adapter_source_sha256"]:
+        raise AcceptanceError(
+            "model_generate.py hash mismatch: expected {}, got {}".format(
+                expected["model_adapter_source_sha256"], actual_adapter
+            )
+        )
+    actual_validation_stack = _validation_stack_sha256()
+    if actual_validation_stack != expected["validation_stack_sha256"]:
+        raise AcceptanceError(
+            "validation stack hash mismatch: expected {}, got {}".format(
+                expected["validation_stack_sha256"], actual_validation_stack
+            )
         )
     actual_scanner = _sha256_file(
         ROOT / "scripts" / "banned_phrase_scan.py", "banned_phrase_scan.py"
@@ -166,6 +219,8 @@ def _verify_shipping_contract(
         raise AcceptanceError("prediction resolved shipping contract is stale")
     if contract.get("components") != resolved.get("components"):
         raise AcceptanceError("prediction shipping contract components are stale")
+    if contract.get("behavior_sources") != resolved.get("behavior_sources"):
+        raise AcceptanceError("prediction shipping behavior sources are stale")
 
 
 def _verify_controls(predictions: dict[str, Any], thresholds: dict[str, Any]) -> None:
@@ -180,6 +235,8 @@ def _verify_controls(predictions: dict[str, Any], thresholds: dict[str, Any]) ->
         raise AcceptanceError("threshold judge model is not gpt-5.6-sol")
     if controls.get("isolated_model_workspaces") is not True:
         raise AcceptanceError("thresholds must require isolated model workspaces")
+    if controls.get("paired_comparison") != "raw_luna_vs_luna_plus_unslop":
+        raise AcceptanceError("thresholds must require the paired Luna comparison")
 
     provenance = predictions.get("provenance")
     if not isinstance(provenance, dict):
@@ -194,6 +251,13 @@ def _verify_controls(predictions: dict[str, Any], thresholds: dict[str, Any]) ->
         raise AcceptanceError("user configuration was loaded during model calls")
     if provenance.get("project_rules_loaded") is not False:
         raise AcceptanceError("project rules were loaded during model calls")
+    if provenance.get("comparison_design") != "paired_same_luna_raw_vs_luna_plus_unslop":
+        raise AcceptanceError("prediction comparison is not raw Luna vs Luna+UNSLOP")
+    if provenance.get("arm_labels") != {
+        "with_skill": "luna_plus_unslop",
+        "without_skill": "raw_luna",
+    }:
+        raise AcceptanceError("prediction arm labels do not bind the paired design")
 
     runs = predictions.get("runs")
     if not isinstance(runs, list) or not runs:
@@ -244,6 +308,7 @@ def _verify_thresholds(result: dict[str, Any], thresholds: dict[str, Any]) -> di
     absolute = thresholds.get("with_skill")
     if not isinstance(absolute, dict):
         raise AcceptanceError("with_skill thresholds must be an object")
+    fallback_rate = _verify_safe_fallback_rate(result, absolute)
     minimums = {
         "detection_precision": "minimum_detection_precision",
         "detection_recall": "minimum_detection_recall",
@@ -259,6 +324,23 @@ def _verify_thresholds(result: dict[str, Any], thresholds: dict[str, Any]) -> di
             raise AcceptanceError(
                 f"with_skill {metric} {actual:.6f} is below {threshold:.6f}"
             )
+    raw_detection = result.get("raw_source_audit", {}).get("overall")
+    if not isinstance(raw_detection, dict):
+        raise AcceptanceError("raw source-audit detection metrics are required")
+    for metric, threshold_key in {
+        "detection_precision": "minimum_raw_detection_precision",
+        "detection_recall": "minimum_raw_detection_recall",
+    }.items():
+        threshold = _number(
+            absolute.get(threshold_key), f"with_skill.{threshold_key}"
+        )
+        actual = _number(
+            raw_detection.get(metric), f"raw_source_audit.overall.{metric}"
+        )
+        if actual < threshold:
+            raise AcceptanceError(
+                f"raw source-audit {metric} {actual:.6f} is below {threshold:.6f}"
+            )
     maximum_damage = _number(
         absolute.get("maximum_damage_rate"), "with_skill.maximum_damage_rate"
     )
@@ -267,7 +349,6 @@ def _verify_thresholds(result: dict[str, Any], thresholds: dict[str, Any]) -> di
         raise AcceptanceError(
             f"with_skill damage_rate {damage:.6f} exceeds {maximum_damage:.6f}"
         )
-
     comparison = thresholds.get("comparison")
     if not isinstance(comparison, dict):
         raise AcceptanceError("comparison thresholds must be an object")
@@ -327,7 +408,79 @@ def _verify_thresholds(result: dict[str, Any], thresholds: dict[str, Any]) -> di
         "with_skill": with_skill,
         "paired": paired,
         "positive_quality_lifts": positive_lifts,
+        "safe_fallback_rate": fallback_rate,
     }
+
+
+def _verify_safe_fallback_rate(
+    result: dict[str, Any], absolute: dict[str, Any]
+) -> float:
+    maximum_fallback = _number(
+        absolute.get("maximum_safe_fallback_rate"),
+        "with_skill.maximum_safe_fallback_rate",
+    )
+    operational = result.get("operational")
+    if not isinstance(operational, dict):
+        raise AcceptanceError("operational metrics are required")
+    fallback_rate = _number(
+        operational.get("with_skill_safe_fallback_rate"),
+        "operational.with_skill_safe_fallback_rate",
+    )
+    if fallback_rate > maximum_fallback:
+        raise AcceptanceError(
+            f"with_skill safe fallback rate {fallback_rate:.6f} "
+            f"exceeds {maximum_fallback:.6f}"
+        )
+    return fallback_rate
+
+
+def _verify_efficiency(
+    result: dict[str, Any], thresholds: dict[str, Any]
+) -> dict[str, float]:
+    """Enforce preregistered maxima for every case and report corpus averages."""
+    budget = thresholds.get("efficiency")
+    operational = result.get("operational")
+    if not isinstance(budget, dict) or not isinstance(operational, dict):
+        raise AcceptanceError("efficiency thresholds and operational metrics are required")
+    case_count = _number(
+        operational.get("with_skill_runs"), "operational.with_skill_runs"
+    )
+    if case_count <= 0:
+        raise AcceptanceError("operational.with_skill_runs must be positive")
+    by_case = operational.get("by_case")
+    if not isinstance(by_case, dict) or len(by_case) != int(case_count):
+        raise AcceptanceError(
+            "operational.by_case must contain every with-skill benchmark case"
+        )
+    mappings = {
+        "model_calls": "maximum_model_calls_per_case",
+        "uncached_input_tokens": "maximum_uncached_input_tokens_per_case",
+        "output_tokens": "maximum_output_tokens_per_case",
+        "elapsed_seconds": "maximum_elapsed_seconds_per_case",
+    }
+    per_case: dict[str, float] = {}
+    for metric, threshold_key in mappings.items():
+        total = _number(operational.get(metric), f"operational.{metric}")
+        maximum = _number(budget.get(threshold_key), f"efficiency.{threshold_key}")
+        if maximum < 0:
+            raise AcceptanceError(f"efficiency.{threshold_key} must be non-negative")
+        average = total / case_count
+        case_values = {
+            case_id: _number(case_metrics.get(metric), f"operational.by_case.{case_id}.{metric}")
+            for case_id, case_metrics in by_case.items()
+            if isinstance(case_metrics, dict)
+        }
+        if len(case_values) != len(by_case):
+            raise AcceptanceError("operational.by_case rows must be objects")
+        worst_case_id, actual_maximum = max(case_values.items(), key=lambda item: item[1])
+        per_case[metric] = average
+        per_case[f"maximum_{metric}"] = actual_maximum
+        if actual_maximum > maximum:
+            raise AcceptanceError(
+                f"efficiency {metric} for {worst_case_id} {actual_maximum:.6f} "
+                f"exceeds {maximum:.6f}"
+            )
+    return per_case
 
 
 def evaluate(
@@ -360,6 +513,7 @@ def evaluate(
     if results != recomputed:
         raise AcceptanceError("results file does not match a fresh core_metrics score")
     metrics = _verify_thresholds(recomputed, thresholds)
+    metrics["efficiency_per_case"] = _verify_efficiency(recomputed, thresholds)
     if thresholds.get("required_controls", {}).get("shipping_validation_clean") is True:
         metrics["shipping_validation_clean"] = True
     metrics["frozen_inputs"] = frozen
@@ -410,6 +564,17 @@ def main(argv: list[str] | None = None) -> int:
             paired["with_skill_win_rate"],
             paired["without_skill_wins"],
             summary["positive_quality_lifts"],
+        )
+    )
+    efficiency = summary["efficiency_per_case"]
+    print(
+        "efficiency/case: calls={:.3f} uncached_input_tokens={:.3f} "
+        "output_tokens={:.3f} elapsed_seconds={:.3f} max_elapsed_seconds={:.3f}".format(
+            efficiency["model_calls"],
+            efficiency["uncached_input_tokens"],
+            efficiency["output_tokens"],
+            efficiency["elapsed_seconds"],
+            efficiency["maximum_elapsed_seconds"],
         )
     )
     return 0

@@ -1,6 +1,23 @@
 # Core Product Results
 
-## Release status: NO-SHIP
+## Release status: BETA; COMPARATIVE CLAIM NOT YET REVALIDATED
+
+The current implementation is suitable for a beta release: its bounded
+deterministic suite is green, its scanner contract is substantially smaller,
+and earlier paired runs favor Luna+UNSLOP. It is not a validated general release.
+Those later paired runs predate fixes to raw-span scoring and per-case efficiency
+enforcement, while the newest independently annotated corpus missed its frozen
+composition floor before either arm ran. The latest valid public product result
+therefore remains the v9 no-ship below.
+
+The failed V7 corpus was a benchmark-construction failure, not a product
+failure. Its holdout contained five issue spans across two dirty documents and
+four clean documents; the frozen floor was six issues across three dirty and
+three clean documents. V7 was spent before a product call, and neither arm ran.
+It provides no evidence that the current pipeline is better, worse, or equal to
+raw Luna.
+
+## Latest valid public result: NO-SHIP (v9)
 
 The first frozen public v9 holdout does not establish that UNSLOP safely
 improves unfamiliar AI-generated or mixed prose. It does show that the UNSLOP
@@ -71,18 +88,18 @@ are committed instead.
 
 ## Engineering performance
 
-The deterministic canonical suite now runs in three parallel phases and, on
-the measured development machine, completed in about 11 seconds with 510
-passes, one documented expected failure, and no unexpected failures. This is
-engineering evidence, not product proof.
+On the measured development machine, `python3 evals/check.py --full` completed
+in about three seconds with no expected or unexpected failures. The deterministic
+surface is explicitly capped at 80 executable examples and 400 expanded outcome
+predicates; the current counts are printed by
+`python3 evals/check_complexity_budget.py`. The scanner contract separately
+reports 36/36 structural patterns, 16/16 literal triggers, and 20/20 protected
+categories.
 
-The corrected tune behavioral hard-gate run completed in 739 seconds after the
-10.8-second deterministic suite. It used one all-conditions judgment per case
-and arm rather than repeating the source and output for every rubric sentence.
-Immutable plain-Luna generations and judge verdicts are cached by model, prompt,
-code, and configuration identity; UNSLOP treatment generations are always
-regenerated. Exact token consumption was unavailable, so no token-reduction
-percentage is claimed. The tune gate is currently red; see `TUNE-RESULTS.md`.
+GEPA Optimize Anything selected one canonical full command instead of seven
+redundant phases. The recorded profile reduced warmed behavioral model calls from
+48 to 24 and command tokens from 19 to 3. These are evaluation-workflow
+improvements, not evidence that the runtime product is faster than raw Luna.
 
 ## Next valid experiment
 

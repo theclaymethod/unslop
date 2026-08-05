@@ -16,6 +16,7 @@ import tempfile
 from pathlib import Path
 
 from _check_support import ROOT, run  # noqa: E402
+from _contract_batch import run_contract  # noqa: E402
 
 FIX = ROOT / "evals" / "fixtures" / "mimic"
 SAMPLES = FIX / "samples"
@@ -395,18 +396,27 @@ def check_card_profile_mismatch():
         return 0 if proc.returncode == 2 and named and not card_written else 1
 
 
-CHECKS = {
+MIMIC_LOOP_CHECKS = {
     "acceptance": check_acceptance,
     "patience": check_patience,
     "divergence": check_divergence,
     "stuffed-attack": check_stuffed_attack,
+}
+
+MIMIC_GATE_CHECKS = {
     "live-path": check_live_path,
     "copy-gate": check_copy_gate,
     "fact-gate": check_fact_gate,
     "determinism": check_determinism,
+}
+
+MIMIC_SUPPORT_CHECKS = {
     "stats": check_stats,
     "split-refusal": check_split_refusal,
     "directives": check_directives,
+}
+
+CARD_CHECKS = {
     "card-determinism": check_card_determinism,
     "card-budget": check_card_budget,
     "card-facts": check_card_facts,
@@ -417,12 +427,31 @@ CHECKS = {
     "card-profile-mismatch": check_card_profile_mismatch,
 }
 
+CHECKS = {
+    **MIMIC_LOOP_CHECKS,
+    **MIMIC_GATE_CHECKS,
+    **MIMIC_SUPPORT_CHECKS,
+    **CARD_CHECKS,
+}
+
 
 def main(argv):
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--contract-loop", action="store_true")
+    parser.add_argument("--contract-gates", action="store_true")
+    parser.add_argument("--contract-support", action="store_true")
+    parser.add_argument("--all-card", action="store_true")
     for name in CHECKS:
         parser.add_argument(f"--{name}", action="store_true")
     args = parser.parse_args(argv)
+    if args.contract_loop:
+        return run_contract("mimic-loop", MIMIC_LOOP_CHECKS)
+    if args.contract_gates:
+        return run_contract("mimic-gates", MIMIC_GATE_CHECKS)
+    if args.contract_support:
+        return run_contract("mimic-support", MIMIC_SUPPORT_CHECKS)
+    if args.all_card:
+        return run_contract("card", CARD_CHECKS)
     for name, fn in CHECKS.items():
         if getattr(args, name.replace("-", "_")):
             return fn()

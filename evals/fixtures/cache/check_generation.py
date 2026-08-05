@@ -69,7 +69,7 @@ raise SystemExit('fake claude must not be called')
     claude.chmod(0o755)
 
 
-def _write_tasks(path: Path, *, prompt: str = "cache probe") -> None:
+def _write_tasks(path: Path, skill_dir: Path, *, prompt: str = "cache probe") -> None:
     rows = [
         {
             "case_id": "CACHE-PROBE",
@@ -82,6 +82,7 @@ def _write_tasks(path: Path, *, prompt: str = "cache probe") -> None:
             "prompt": prompt,
             "run_dir": "CACHE-PROBE/without_skill",
             "input_files": [],
+            "skill_paths": [str(skill_dir)],
             "tags": [],
         },
         {
@@ -95,6 +96,7 @@ def _write_tasks(path: Path, *, prompt: str = "cache probe") -> None:
             "prompt": prompt,
             "run_dir": "CACHE-PROBE/with_skill",
             "input_files": [],
+            "skill_paths": [str(skill_dir)],
             "tags": [],
         },
     ]
@@ -156,6 +158,15 @@ def _run(
 
 
 def main() -> int:
+    sys.path.insert(0, str(ROOT))
+    from evals.run_local import extract_output
+
+    audit_output = extract_output(
+        {"kind": "skill_behavior", "prompt": "Audit this. Do not rewrite."},
+        "<final>unchanged source</final>\n\n[{\"span\":\"arguably\"}]",
+    )
+    if audit_output != '[{"span":"arguably"}]':
+        raise AssertionError(f"report-only evidence was not extracted: {audit_output!r}")
     with tempfile.TemporaryDirectory(prefix="unslop-cache-generation-") as raw:
         tmp = Path(raw)
         bin_dir = tmp / "bin"
@@ -173,7 +184,10 @@ def main() -> int:
         )
         tasks = tmp / "tasks.jsonl"
         cache = tmp / "cache"
-        _write_tasks(tasks)
+        skill_dir = tmp / "skill"
+        skill_dir.mkdir()
+        (skill_dir / "SKILL.md").write_text("version one\n", encoding="utf-8")
+        _write_tasks(tasks, skill_dir)
 
         _run(tasks, cache, "fake-model-v1", env)
         first_total = _count_calls(counter)
@@ -186,14 +200,21 @@ def main() -> int:
         second_delta = _count_calls(counter) - first_total
         if (tmp / "CACHE-PROBE/without_skill/output.md").read_bytes() != baseline:
             raise AssertionError("cache hit changed without_skill output")
-        if second.stderr.count("cache-hit") != 1:
-            raise AssertionError(f"expected one baseline cache hit, got: {second.stderr}")
+        if second.stderr.count("cache-hit") != 2:
+            raise AssertionError(f"expected two arm cache hits, got: {second.stderr}")
+
+        skill_before = _count_calls(counter)
+        (skill_dir / "SKILL.md").write_text("version two\n", encoding="utf-8")
+        skill_run = _run(tasks, cache, "fake-model-v1", env)
+        skill_delta = _count_calls(counter) - skill_before
+        if skill_run.stderr.count("cache-hit") != 1:
+            raise AssertionError(f"skill change should preserve only baseline hit: {skill_run.stderr}")
 
         identity_before = _count_calls(counter)
         _run(tasks, cache, "fake-model-v2", env)
         identity_delta = _count_calls(counter) - identity_before
 
-        _write_tasks(tasks, prompt="changed cache probe")
+        _write_tasks(tasks, skill_dir, prompt="changed cache probe")
         prompt_before = _count_calls(counter)
         _run(tasks, cache, "fake-model-v2", env)
         prompt_delta = _count_calls(counter) - prompt_before
@@ -206,11 +227,11 @@ def main() -> int:
         race_cache = tmp / "race-cache"
         _write_race_tasks(race_tasks)
         _run(race_tasks, race_cache, "fake-model-v1", env, jobs=8)
-        race_entries = list((race_cache / "generation-v1").glob("*/record.json"))
+        race_entries = list((race_cache / "generation-v2").glob("*/record.json"))
         if len(race_entries) != 1:
             raise AssertionError(f"same cache key produced {len(race_entries)} records")
 
-        entries = list((cache / "generation-v1").glob("*/record.json"))
+        entries = list((cache / "generation-v2").glob("*/record.json"))
         if len(entries) < 3:
             raise AssertionError(f"expected separate content/identity cache entries, found {len(entries)}")
         invocation_rows = invocations.read_text(encoding="utf-8").splitlines()
@@ -218,14 +239,15 @@ def main() -> int:
             raise AssertionError(f"Codex invocations did not select Luna: {invocation_rows}")
         claude_total = _count_calls(claude_calls)
         print(
-            f"first={first_total} second={second_delta} identity={identity_delta} "
+            f"first={first_total} second={second_delta} skill={skill_delta} identity={identity_delta} "
             f"prompt={prompt_delta} off={off_delta}"
         )
-        print("without_skill cache hit=1")
+        print("both_arms cache hit=2")
         print("concurrent_same_key=true")
         print("codex_provider=codex")
         print("codex_model=gpt-5.6-luna")
         print("clean_final=true")
+        print("report_only_evidence=true")
         print(f"claude_calls={claude_total}")
     return 0
 

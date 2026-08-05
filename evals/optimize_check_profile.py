@@ -26,29 +26,27 @@ GEPA_VERSION = "0.1.4"
 MAX_CANDIDATE_PROPOSALS = 2
 MAX_METRIC_CALLS = 10
 ARTIFACT = Path("evals/gepa-check-profile.json")
-REQUIRED = {"adversarial-suite", "shared-benchmark-check", "strict-leakage-validate"}
+REQUIRED = {"canonical-full"}
 PROFILES = {
     "existing-ci": {
         "phases": [
-        "adversarial-suite", "harvest-suite", "contribute-suite", "calibrate-suite",
-        "shared-benchmark-check", "strict-leakage-validate", "taboo-catalog-parity",
-        "pattern-coverage", "voice-scorer", "add-pattern-kata", "command-router-parity",
-        "seeded-docs", "paired-fixture-hygiene", "mimic-logic", "structure-climb",
-        "pack-structure", "silhouette-check", "evals-schema",
+            "canonical-full", "maintenance-repeat", "scanner-repeat",
+            "preservation-repeat", "complexity-repeat", "shared-repeat",
+            "leakage-repeat",
         ],
         "behavioral_cache_mode": "off",
     },
     "missing-leakage": {
-        "phases": ["adversarial-suite", "shared-benchmark-check"],
+        "phases": ["product-maintenance-only"],
         "behavioral_cache_mode": "read-write",
     },
     "canonical": {
-        "phases": sorted(REQUIRED),
+        "phases": ["canonical-full"],
         "behavioral_cache_mode": "read-write",
     },
 }
-TUNE_GENERATION_CASES = 18
-TUNE_JUDGE_ASSERTIONS = 34
+TUNE_GENERATION_CASES = 12
+TUNE_JUDGE_ASSERTIONS = 12
 
 
 def behavioral_model_calls(profile_name: str) -> int:
@@ -67,29 +65,19 @@ def _commands(*commands: list[str]) -> list[list[str]]:
 
 
 PHASES = {
-    "adversarial-suite": _commands(["python3", "evals/run_adversarial.py"]),
-    "harvest-suite": _commands(["python3", "evals/run_adversarial.py", "--only", "HARV"]),
-    "contribute-suite": _commands(["python3", "evals/run_adversarial.py", "--only", "CONTRIB"]),
-    "calibrate-suite": _commands(["python3", "evals/run_adversarial.py", "--only", "CAL"]),
-    "shared-benchmark-check": _commands(["python3", "evals/build_shared_benchmark.py", "--check"]),
-    "strict-leakage-validate": _commands(["skill-benchmark", "validate", "evals/shared-benchmark.json", "--strict-leakage"]),
-    "taboo-catalog-parity": _commands(["python3", "evals/check_taboo_parity.py"]),
-    "pattern-coverage": _commands(["python3", "evals/check_pattern_coverage.py"]),
-    "voice-scorer": _commands(
-        ["python3", "evals/check_voice.py", "--separation"],
-        ["python3", "evals/check_voice.py", "--gi"],
-        ["python3", "evals/check_voice.py", "--gaming"],
-        ["python3", "evals/check_voice.py", "--profiles"],
+    "canonical-full": _commands(["python3", "evals/check.py", "--full"]),
+    "product-maintenance-only": _commands(
+        ["python3", "evals/check.py"],
+        ["python3", "evals/check.py", "--maintenance"],
     ),
-    "add-pattern-kata": _commands(["python3", "evals/kata_add_pattern.py", "--run"]),
-    "command-router-parity": _commands(["python3", "evals/check_commands.py"]),
-    "seeded-docs": _commands(["python3", "evals/check_seeded_docs.py"]),
-    "paired-fixture-hygiene": _commands(["python3", "evals/check_pairs.py"]),
-    "mimic-logic": _commands(["python3", "evals/run_adversarial.py", "--only", "MIMIC", "--only", "CARD"]),
-    "structure-climb": _commands(["python3", "evals/run_adversarial.py", "--only", "CLIMB"]),
-    "pack-structure": _commands(["python3", "scripts/check_packs.py"]),
-    "silhouette-check": _commands(["python3", "evals/check_silhouette.py"]),
-    "evals-schema": _commands(["python3", "evals/check_evals_schema.py"]),
+    "maintenance-repeat": _commands(["python3", "evals/check.py", "--maintenance"]),
+    "scanner-repeat": _commands(["python3", "evals/check_scanner_contract.py"]),
+    "preservation-repeat": _commands(["python3", "evals/check_preservation_contract.py"]),
+    "complexity-repeat": _commands(["python3", "evals/check_complexity_budget.py"]),
+    "shared-repeat": _commands(["python3", "evals/build_shared_benchmark.py", "--check"]),
+    "leakage-repeat": _commands(
+        ["skill-benchmark", "validate", "evals/shared-benchmark.json", "--strict-leakage"]
+    ),
 }
 
 
@@ -156,7 +144,7 @@ def artifact_valid(path: Path) -> bool:
             if attempt["scores"]["correctness"] != 0.0:
                 return False
             if attempt["profile"] == "missing-leakage" and not (
-                attempt.get("missing") == ["strict-leakage-validate"]
+                attempt.get("missing") == ["canonical-full"]
                 and all(score == 0.0 for score in attempt["scores"].values())
             ):
                 return False

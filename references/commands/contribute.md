@@ -1,6 +1,6 @@
 # /unslop contribute
 
-Turn one AI-ism caught in the wild into an eval row and a structured PR. Route
+Turn one AI-ism caught in the wild into a scanner contract example and a structured PR. Route
 here on "contribute a pattern", "add this tell", or "I found a new AI-ism".
 Everything stays offline until the user approves both publication and the final
 PR body. Read `references/contribute.md` for the precheck exit codes, redaction
@@ -26,19 +26,18 @@ discipline, row-diff verification, and the non-maintainer fork path.
    ```
 
 4. **Implement eval-first**, following `references/maintenance.md`: copy
-   `row_fn.json` into `evals/adversarial-evals.json`, renumber from the live
-   maxima, add the literal-use FP row (and a REC row if a word is being gated
-   behind a collocation). Confirm the FN row is **red** before you touch the
+   `row_fn.json` into `evals/fixtures/contracts/scanner-examples.json`, renumber from the live
+   maxima, then set `exact_total` to the new `examples` length. Add the
+   literal-use FP example (and a REC example if a word is gated
+   behind a collocation). Confirm the FN example is **red** before you touch the
    scanner, then update `scripts/banned_phrase_scan.py` and
-   `references/taboo-phrases.md` until it goes **green** while the FP row holds.
+   `references/taboo-phrases.md` until it goes **green** while the FP example holds.
 
 5. **Verify:** `python3 scripts/contribute.py verify --bundle .unslop/contrib/<slug>`.
    It refuses TODO markers, checks specimen fidelity, and captures the
    red-to-green transition.
 
-6. **Full gate battery:** `python3 evals/check.py`.
-   If `SKILL.md`, `presets/`, or `references/` changed, also run
-   `python3 evals/check.py --behavioral tune`.
+6. **Full deterministic gate battery:** `python3 evals/check.py --full`.
 
 7. **Render the PR body:**
    `python3 scripts/contribute.py report --bundle .unslop/contrib/<slug> > pr-body.md`.
@@ -48,5 +47,5 @@ discipline, row-diff verification, and the non-maintainer fork path.
    and use `gh pr create` (or the non-maintainer fork path in
    `references/contribute.md`). Network access belongs to the host agent.
 
-The resulting branch contains the eval row, scanner change, and taboo-catalog
+The resulting branch contains the contract example, scanner change, and taboo-catalog
 entry.
