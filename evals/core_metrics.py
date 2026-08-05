@@ -23,9 +23,11 @@ try:
         _change_coverage,
         _generation_prompt,
         _judge_prompt,
+        _needs_with_skill_generation,
         _retry_directives,
         _retry_prompt,
         _semantic_prompt,
+        _source_diagnostics,
         _validate_generation,
         _validation_blockers,
     )
@@ -36,9 +38,11 @@ except ImportError:
         _change_coverage,
         _generation_prompt,
         _judge_prompt,
+        _needs_with_skill_generation,
         _retry_directives,
         _retry_prompt,
         _semantic_prompt,
+        _source_diagnostics,
         _validate_generation,
         _validation_blockers,
     )
@@ -218,6 +222,7 @@ def verify_prediction_evidence(
         generation = generation_map.get(arm) if isinstance(generation_map, dict) else None
         if not isinstance(generation, dict) or not isinstance(judge, dict) or not isinstance(semantic, dict):
             raise InputError(f"{case_id}/{arm}: semantic, generation, and judge evidence are required")
+        source_diagnostics = evidence.get("source_diagnostics")
         _verify_hash(semantic, "prompt", "prompt_sha256", f"{case_id} semantic diagnosis")
         _verify_hash(semantic, "raw_response", "response_sha256", f"{case_id} semantic diagnosis")
         _verify_hash(
@@ -246,7 +251,10 @@ def verify_prediction_evidence(
             "invocation_events_sha256",
             f"{case_id}/{arm} invocation",
         )
-        if not allow_offline and not generation["invocation_events"].strip():
+        clean_short_circuit = (
+            arm == "with_skill" and provenance.get("clean_short_circuit") is True
+        )
+        if not allow_offline and not clean_short_circuit and not generation["invocation_events"].strip():
             raise InputError(f"{case_id}/{arm}: live invocation events are missing")
         _reject_tool_events(generation["invocation_events"], f"{case_id}/{arm} generation")
         if provenance.get("generation_prompt_sha256") != generation["prompt_sha256"]:
@@ -274,7 +282,6 @@ def verify_prediction_evidence(
             raise InputError(f"{case_id}/{arm}: scored findings differ from generation evidence")
         if run.get("rewrite") != parsed_generation.get("rewrite"):
             raise InputError(f"{case_id}/{arm}: scored rewrite differs from generation evidence")
-        source_diagnostics = evidence.get("source_diagnostics")
         validation_map = evidence.get("validation")
         validation = validation_map.get(arm) if isinstance(validation_map, dict) else None
         required_diagnostics = {
@@ -304,6 +311,27 @@ def verify_prediction_evidence(
         )
         expected_generation_prompt = initial_generation_prompt
         attempts = generation.get("attempts")
+        if clean_short_circuit:
+            # Runner evidence has crossed a JSON boundary, so normalize the
+            # freshly recomputed diagnostics before comparing it.  In-memory
+            # diagnostics can contain tuples (for example repeated-word rows)
+            # that JSON correctly restores as lists.
+            canonical_source_diagnostics = json.loads(
+                json.dumps(_source_diagnostics(case))
+            )
+            if (
+                provenance.get("generation_attempts") != 0
+                or generation["invocation_events"].strip()
+                or run.get("findings") != []
+                or run.get("rewrite") != case["source"]
+                or source_diagnostics != canonical_source_diagnostics
+                or _needs_with_skill_generation(
+                    canonical_source_diagnostics.get("banned_phrase", {}),
+                    semantic_canonical.get("findings", []),
+                    canonical_source_diagnostics,
+                )
+            ):
+                raise InputError(f"{case_id}/{arm}: invalid clean short circuit")
         if attempts is not None:
             if not isinstance(attempts, list) or len(attempts) < 2:
                 raise InputError(f"{case_id}/{arm}: retry attempts are malformed")
@@ -349,7 +377,7 @@ def verify_prediction_evidence(
             ):
                 if generation.get(key) != final_attempt.get(key):
                     raise InputError(f"{case_id}/{arm}: final retry evidence is inconsistent")
-        elif provenance.get("generation_attempts") != 1:
+        elif not clean_short_circuit and provenance.get("generation_attempts") != 1:
             raise InputError(f"{case_id}/{arm}: generation attempt count is stale")
         if generation.get("prompt") != expected_generation_prompt:
             raise InputError(f"{case_id}/{arm}: generation prompt is stale")

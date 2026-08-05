@@ -63,6 +63,10 @@
     "target": "copula_avoidance",
     "kind": "phrase"
   },
+  "harness_energy": {
+    "target": "jargon",
+    "kind": "phrase"
+  },
   "macro_coda": {
     "target": "conclusion_coda",
     "kind": "structure"

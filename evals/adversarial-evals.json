@@ -13337,6 +13337,312 @@
       "assertions": [{"type": "exit_code", "equals": 0}]
     },
     {
+      "id": "FP-97",
+      "category": "scanner_false_positive",
+      "protects": "jargon",
+      "title": "Harnessed energy from a magnetic field is literal physics",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "The induction loop harnessed energy from the changing magnetic field during the bench test.",
+      "failure_mode": "The scanner treats a concrete energy-transfer mechanism as business metaphor and steers the rewrite toward a less precise synonym.",
+      "correct_behavior": "No violations: the sentence describes literal electromagnetic energy transfer.",
+      "assertions": [{"type": "json", "path": "total_violations", "equals": 0}]
+    },
+    {
+      "id": "REC-59",
+      "category": "scanner_recall",
+      "title": "Harnessing team energy remains metaphorical jargon",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "The campaign harnesses the energy of team collaboration to unlock new possibilities.",
+      "failure_mode": "Protecting literal physical energy can accidentally suppress the vague organizational metaphor.",
+      "correct_behavior": "The harnesses-the-energy-of-team collocation remains a jargon finding.",
+      "assertions": [
+        {"type": "json", "path": "total_violations", "gte": 1},
+        {"type": "violation_category_equals", "value": "jargon"},
+        {"type": "violation_phrase_contains", "value": "harnesses the energy"}
+      ]
+    },
+    {
+      "id": "REC-60",
+      "category": "scanner_recall",
+      "title": "Harnessing energy to drive corporate innovation remains jargon",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "We harnessed energy to drive innovation across the company.",
+      "failure_mode": "A narrow energy-of rule misses the common business metaphor when an abstract corporate outcome follows an infinitive.",
+      "correct_behavior": "The harnessed-energy-to-drive-innovation collocation is a jargon finding.",
+      "assertions": [
+        {"type": "json", "path": "total_violations", "gte": 1},
+        {"type": "violation_category_equals", "value": "jargon"},
+        {"type": "violation_phrase_contains", "value": "harnessed energy"}
+      ]
+    },
+    {
+      "id": "REC-61",
+      "category": "scanner_recall",
+      "title": "Harnessing a team's energy for growth remains jargon",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "The campaign harnesses the team's energy for growth.",
+      "failure_mode": "Protecting physical energy accidentally exempts a possessive organizational-energy metaphor.",
+      "correct_behavior": "The team's-energy-for-growth collocation is a jargon finding.",
+      "assertions": [
+        {"type": "json", "path": "total_violations", "gte": 1},
+        {"type": "violation_category_equals", "value": "jargon"},
+        {"type": "violation_phrase_contains", "value": "team's energy"}
+      ]
+    },
+    {
+      "id": "FP-98",
+      "category": "scanner_false_positive",
+      "protects": "jargon",
+      "title": "Harnessed energy that powers equipment is literal physics",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "The flywheel harnessed energy to power the backup pump during the outage.",
+      "failure_mode": "An infinitive-based business-metaphor rule flags a concrete energy source and load.",
+      "correct_behavior": "No violations: the flywheel transfers physical energy to equipment.",
+      "assertions": [{"type": "json", "path": "total_violations", "equals": 0}]
+    },
+    {
+      "id": "REC-62",
+      "category": "scanner_recall",
+      "title": "Coordinated people-energy and expertise metaphor remains jargon",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "We harness the energy and expertise of our people to deliver better results.",
+      "failure_mode": "A suffix-specific energy rule misses a common coordinated organizational metaphor that the earlier scanner caught.",
+      "correct_behavior": "The organizational energy-and-expertise phrase is a jargon finding.",
+      "assertions": [
+        {"type": "json", "path": "total_violations", "gte": 1},
+        {"type": "violation_category_equals", "value": "jargon"},
+        {"type": "violation_phrase_contains", "value": "harness the energy"}
+      ]
+    },
+    {
+      "id": "REC-63",
+      "category": "scanner_recall",
+      "title": "Group energy toward a launch remains jargon",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "We harnessed the group's energy toward a successful launch.",
+      "failure_mode": "A small possessive and preposition grammar drops an ordinary organizational-energy metaphor.",
+      "correct_behavior": "The group's energy toward a launch is a jargon finding.",
+      "assertions": [
+        {"type": "json", "path": "total_violations", "gte": 1},
+        {"type": "violation_category_equals", "value": "jargon"},
+        {"type": "violation_phrase_contains", "value": "group's energy"}
+      ]
+    },
+    {
+      "id": "FP-99",
+      "category": "scanner_false_positive",
+      "protects": "jargon",
+      "title": "A turbine harnessing wind energy is literal generation",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "The turbine harnessed the wind's energy for electrical generation.",
+      "failure_mode": "Restoring organizational-metaphor recall reintroduces the broad physical-energy false positive.",
+      "correct_behavior": "No violations: the turbine converts wind energy into electricity.",
+      "assertions": [{"type": "json", "path": "total_violations", "equals": 0}]
+    },
+    {
+      "id": "FP-100",
+      "category": "scanner_false_positive",
+      "protects": "jargon",
+      "title": "A regenerative damper harnesses literal impact energy",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "The regenerative damper harnessed energy from each impact to power the sensor.",
+      "failure_mode": "An abstract-context lookahead mistakes mechanical impact energy for organizational impact language.",
+      "correct_behavior": "No violations: the damper recovers physical energy from impacts.",
+      "assertions": [{"type": "json", "path": "total_violations", "equals": 0}]
+    },
+    {
+      "id": "FP-101",
+      "category": "scanner_false_positive",
+      "protects": "jargon",
+      "title": "A solar array supporting a launch uses literal energy",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "The solar array harnesses energy to support a successful launch.",
+      "failure_mode": "The word launch is treated as a business outcome even in an aerospace energy-transfer sentence.",
+      "correct_behavior": "No violations: the array supplies physical energy for an aerospace launch.",
+      "assertions": [{"type": "json", "path": "total_violations", "equals": 0}]
+    },
+    {
+      "id": "FP-102",
+      "category": "scanner_false_positive",
+      "protects": "jargon",
+      "title": "A bioreactor harnessing glucose energy is literal biology",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "The bioreactor harnesses energy from glucose to grow the culture.",
+      "failure_mode": "Culture is interpreted as organizational culture inside a biomedical energy-transfer description.",
+      "correct_behavior": "No violations: culture refers to growing biological cells.",
+      "assertions": [{"type": "json", "path": "total_violations", "equals": 0}]
+    },
+    {
+      "id": "FP-103",
+      "category": "scanner_false_positive",
+      "protects": "jargon",
+      "title": "Cells harnessing their energy is literal biology",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "The cells harness their energy to maintain ion gradients.",
+      "failure_mode": "A possessive pronoun is assumed to name an organization rather than a biological system.",
+      "correct_behavior": "No violations: the sentence describes cellular energy use.",
+      "assertions": [{"type": "json", "path": "total_violations", "equals": 0}]
+    },
+    {
+      "id": "FP-104",
+      "category": "scanner_false_positive",
+      "protects": "jargon",
+      "title": "A robot harnessing its stored energy is literal mechanics",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "The robot harnesses its energy to climb the ramp.",
+      "failure_mode": "An inanimate possessive pronoun is mistaken for a team-energy metaphor.",
+      "correct_behavior": "No violations: the robot uses stored physical energy.",
+      "assertions": [{"type": "json", "path": "total_violations", "equals": 0}]
+    },
+    {
+      "id": "FP-105",
+      "category": "scanner_false_positive",
+      "protects": "jargon",
+      "title": "Clutch engagement is a literal mechanical term",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "The clutch harnesses energy during engagement to smooth the shift.",
+      "failure_mode": "Mechanical engagement is mistaken for employee or customer engagement.",
+      "correct_behavior": "No violations: engagement names the clutch state.",
+      "assertions": [{"type": "json", "path": "total_violations", "equals": 0}]
+    },
+    {
+      "id": "FP-106",
+      "category": "scanner_false_positive",
+      "protects": "jargon",
+      "title": "Solar energy for people at a shelter is literal electricity",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "The solar array harnesses energy for the people sheltering at the station.",
+      "failure_mode": "A human beneficiary later in the sentence turns physical solar generation into a people-energy metaphor.",
+      "correct_behavior": "No violations: the array supplies electricity to a shelter.",
+      "assertions": [{"type": "json", "path": "total_violations", "equals": 0}]
+    },
+    {
+      "id": "FP-107",
+      "category": "scanner_false_positive",
+      "protects": "jargon",
+      "title": "A community microgrid can have a literal energy surplus",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "The microgrid harnesses the community’s energy surplus after sunset.",
+      "failure_mode": "A community possessive is assumed to be collective enthusiasm instead of electrical ownership.",
+      "correct_behavior": "No violations: energy surplus is an electrical quantity in a microgrid.",
+      "assertions": [{"type": "json", "path": "total_violations", "equals": 0}]
+    },
+    {
+      "id": "REC-64",
+      "category": "scanner_recall",
+      "title": "Our team's energy for customer service remains jargon",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "We harness our team's energy to improve customer service.",
+      "failure_mode": "Context gating drops an organizational possessive when a determiner precedes team.",
+      "correct_behavior": "The team-energy/customer-service metaphor is a jargon finding.",
+      "assertions": [
+        {"type": "json", "path": "total_violations", "gte": 1},
+        {"type": "violation_category_equals", "value": "jargon"}
+      ]
+    },
+    {
+      "id": "REC-65",
+      "category": "scanner_recall",
+      "title": "Their group's energy during a transition remains jargon",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "Leaders can harness their group's energy during a difficult transition.",
+      "failure_mode": "A possessive determiner causes a common organizational metaphor to escape.",
+      "correct_behavior": "The group-energy/transition metaphor is a jargon finding.",
+      "assertions": [
+        {"type": "json", "path": "total_violations", "gte": 1},
+        {"type": "violation_category_equals", "value": "jargon"}
+      ]
+    },
+    {
+      "id": "REC-66",
+      "category": "scanner_recall",
+      "title": "Collective possessive energy with a business outcome remains jargon",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "We can harness our energy to drive innovation. They harnessed their energy to fuel collaboration.",
+      "failure_mode": "Tight contextual gating accidentally accepts only the-energy forms and drops ordinary collective possessives.",
+      "correct_behavior": "Both collective-energy phrases remain jargon findings because each has an explicit organizational outcome.",
+      "assertions": [
+        {"type": "json", "path": "total_violations", "equals": 2},
+        {"type": "violation_category_equals", "value": "jargon"}
+      ]
+    },
+    {
+      "id": "FP-108",
+      "category": "scanner_false_positive",
+      "protects": "jargon",
+      "title": "A company's microgrid energy surplus is literal electricity",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "The microgrid harnesses the company's energy surplus during peak demand.",
+      "failure_mode": "A company possessive is treated as organizational enthusiasm despite the electrical-surplus complement.",
+      "correct_behavior": "No violations: the microgrid uses an electrical energy surplus.",
+      "assertions": [{"type": "json", "path": "total_violations", "equals": 0}]
+    },
+    {
+      "id": "FP-109",
+      "category": "scanner_false_positive",
+      "protects": "jargon",
+      "title": "An innovative turbine still harnesses literal tidal energy",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "The turbine harnesses energy from tidal flow through an innovation in blade design.",
+      "failure_mode": "A distant innovation noun turns a physical energy-transfer sentence into a business metaphor.",
+      "correct_behavior": "No violations: innovation describes the turbine design, not organizational energy.",
+      "assertions": [{"type": "json", "path": "total_violations", "equals": 0}]
+    },
+    {
+      "id": "PAIR-17a",
+      "category": "paired_paragraph",
+      "title": "harness_energy with twin flags team metaphor while sparing physics",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py", "evals/fixtures/pairs/harness_energy_with.txt"],
+      "failure_mode": "The contextual pair must flag only the organizational metaphor, not literal induction-loop energy transfer.",
+      "correct_behavior": "Exactly one jargon violation for the team-collaboration clause.",
+      "assertions": [
+        {"type": "json", "path": "total_violations", "equals": 1},
+        {"type": "violation_category_equals", "value": "jargon"}
+      ]
+    },
+    {
+      "id": "PAIR-17b",
+      "category": "paired_paragraph",
+      "title": "harness_energy without twin is phrase-clean",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py", "evals/fixtures/pairs/harness_energy_without.txt"],
+      "failure_mode": "The clean twin must retain the literal physical phrase without inheriting a jargon violation.",
+      "correct_behavior": "No banned phrase violations.",
+      "assertions": [{"type": "json", "path": "total_violations", "equals": 0}]
+    },
+    {
+      "id": "PAIR-17c",
+      "category": "paired_paragraph",
+      "title": "harness_energy without twin is structure-clean",
+      "target": "script",
+      "command": ["python3", "scripts/structure_scan.py", "evals/fixtures/pairs/harness_energy_without.txt"],
+      "failure_mode": "The clean twin should remain free of unrelated structure flags.",
+      "correct_behavior": "Structure scanner exits clean.",
+      "assertions": [{"type": "exit_code", "equals": 0}]
+    },
+    {
       "id": "CACHE-LOCAL-01",
       "category": "harness_cache",
       "title": "Luna generation cache hits only the immutable baseline and extracts clean Codex finals",
@@ -13387,8 +13693,8 @@
         "python3",
         "evals/fixtures/cache/check_behavioral_luna.py"
       ],
-      "failure_mode": "The lower-level generator test can stay green while run_behavioral.sh routes generation or either judge branch back to Claude, selects a different Codex model, writes its probe artifacts over a real run, accepts a benchmark that silently omitted one expected case, or pays for one repeated judge call per rubric sentence instead of one all-conditions verdict per case.",
-      "correct_behavior": "The canonical wrapper uses the safe read-write cache by default, selects gpt-5.6-luna for generation and judging in both default and explicit uncached modes, never calls Claude, supports an isolated run root for the probe, rejects partial benchmark results, and emits one gated live-judge assertion per case with every rubric condition preserved.",
+      "failure_mode": "The lower-level generator test can stay green while run_behavioral.sh routes generation or either judge branch back to Claude, selects a different Codex model, writes its probe artifacts over a real run, accepts omitted/duplicate/unexpected result rows or malformed scored verdicts, or pays for one repeated judge call per rubric sentence instead of one all-conditions verdict per case.",
+      "correct_behavior": "The canonical wrapper uses the safe read-write cache by default, selects gpt-5.6-luna for generation and judging in both default and explicit uncached modes, never calls Claude, supports an isolated run root for the probe, rejects omitted/duplicate/unexpected results and incomplete scored verdicts, and emits one gated live-judge assertion per case with every rubric condition preserved.",
       "assertions": [
         {
           "type": "exit_code",
@@ -13417,6 +13723,18 @@
         {
           "type": "stdout_contains",
           "value": "partial_benchmark=rejected"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "duplicate_benchmark=rejected"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "unexpected_benchmark=rejected"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "malformed_scored_verdict=rejected"
         },
         {
           "type": "stdout_contains",
@@ -13501,8 +13819,8 @@
         "python3",
         "evals/fixtures/core/check_runner.py"
       ],
-      "failure_mode": "The scorecard can be populated by hand, omit failed arms, leak gold annotations into generation, or accidentally open the sealed holdback instead of measuring the actual diagnosis-to-rewrite pipeline.",
-      "correct_behavior": "Offline model fixtures exercise both arms through the same runner contract; outputs include one canonical copy of raw generation, validation, and independent adjudication evidence per case, compact run references and provenance, complete runs, and a holdback confirmation gate.",
+      "failure_mode": "The scorecard can be populated by hand, omit failed arms, leak gold annotations into generation, spend a rewrite call on clean prose, permit an ungrounded edit when every diagnostic is clear, or accidentally open the sealed holdback instead of measuring the actual diagnosis-to-rewrite pipeline.",
+      "correct_behavior": "Offline model fixtures exercise both arms through the same runner contract; outputs include one canonical copy of raw generation, validation, and independent adjudication evidence per case, compact run references and provenance, complete runs, a deterministic exact no-op short circuit when all edit diagnostics are clear, and a holdback confirmation gate.",
       "assertions": [
         {
           "type": "exit_code",
@@ -13582,6 +13900,10 @@
         },
         {
           "type": "stdout_contains",
+          "value": "clean_short_circuit=true"
+        },
+        {
+          "type": "stdout_contains",
           "value": "canonical_evidence=true"
         },
         {
@@ -13633,8 +13955,8 @@
         "python3",
         "evals/fixtures/core/check_evidence.py"
       ],
-      "failure_mode": "A caller can submit an unchanged rewrite, arbitrary findings or all-true booleans, and edit the normalized evidence copy while leaving the raw model response, judge prompt, and validation untouched to manufacture perfect metrics.",
-      "correct_behavior": "Acceptance scoring recomputes canonical generation data from the raw response, binds the judge prompt and validation hashes to the scored rewrites, and verifies pinned models, source/component hashes, blind-arm mapping, and adjudication consistency; correlated and stale forgeries are rejected.",
+      "failure_mode": "A caller can submit an unchanged rewrite, arbitrary findings or all-true booleans, forge a clean-source short circuit, erase the stored dirty diagnostics while rebinding dependent evidence, and edit the normalized evidence copy while leaving the raw model response, judge prompt, and validation untouched to manufacture perfect metrics.",
+      "correct_behavior": "Acceptance scoring recomputes canonical generation data from the raw response, recomputes eligibility for a zero-call clean short circuit, binds the judge prompt and validation hashes to the scored rewrites, and verifies pinned models, source/component hashes, blind-arm mapping, and adjudication consistency; correlated, stale, and short-circuit forgeries are rejected.",
       "assertions": [
         {
           "type": "exit_code",
@@ -13655,6 +13977,14 @@
         {
           "type": "stdout_contains",
           "value": "tool_call_event=rejected"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "forged_clean_short_circuit=rejected"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "correlated_clean_short_circuit=rejected"
         }
       ]
     },

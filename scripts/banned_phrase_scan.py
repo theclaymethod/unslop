@@ -564,10 +564,19 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
         "suggestion": "handle, address, manage"
     },
     {
-        "pattern": r"\bharness(?:es|ed|ing)?\s+(?:the\s+|its\s+|their\s+|our\s+)?(?:power|potential|strength|capabilit|energy|momentum|force|full\s+)",
+        "pattern": r"\bharness(?:es|ed|ing)?\s+(?:the\s+|its\s+|their\s+|our\s+)?(?:power|potential|strength|capabilit|momentum|force|full\s+)",
         "category": "jargon",
         "severity": "hard",
         "suggestion": "use, tap, apply"
+    },
+    {
+        # Physical systems literally harness energy. Restrict this branch to
+        # abstract organizational metaphors instead of flagging induction,
+        # solar, thermal, or other concrete energy-transfer descriptions.
+        "pattern": r"\bharness(?:es|ed|ing)?\s+(?:(?:(?:the|our|their|its)\s+)?(?:team|group|company|organization|workforce)(?:['’]s)\s+energy\b(?=[^.!?\n]{0,100}\b(?:growth|launch|customer\s+service|transition|collaboration|innovation|expertise|engagement|success|results?)\b)|(?:(?:the|our|their)\s+)?energy\s+(?:and\s+expertise\b|of\s+(?:(?:our|the)\s+)?(?:team|group|workforce|people)\s+(?:collaboration|innovation|expertise)\b|to\s+(?:drive|fuel|accelerate|unlock|advance)\s+(?:innovation|collaboration|engagement|growth|transformation|success|results?)\b))",
+        "category": "jargon",
+        "severity": "hard",
+        "suggestion": "use, focus, coordinate"
     },
     {
         "pattern": r"\bfoster(?:s|ed|ing)?\s+(?:a\s+|an\s+|greater\s+|deeper\s+|stronger\s+)?(?:culture|collaboration|innovation|sense\s+of|community|environment|growth|engagement|inclusion|creativity|dialogue|connection|belonging)",

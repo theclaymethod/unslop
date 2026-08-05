@@ -15,7 +15,17 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "evals"))
 
-from core_runner import _retry_directives, _retry_prompt  # noqa: E402
+from core_runner import (  # noqa: E402
+    SILHOUETTE_REFERENCE_PATH,
+    _generation_prompt,
+    _judge_prompt,
+    _retry_directives,
+    _retry_prompt,
+    _shipping_contract,
+    _validate_manifest,
+    _validation_battery,
+    load_silhouette_reference,
+)
 
 
 def run(command: list[str]) -> subprocess.CompletedProcess[str]:
@@ -81,6 +91,8 @@ def main() -> int:
         correlated_rewrite_path = temp / "correlated-rewrite.json"
         correlated_findings_path = temp / "correlated-findings.json"
         tool_event_path = temp / "tool-event.json"
+        short_circuit_path = temp / "short-circuit.json"
+        correlated_short_circuit_path = temp / "correlated-short-circuit.json"
         stale_manifest_path = temp / "stale-manifest.json"
         manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
         responses_path.write_text(json.dumps(responses), encoding="utf-8")
@@ -186,6 +198,118 @@ def main() -> int:
             score_command[:3] + [str(tool_event_path)] + score_command[4:]
         )
 
+        short_circuit = json.loads(valid_path.read_text(encoding="utf-8"))
+        short_run = next(
+            row for row in short_circuit["runs"] if row["arm"] == "with_skill"
+        )
+        short_run["provenance"]["clean_short_circuit"] = True
+        short_run["provenance"]["generation_attempts"] = 0
+        short_generation = short_circuit["evidence"][0]["generation"]["with_skill"]
+        short_generation["invocation_events"] = ""
+        short_generation["invocation_events_sha256"] = hashlib.sha256(b"").hexdigest()
+        short_circuit_path.write_text(json.dumps(short_circuit), encoding="utf-8")
+        short_circuit_result = run(
+            score_command[:3] + [str(short_circuit_path)] + score_command[4:]
+        )
+
+        # Correlate every stored field needed to impersonate a clean no-op.
+        # Only a fresh recomputation from the immutable source can reject this
+        # stronger forgery; checking the attacker-controlled diagnostics alone
+        # would accept it.
+        correlated_short = json.loads(valid_path.read_text(encoding="utf-8"))
+        normalized_case = _validate_manifest(manifest, "tune")[0]
+        correlated_evidence = correlated_short["evidence"][0]
+        forged_diagnostics = correlated_evidence["source_diagnostics"]
+        forged_diagnostics["banned_phrase"]["raw_result"] = []
+        forged_diagnostics["banned_phrase"]["raw"] = []
+        forged_diagnostics["banned_phrase"]["findings"] = []
+        forged_diagnostics["banned_phrase"]["total_violations"] = 0
+        forged_diagnostics["structure"]["flags"] = []
+        forged_diagnostics["structure"]["flagged"] = {}
+        forged_diagnostics["silhouette"]["flags"] = []
+        forged_diagnostics["silhouette"]["flagged"] = {}
+        forged_diagnostics["silhouette"]["penalty"] = 0.0
+        forged_diagnostics["readability"]["flags"] = []
+
+        no_op = {"findings": [], "rewrite": source}
+        forged_generation = correlated_evidence["generation"]["with_skill"]
+        forged_prompt = _generation_prompt(
+            normalized_case,
+            "with_skill",
+            scanner_findings=[],
+            semantic_findings=[],
+            source_diagnostics=forged_diagnostics,
+            shipping_contract=_shipping_contract(),
+        )
+        forged_raw = json.dumps(no_op, ensure_ascii=False)
+        forged_generation.update({
+            "prompt": forged_prompt,
+            "prompt_sha256": hashlib.sha256(forged_prompt.encode("utf-8")).hexdigest(),
+            "raw_response": forged_raw,
+            "response_sha256": hashlib.sha256(forged_raw.encode("utf-8")).hexdigest(),
+            "invocation_events": "",
+            "invocation_events_sha256": hashlib.sha256(b"").hexdigest(),
+            "model_parsed": no_op,
+            "parsed": no_op,
+            "clean_short_circuit": True,
+        })
+        forged_generation.pop("attempts", None)
+        forged_validation = _validation_battery(
+            source,
+            source,
+            forged_diagnostics["constraints"]["constraints"],
+            forged_diagnostics["genre"],
+            load_silhouette_reference(SILHOUETTE_REFERENCE_PATH),
+            [],
+        )
+        forged_validation["banned_phrase"]["raw_result"] = []
+        forged_validation["banned_phrase"]["raw"] = []
+        forged_validation["banned_phrase"]["findings"] = []
+        forged_validation["banned_phrase"]["total_violations"] = 0
+        forged_validation["structure"]["flags"] = []
+        forged_validation["structure"]["flagged"] = {}
+        forged_validation["silhouette"]["flags"] = []
+        forged_validation["silhouette"]["flagged"] = {}
+        forged_validation["silhouette"]["penalty"] = 0.0
+        forged_validation["readability"]["flags"] = []
+        correlated_evidence["validation"]["with_skill"] = forged_validation
+        forged_run = next(
+            row for row in correlated_short["runs"] if row["arm"] == "with_skill"
+        )
+        forged_run["findings"] = []
+        forged_run["rewrite"] = source
+        forged_run["provenance"].update({
+            "clean_short_circuit": True,
+            "generation_attempts": 0,
+            "generation_prompt_sha256": forged_generation["prompt_sha256"],
+            "generation_response_sha256": forged_generation["response_sha256"],
+        })
+        generation_rows = {
+            arm: correlated_evidence["generation"][arm]["parsed"]
+            for arm in ("with_skill", "without_skill")
+        }
+        forged_judge_prompt = _judge_prompt(
+            normalized_case,
+            generation_rows,
+            correlated_evidence["judge"]["blind_map"],
+        )
+        correlated_evidence["judge"]["prompt"] = forged_judge_prompt
+        correlated_evidence["judge"]["prompt_sha256"] = hashlib.sha256(
+            forged_judge_prompt.encode("utf-8")
+        ).hexdigest()
+        for row in correlated_short["runs"]:
+            row["provenance"]["judge_prompt_sha256"] = correlated_evidence["judge"][
+                "prompt_sha256"
+            ]
+        correlated_short_circuit_path.write_text(
+            json.dumps(correlated_short), encoding="utf-8"
+        )
+        correlated_short_circuit_result = run(
+            score_command[:3]
+            + [str(correlated_short_circuit_path)]
+            + score_command[4:]
+        )
+
         stale_manifest = copy.deepcopy(manifest)
         stale_manifest["cases"][0]["source"] += " "
         stale_manifest_path.write_text(json.dumps(stale_manifest), encoding="utf-8")
@@ -199,6 +323,8 @@ def main() -> int:
     correlated_rewrite_rejected = correlated_rewrite_result.returncode == 2
     correlated_findings_rejected = correlated_findings_result.returncode == 2
     tool_event_rejected = tool_event_result.returncode == 2
+    short_circuit_rejected = short_circuit_result.returncode == 2
+    correlated_short_circuit_rejected = correlated_short_circuit_result.returncode == 2
     stale_rejected = stale_result.returncode == 2
     print(f"valid_runner_artifact={'accepted' if valid_ok else 'rejected'}")
     print(f"retry_runner_artifact={'accepted' if retry_ok else 'rejected'}")
@@ -215,6 +341,16 @@ def main() -> int:
         )
     )
     print(f"tool_call_event={'rejected' if tool_event_rejected else 'accepted'}")
+    print(
+        "forged_clean_short_circuit={}".format(
+            "rejected" if short_circuit_rejected else "accepted"
+        )
+    )
+    print(
+        "correlated_clean_short_circuit={}".format(
+            "rejected" if correlated_short_circuit_rejected else "accepted"
+        )
+    )
     return 0 if (
         valid_ok
         and retry_ok
@@ -223,6 +359,8 @@ def main() -> int:
         and correlated_rewrite_rejected
         and correlated_findings_rejected
         and tool_event_rejected
+        and short_circuit_rejected
+        and correlated_short_circuit_rejected
     ) else 1
 
 

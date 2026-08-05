@@ -77,8 +77,10 @@ once. Duplicate, malformed, ambiguous, and shotgun findings count as failures.
 
 ## Acceptance
 
-Do not set release thresholds from the tune split. Freeze thresholds after the
-first holdout run and before opening holdback. Final evidence must include:
+Do not set release thresholds from the tune split or from observed public
+outputs. Freeze the public corpus, runner, scorer, scanner, shipping contract,
+and release thresholds before the first public holdout run. Final evidence must
+include:
 
 - an uncached Luna run for both arms;
 - every raw artifact and prompt/model hash;

@@ -16,6 +16,7 @@ sys.path.insert(0, str(ROOT / "evals"))
 
 from core_runner import (  # noqa: E402
     _attribution_preservation,
+    _needs_with_skill_generation,
     _validate_generation,
     _validation_blockers,
 )
@@ -294,6 +295,112 @@ def main() -> int:
         empty_findings_noop = _validate_generation(
             {"findings": [], "rewrite": "A needless stylistic edit."}, source
         )["rewrite"] == source
+        clean_short_circuit = (
+            not _needs_with_skill_generation(
+                {"findings": [], "raw_result": []},
+                [],
+                {
+                    "structure": {"flags": []},
+                    "silhouette": {
+                        "penalty": 1.2,
+                        "flags": [{"metric": "preview_fulfillment", "severity": "soft"}],
+                    },
+                    "readability": {"flags": []},
+                },
+            )
+            and _needs_with_skill_generation(
+                {"findings": [], "raw_result": []},
+                [{"start": 0, "end": 4, "text": "Test"}],
+                {
+                    "structure": {"flags": []},
+                    "silhouette": {"penalty": 0.0, "flags": []},
+                    "readability": {"flags": []},
+                },
+            )
+            and _needs_with_skill_generation(
+                {"findings": [], "raw_result": []},
+                [],
+                {
+                    "structure": {"flags": [{"metric": "conclusion_coda"}]},
+                    "silhouette": {"penalty": 0.0, "flags": []},
+                    "readability": {"flags": []},
+                },
+            )
+        )
+
+        clean_source = "The steel bracket remained 6 mm from the hinge after the final inspection."
+        clean_protected = _span(clean_source, "6 mm", "clean-good-1")
+        clean_protected["policy"] = "Preserve the measured clearance exactly."
+        clean_case = {
+            "id": "runner-clean-fixture",
+            "split": "tune",
+            "genre": "technical",
+            "register": "technical",
+            "source": clean_source,
+            "provenance": {"kind": "unit_fixture"},
+            "issues": [],
+            "protected_spans": [clean_protected],
+            "constraints": [],
+        }
+        clean_judge = {
+            "candidates": {
+                label: {
+                    "repairs": {},
+                    "protections": {"clean-good-1": True},
+                    "constraints": {},
+                    "net_improved": False,
+                }
+                for label in ("candidate_a", "candidate_b")
+            },
+            "winner": "tie",
+        }
+        clean_manifest_path = temp / "clean-manifest.json"
+        clean_responses_path = temp / "clean-responses.json"
+        clean_predictions_path = temp / "clean-predictions.json"
+        clean_manifest_path.write_text(
+            json.dumps({"schema": "unslop-core-benchmark-v1", "cases": [clean_case]}),
+            encoding="utf-8",
+        )
+        # Deliberately omit the with_skill generation. A clean diagnostic must
+        # bypass the rewrite model rather than consuming this fixture response.
+        clean_responses_path.write_text(
+            json.dumps(
+                {
+                    "generations": {
+                        clean_case["id"]: {
+                            "without_skill": {"findings": [], "rewrite": clean_source}
+                        }
+                    },
+                    "judges": {clean_case["id"]: clean_judge},
+                }
+            ),
+            encoding="utf-8",
+        )
+        clean_proc = _run(
+            [
+                sys.executable,
+                str(ROOT / "evals" / "core_runner.py"),
+                str(clean_manifest_path),
+                "--split",
+                "tune",
+                "--responses",
+                str(clean_responses_path),
+                "--out",
+                str(clean_predictions_path),
+            ]
+        )
+        clean_short_circuit = clean_short_circuit and clean_proc.returncode == 0
+        if clean_proc.returncode == 0:
+            clean_predictions = json.loads(clean_predictions_path.read_text(encoding="utf-8"))
+            clean_run = next(
+                row for row in clean_predictions["runs"] if row["arm"] == "with_skill"
+            )
+            clean_short_circuit = clean_short_circuit and (
+                clean_run["rewrite"] == clean_source
+                and clean_run["findings"] == []
+                and clean_run["provenance"].get("generation_attempts") == 0
+                and clean_run["provenance"].get("clean_short_circuit") is True
+            )
 
         score_proc = _run(
             [
@@ -374,6 +481,7 @@ def main() -> int:
         )
     )
     print("empty_findings_noop={}".format(str(bool(empty_findings_noop)).lower()))
+    print("clean_short_circuit={}".format(str(bool(clean_short_circuit)).lower()))
     print("canonical_evidence={}".format(str(bool(canonical_evidence)).lower()))
     print("holdback_sealed={}".format(str(bool(holdback_sealed)).lower()))
     return 0 if (
@@ -397,6 +505,7 @@ def main() -> int:
         and attribution_polarity_guard
         and soft_silhouette_advisory
         and empty_findings_noop
+        and clean_short_circuit
         and canonical_evidence
         and holdback_sealed
     ) else 1

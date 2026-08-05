@@ -731,6 +731,32 @@ def _validation_blockers(validation: Dict[str, Any]) -> List[str]:
     return blockers
 
 
+def _needs_with_skill_generation(
+    scanner_data: Dict[str, Any],
+    semantic_findings: Sequence[Dict[str, Any]],
+    source_diagnostics: Dict[str, Any],
+) -> bool:
+    """Return whether Pass 1 found any edit-authorizing signal.
+
+    A clean source must not be sent through a probabilistic rewrite merely to
+    ask the model to leave it alone.  Soft, uncorroborated silhouette or
+    burstiness warnings remain advisory, matching the shipping blocker policy.
+    """
+    if scanner_data.get("findings") or semantic_findings:
+        return True
+    diagnostic_validation = {
+        "preservation": {"passed": True},
+        "change_coverage": {"passed": True},
+        "banned_phrase": scanner_data,
+        "structure": source_diagnostics.get("structure", {"flags": []}),
+        "silhouette": source_diagnostics.get(
+            "silhouette", {"penalty": 0.0, "flags": []}
+        ),
+        "readability": source_diagnostics.get("readability", {"flags": []}),
+    }
+    return bool(_validation_blockers(diagnostic_validation))
+
+
 def _retry_prompt(original_prompt: str, generation: Dict[str, Any], blockers: List[str]) -> str:
     return """{}
 
@@ -1203,12 +1229,29 @@ def _run(
             )
             prompt = initial_prompt
             attempts: List[Dict[str, Any]] = []
-            max_attempts = 2 if arm == "with_skill" and fixture is None else 1
+            clean_short_circuit = (
+                arm == "with_skill"
+                and not _needs_with_skill_generation(
+                    scanner_data,
+                    semantic_parsed["findings"],
+                    source_diagnostics,
+                )
+            )
+            max_attempts = (
+                1
+                if clean_short_circuit
+                else (2 if arm == "with_skill" and fixture is None else 1)
+            )
             blockers: List[str] = []
             for attempt_index in range(max_attempts):
-                raw, parsed, invocation_events = _generation_response(
-                    fixture, case["id"], arm, model, prompt, timeout
-                )
+                if clean_short_circuit:
+                    parsed = {"findings": [], "rewrite": case["source"]}
+                    raw = _json_text(parsed)
+                    invocation_events = ""
+                else:
+                    raw, parsed, invocation_events = _generation_response(
+                        fixture, case["id"], arm, model, prompt, timeout
+                    )
                 generation = dict(_validate_generation(parsed, case["source"]))
                 validation = _validation_battery(
                     case["source"],
@@ -1229,6 +1272,7 @@ def _run(
                     "model_parsed": parsed,
                     "parsed": generation,
                     "validation": validation,
+                    "clean_short_circuit": clean_short_circuit,
                 }
                 attempts.append(attempt)
                 blockers = _validation_blockers(validation) if arm == "with_skill" else []
@@ -1292,7 +1336,14 @@ def _run(
                     "judge_model": judge_model,
                     "provider": "codex",
                     "workflow": "semantic_diagnose_rewrite_validate_retry",
-                    "generation_attempts": len(generation_evidence[arm].get("attempts", [])) or 1,
+                    "generation_attempts": (
+                        0
+                        if generation_evidence[arm].get("clean_short_circuit")
+                        else len(generation_evidence[arm].get("attempts", [])) or 1
+                    ),
+                    "clean_short_circuit": generation_evidence[arm].get(
+                        "clean_short_circuit", False
+                    ),
                     "shipping_contract_sha256": shipping_contract["resolved_sha256"],
                     "generation_prompt_sha256": generation_evidence[arm]["prompt_sha256"],
                     "generation_response_sha256": generation_evidence[arm]["response_sha256"],
