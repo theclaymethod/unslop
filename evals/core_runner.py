@@ -570,6 +570,7 @@ def _validation_battery(
     attribution_preservation = _attribution_preservation(original, transformed)
     return {
         "workflow": "shipping_gate",
+        "reviewed_noop": transformed == original and not (findings or []),
         "preservation": preservation,
         "banned_phrase": banned,
         "structure": structure,
@@ -687,6 +688,13 @@ def _validation_blockers(validation: Dict[str, Any]) -> List[str]:
         blockers.append(
             "attributed claim changed: {}".format(_json_text(attribution))
         )
+    # A source-first audit may reject every deterministic candidate as
+    # contextual and return the source byte-for-byte. Forcing a rewrite after
+    # that reviewed no-op creates an impossible loop: source-only heuristics
+    # still fire, while an empty finding set correctly forbids edits. The
+    # preservation, change-coverage, and attribution gates above remain bound.
+    if validation.get("reviewed_noop") is True:
+        return blockers
     for finding in validation.get("banned_phrase", {}).get("raw_result", []):
         if finding.get("severity") == "hard" or finding.get("category") == "anti_slop_register":
             blockers.append(

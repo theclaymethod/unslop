@@ -1,13 +1,19 @@
 {
   "schema": "unslop-core-thresholds-v1",
-  "frozen_at": "2026-08-04T21:30:01-07:00",
-  "frozen_before": "blind-current-luna-public-holdout-v2",
+  "frozen_at": "2026-08-04T21:39:49-07:00",
+  "frozen_before": "blind-current-luna-public-holdout-v2-retry-1",
   "statistical_scope": "Strict preregistered corpus point estimates and falsification gate. Five positive holdout spans are not a population-wide confidence claim; deterministic scanner recall and false-positive coverage is reported separately.",
+  "protocol_revision": {
+    "reason": "The first public attempt aborted before completing an artifact or producing a score because an exact, empty-finding reviewed no-op could be rejected by source-only diagnostics even though edits were forbidden.",
+    "scope": "Runner and scorer evidence handling only: exact empty-finding no-ops bypass source-only rewrite diagnostics after preservation, change-coverage, and attribution gates; the scorer independently recomputes that eligibility.",
+    "controls": "No public model output was inspected beyond the abort error. Corpus, prompts, annotations, scanner, models, and thresholds are unchanged. The fix passed the canonical suite, a designated tune reproduction, and independent adversarial review. The retry uses a fresh uncached run directory.",
+    "aborted_attempt_scored": false
+  },
   "frozen_inputs": {
     "public_benchmark_v2_sha256": "8cf3e5188fcd53258799782c5a9226c549e111c532ef5cddf6524fb68ae1f73c",
     "shipping_contract_sha256": "3d333ada2121e345494642a9ea1adb52cf36d76dd736fe2247417478232c5ddc",
-    "core_runner_sha256": "17fff79480e2ef3bfe9e34f2e4a3fe51a57710f621c227995d9152c623201681",
-    "core_metrics_sha256": "b90ea24033ba1fbfcb14a3e81ee0269c730510b2ad725a35964732c6a5bac0c2",
+    "core_runner_sha256": "00ee1fdb910b25f0ce201977aa75271dfef76738345fd5807a007b65661b4b70",
+    "core_metrics_sha256": "9c2286b9cb42f1c2b68955c6d609232a9489fc397852541606a4f8e8b8e45b15",
     "scanner_sha256": "dd220cdd4b55e1f3e736436972ac62633d56fb4dd0370e07f4feb55e70494c9a"
   },
   "with_skill": {

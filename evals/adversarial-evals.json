@@ -13896,6 +13896,10 @@
         },
         {
           "type": "stdout_contains",
+          "value": "reviewed_noop_advisory=true"
+        },
+        {
+          "type": "stdout_contains",
           "value": "empty_findings_noop=true"
         },
         {
@@ -14003,6 +14007,10 @@
         {
           "type": "stdout_contains",
           "value": "correlated_clean_short_circuit=rejected"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "forged_reviewed_noop=rejected"
         }
       ]
     },

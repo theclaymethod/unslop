@@ -93,6 +93,7 @@ def main() -> int:
         tool_event_path = temp / "tool-event.json"
         short_circuit_path = temp / "short-circuit.json"
         correlated_short_circuit_path = temp / "correlated-short-circuit.json"
+        reviewed_noop_path = temp / "reviewed-noop.json"
         stale_manifest_path = temp / "stale-manifest.json"
         manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
         responses_path.write_text(json.dumps(responses), encoding="utf-8")
@@ -310,6 +311,15 @@ def main() -> int:
             + score_command[4:]
         )
 
+        reviewed_noop = json.loads(valid_path.read_text(encoding="utf-8"))
+        reviewed_noop["evidence"][0]["validation"]["with_skill"][
+            "reviewed_noop"
+        ] = True
+        reviewed_noop_path.write_text(json.dumps(reviewed_noop), encoding="utf-8")
+        reviewed_noop_result = run(
+            score_command[:3] + [str(reviewed_noop_path)] + score_command[4:]
+        )
+
         stale_manifest = copy.deepcopy(manifest)
         stale_manifest["cases"][0]["source"] += " "
         stale_manifest_path.write_text(json.dumps(stale_manifest), encoding="utf-8")
@@ -325,6 +335,7 @@ def main() -> int:
     tool_event_rejected = tool_event_result.returncode == 2
     short_circuit_rejected = short_circuit_result.returncode == 2
     correlated_short_circuit_rejected = correlated_short_circuit_result.returncode == 2
+    reviewed_noop_rejected = reviewed_noop_result.returncode == 2
     stale_rejected = stale_result.returncode == 2
     print(f"valid_runner_artifact={'accepted' if valid_ok else 'rejected'}")
     print(f"retry_runner_artifact={'accepted' if retry_ok else 'rejected'}")
@@ -351,6 +362,11 @@ def main() -> int:
             "rejected" if correlated_short_circuit_rejected else "accepted"
         )
     )
+    print(
+        "forged_reviewed_noop={}".format(
+            "rejected" if reviewed_noop_rejected else "accepted"
+        )
+    )
     return 0 if (
         valid_ok
         and retry_ok
@@ -361,6 +377,7 @@ def main() -> int:
         and tool_event_rejected
         and short_circuit_rejected
         and correlated_short_circuit_rejected
+        and reviewed_noop_rejected
     ) else 1
 
 

@@ -292,6 +292,45 @@ def main() -> int:
                 "change_coverage": {"passed": True},
             }
         )
+        reviewed_noop_advisory = (
+            not _validation_blockers(
+                {
+                    "reviewed_noop": True,
+                    "preservation": {"passed": True, "warnings": []},
+                    "attribution_preservation": {"passed": True},
+                    "change_coverage": {"passed": True},
+                    "banned_phrase": {
+                        "raw_result": [
+                            {"severity": "hard", "category": "jargon", "phrase": "candidate"}
+                        ]
+                    },
+                    "structure": {"flags": [{"metric": "sentence_burstiness"}]},
+                    "silhouette": {
+                        "penalty": 2.0,
+                        "flags": [{"metric": "preview_fulfillment", "severity": "soft"}],
+                    },
+                    "readability": {"flags": []},
+                }
+            )
+            and bool(
+                _validation_blockers(
+                    {
+                        "reviewed_noop": False,
+                        "preservation": {"passed": True, "warnings": []},
+                        "attribution_preservation": {"passed": True},
+                        "change_coverage": {"passed": True},
+                        "banned_phrase": {
+                            "raw_result": [
+                                {"severity": "hard", "category": "jargon", "phrase": "candidate"}
+                            ]
+                        },
+                        "structure": {"flags": []},
+                        "silhouette": {"penalty": 0.0, "flags": []},
+                        "readability": {"flags": []},
+                    }
+                )
+            )
+        )
         empty_findings_noop = _validate_generation(
             {"findings": [], "rewrite": "A needless stylistic edit."}, source
         )["rewrite"] == source
@@ -480,6 +519,11 @@ def main() -> int:
             str(bool(soft_silhouette_advisory)).lower()
         )
     )
+    print(
+        "reviewed_noop_advisory={}".format(
+            str(bool(reviewed_noop_advisory)).lower()
+        )
+    )
     print("empty_findings_noop={}".format(str(bool(empty_findings_noop)).lower()))
     print("clean_short_circuit={}".format(str(bool(clean_short_circuit)).lower()))
     print("canonical_evidence={}".format(str(bool(canonical_evidence)).lower()))
@@ -504,6 +548,7 @@ def main() -> int:
         and preservation_warning_advisory
         and attribution_polarity_guard
         and soft_silhouette_advisory
+        and reviewed_noop_advisory
         and empty_findings_noop
         and clean_short_circuit
         and canonical_evidence

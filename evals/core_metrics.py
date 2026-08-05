@@ -289,7 +289,7 @@ def verify_prediction_evidence(
         }
         required_validation = {
             "preservation", "banned_phrase", "structure", "silhouette", "readability", "diff",
-            "change_coverage", "attribution_preservation",
+            "change_coverage", "attribution_preservation", "reviewed_noop",
         }
         if not isinstance(source_diagnostics, dict) or not required_diagnostics <= set(source_diagnostics):
             raise InputError(f"{case_id}/{arm}: source diagnostics are incomplete")
@@ -391,6 +391,11 @@ def verify_prediction_evidence(
             raise InputError(f"{case_id}/{arm}: validation is not bound to scored rewrite")
         if validation.get("workflow") != "shipping_gate":
             raise InputError(f"{case_id}/{arm}: validation workflow is ambiguous")
+        expected_reviewed_noop = (
+            run.get("findings") == [] and run.get("rewrite") == case["source"]
+        )
+        if validation.get("reviewed_noop") is not expected_reviewed_noop:
+            raise InputError(f"{case_id}/{arm}: reviewed no-op evidence is stale")
         canonical_coverage = _change_coverage(
             case["source"], run["rewrite"], run["findings"]
         )
