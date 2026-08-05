@@ -36,6 +36,8 @@ process, so the climb loop aborts the round honestly instead of blocking
 forever.
 """
 
+from __future__ import annotations
+
 import argparse
 from functools import lru_cache
 import json

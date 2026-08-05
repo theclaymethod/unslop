@@ -21,6 +21,9 @@ Defaults to the real evals/adversarial-evals.json. Pass an alternate path to
 run this against a mutated copy — useful for negative-testing the checker
 itself against a suite with a deliberately broken row.
 """
+
+from __future__ import annotations
+
 import json
 import re
 import sys

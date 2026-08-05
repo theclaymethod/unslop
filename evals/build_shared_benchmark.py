@@ -298,7 +298,8 @@ def build_manifest(source: dict) -> dict:
             for part in command:
                 if not part.startswith("fixtures/skill/"):
                     continue
-                fixture = part.removeprefix("fixtures/skill/")
+                prefix = "fixtures/skill/"
+                fixture = part[len(prefix):] if part.startswith(prefix) else part
                 fixture_text = (HERE / "fixtures/skill" / fixture).read_text().strip()
                 prompt = by_id.get(case_id, {}).get("prompt", "")
                 if fixture_text not in prompt:

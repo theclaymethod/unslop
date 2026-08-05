@@ -13,6 +13,8 @@ below is the UNION of both original code paths, gated behind flags so each
 caller reconciles the drift deliberately rather than silently: structure_scan
 passes blank_blockquotes=True, silhouette_scan passes strip_bold=True."""
 
+from __future__ import annotations
+
 import re
 
 

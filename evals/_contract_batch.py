@@ -6,9 +6,10 @@ import contextlib
 import io
 import traceback
 from collections.abc import Callable, Mapping
+from typing import Optional
 
 
-Check = Callable[[], int | None]
+Check = Callable[[], Optional[int]]
 
 
 def run_contract(label: str, checks: Mapping[str, Check]) -> int:
