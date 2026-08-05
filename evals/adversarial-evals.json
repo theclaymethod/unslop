@@ -13947,6 +13947,24 @@
       ]
     },
     {
+      "id": "CORE-MANIFEST-V2-01",
+      "category": "core_product_benchmark",
+      "title": "Blind Luna v2 corpus stays hash-split, span-valid, and holdback-sealed",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_core_benchmark_v2.py"
+      ],
+      "failure_mode": "A public or sealed source is cherry-picked after annotation, a span or provenance hash drifts, a deterministic scanner finding is left unmapped, clean-short-circuit coverage disappears, sealed text is committed, or the raw blind pool no longer matches its cryptographic commitment.",
+      "correct_behavior": "The 36 blind Luna sources partition by preregistered per-stratum hashes into 21 public, 7 sealed, and 8 excluded cases; public spans and protections are exact, holdback stays under ignored storage, and only cryptographic commitments to sealed/raw content are committed.",
+      "assertions": [
+        {"type": "exit_code", "equals": 0},
+        {"type": "stdout_contains", "value": "public=21 tune=7 holdout=14 sealed=7 excluded=8"},
+        {"type": "stdout_contains", "value": "dirty=5 clean=9 issues=5 protected=24 constraints=78"},
+        {"type": "stdout_contains", "value": "source selection: deterministic=true public_sealed_overlap=0 raw_pool=hash-bound"}
+      ]
+    },
+    {
       "id": "CORE-EVIDENCE-01",
       "category": "core_product_benchmark",
       "title": "Core scorer rejects fabricated verdicts and stale or unverified evidence",

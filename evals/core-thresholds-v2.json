@@ -1,0 +1,42 @@
+{
+  "schema": "unslop-core-thresholds-v1",
+  "frozen_at": "2026-08-04T21:30:01-07:00",
+  "frozen_before": "blind-current-luna-public-holdout-v2",
+  "statistical_scope": "Strict preregistered corpus point estimates and falsification gate. Five positive holdout spans are not a population-wide confidence claim; deterministic scanner recall and false-positive coverage is reported separately.",
+  "frozen_inputs": {
+    "public_benchmark_v2_sha256": "8cf3e5188fcd53258799782c5a9226c549e111c532ef5cddf6524fb68ae1f73c",
+    "shipping_contract_sha256": "3d333ada2121e345494642a9ea1adb52cf36d76dd736fe2247417478232c5ddc",
+    "core_runner_sha256": "17fff79480e2ef3bfe9e34f2e4a3fe51a57710f621c227995d9152c623201681",
+    "core_metrics_sha256": "b90ea24033ba1fbfcb14a3e81ee0269c730510b2ad725a35964732c6a5bac0c2",
+    "scanner_sha256": "dd220cdd4b55e1f3e736436972ac62633d56fb4dd0370e07f4feb55e70494c9a"
+  },
+  "with_skill": {
+    "minimum_detection_precision": 0.9,
+    "minimum_detection_recall": 0.9,
+    "minimum_repair_success": 0.9,
+    "minimum_preservation": 1.0,
+    "maximum_damage_rate": 0.0,
+    "minimum_net_improvement": 0.8,
+    "minimum_clean_noop_rate": 1.0
+  },
+  "comparison": {
+    "minimum_paired_win_rate": 0.5,
+    "maximum_without_skill_wins": 0,
+    "minimum_positive_quality_lifts": 1,
+    "quality_lifts": [
+      "detection_precision",
+      "detection_recall",
+      "repair_success",
+      "preservation",
+      "damage_rate_inverse",
+      "net_improvement",
+      "clean_noop_rate"
+    ]
+  },
+  "required_controls": {
+    "shipping_validation_clean": true,
+    "isolated_model_workspaces": true,
+    "independent_blinded_judge": "gpt-5.6-sol",
+    "generation_model_both_arms": "gpt-5.6-luna"
+  }
+}
