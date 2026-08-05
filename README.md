@@ -15,6 +15,30 @@ Detection carries the weight, and it's cheap, deterministic, and benchmarkable, 
 makes it the trust asset. Voice work is generative, and it runs under detection's constitution,
 so any mimic or rewrite that reintroduces a tell fails, however well it matches the voice.
 
+## What counts as proof
+
+UNSLOP's product claim is not the number of rules or passing repository checks. The core claim
+is narrower: on unfamiliar AI-generated or mixed prose, it should find genuine problems, repair
+them, and avoid damaging facts or already-good writing. The core benchmark therefore reports
+detection precision and recall, repair success, preservation, collateral-damage rate, and
+whole-document net improvement separately, plus byte-exact no-op behavior on clean prose. It
+also compares with the same Luna model
+working without the UNSLOP contract. See [`evals/CORE-BENCHMARK.md`](evals/CORE-BENCHMARK.md).
+The latest independent public result is a **no-ship**: UNSLOP materially improved recall and
+repair over plain Luna, but it did not yet meet the precision, damage, or whole-document safety
+bar. See [`evals/CORE-RESULTS.md`](evals/CORE-RESULTS.md) for the exact result and remaining
+failure modes.
+
+Results are divided into three scoreboards so supporting machinery cannot inflate the product
+result:
+
+- **Core product:** detection, repair, preservation, damage, and net improvement.
+- **Voice:** teach/mimic fidelity and its removal gates.
+- **Engineering:** scanner coverage, schemas, routing, caching, and repository regressions.
+
+The engineering suite can show that the implementation behaves as specified. Only the core
+scoreboard can show that the specification improves writing.
+
 ## Installation
 
 ### Using the Skills CLI (recommended)

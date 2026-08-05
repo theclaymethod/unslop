@@ -55,6 +55,14 @@
     "target": "rhetorical_question",
     "kind": "phrase"
   },
+  "constitutes_a": {
+    "target": "copula_avoidance",
+    "kind": "phrase"
+  },
+  "functions_as_a": {
+    "target": "copula_avoidance",
+    "kind": "phrase"
+  },
   "macro_coda": {
     "target": "conclusion_coda",
     "kind": "structure"

@@ -366,12 +366,11 @@ BANNED_PHRASES: dict[str, dict[str, str | None]] = {
     "studies show": {"category": "vague_attribution", "severity": "hard", "suggestion": "cite the study"},
     "research suggests": {"category": "vague_attribution", "severity": "hard", "suggestion": "cite the research"},
 
-    # Copula avoidance
-    # ("serves as a" / "stands as a" have literal-function senses (a room serves
-    # as a kitchen); the inflated significance use is matched in STRUCTURAL_PATTERNS.)
+    # Copula avoidance.  Literal/rule-language "constitutes a" and concrete
+    # component roles introduced by "functions as a" are gated in
+    # STRUCTURAL_PATTERNS below so ordinary domain prose is not treated as
+    # inflated significance language.
     "represents a": {"category": "copula_avoidance", "severity": "soft", "suggestion": "is a"},
-    "constitutes a": {"category": "copula_avoidance", "severity": "hard", "suggestion": "is a"},
-    "functions as a": {"category": "copula_avoidance", "severity": "hard", "suggestion": "is a"},
     "operates as a": {"category": "copula_avoidance", "severity": "hard", "suggestion": "is a"},
 
     # Communication artifacts
@@ -553,7 +552,7 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
     },
     # Jargon collocations: flag the business sense, spare the literal/financial one.
     {
-        "pattern": r"\bleverag(?:e|es|ed|ing)\s+(?:our\s+|your\s+|their\s+|its\s+|the\s+)?(?:synerg|core\s+compet|strength|expertise|capabilit|technolog|resource|data\b|ai\b|platform|ecosystem|network|power\s+of)",
+        "pattern": r"\bleverag(?:e|es|ed|ing)\s+(?:our\s+|your\s+|their\s+|its\s+|the\s+)?(?:synerg|core\s+compet|strength|expertise|capabilit|technolog|resource|data\b|ai\b|platform|ecosystem|network|audit\s+stream|power\s+of)",
         "category": "jargon",
         "severity": "hard",
         "suggestion": "use, apply"
@@ -706,6 +705,24 @@ STRUCTURAL_PATTERNS: list[dict[str, str]] = [
     # Inflated "serves/stands as a <significance noun>" (not "serves as a kitchen").
     {
         "pattern": r"\b(?:acts|serves|stands|stood)\s+as\s+(?:a|an|the)\s+(?:testament|reminder|symbol|beacon|foundation|cornerstone|gateway|catalyst|bridge|hub|springboard|window|monument|hallmark|blueprint|cautionary|stark|powerful|shining|prime example|case study|model for)\b",
+        "category": "copula_avoidance",
+        "severity": "hard",
+        "suggestion": "Use 'is', and state the specific fact."
+    },
+    # Inflated "constitutes a <significance noun>".  Bare legal/rule-language
+    # uses (for example, "constitutes a documented housing cost under rule 7")
+    # are ordinary domain prose and do not match this significance collocation.
+    {
+        "pattern": r"\bconstitutes\s+(?:a|an|the)\s+(?:(?:groundbreaking|transformative|trailblazing|seminal|revolutionary|landmark|pivotal|significant|major|key)\s+)?(?:transformation|breakthrough|milestone|achievement|innovation|advance|success|turning\s+point|cornerstone|testament|legacy|game[- ]changer)\b",
+        "category": "copula_avoidance",
+        "severity": "hard",
+        "suggestion": "Use 'is', and state the specific fact."
+    },
+    # Inflated "functions as a <abstract/significance noun>".  Concrete
+    # component roles (for example, "functions as a ceramic spacer") remain
+    # ordinary technical prose and do not match this significance collocation.
+    {
+        "pattern": r"\bfunctions\s+as\s+(?:a|an|the)\s+(?:(?:seamless|comprehensive|robust|transformative|groundbreaking|strategic|powerful|key|central|critical|all-in-one|single)\s+)?(?:solution|framework|platform|hub|bridge|catalyst|cornerstone|benchmark|testament|symbol|beacon|transformation|milestone|game[- ]changer)\b",
         "category": "copula_avoidance",
         "severity": "hard",
         "suggestion": "Use 'is', and state the specific fact."
@@ -1191,6 +1208,23 @@ def scan_for_violations(text: str, include_quoted: bool = False) -> list[Violati
         if phrase not in scan_text_lower:
             continue
         for match in _phrase_pattern_ci(phrase).finditer(scan_text):
+            tail = scan_text[match.end():]
+            if (
+                phrase == "robust"
+                and re.match(
+                    r"\s+(?:hash\s+verification|retry\s+mechanism|error\s+handling|test\s+suite)\b",
+                    tail,
+                    re.IGNORECASE,
+                )
+            ) or (
+                phrase == "comprehensive"
+                and re.match(
+                    r"\s+(?:visual\s+survey|needs\s+screen)\b",
+                    tail,
+                    re.IGNORECASE,
+                )
+            ):
+                continue
             pos = match.start()
             line_num, column, context = _line_col_context(
                 text, line_starts, pos, line_context_cache

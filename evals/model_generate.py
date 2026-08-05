@@ -50,7 +50,15 @@ import run_model_parity as parity  # noqa: E402
 CODEX_DEFAULT_TIMEOUT = 180
 
 
-def call_codex(model_id, prompt, timeout=CODEX_DEFAULT_TIMEOUT):
+def call_codex(
+    model_id,
+    prompt,
+    timeout=CODEX_DEFAULT_TIMEOUT,
+    *,
+    cwd=None,
+    isolated=False,
+    event_sink=None,
+):
     """Call the local Codex CLI (``codex exec``) and return its final message.
 
     Uses ``--output-last-message FILE`` to get the agent's clean prose turn
@@ -65,6 +73,10 @@ def call_codex(model_id, prompt, timeout=CODEX_DEFAULT_TIMEOUT):
     os.close(fd)
     cmd = ["codex", "exec", "--skip-git-repo-check", "--sandbox", "read-only",
            "--ephemeral", "-o", out_path]
+    if isolated:
+        if cwd is None:
+            raise ValueError("isolated Codex calls require an explicit empty working directory")
+        cmd += ["--ignore-user-config", "--ignore-rules", "--json", "-C", str(cwd)]
     if model_id:
         cmd += ["-m", model_id]
     cmd.append("-")  # read the prompt from stdin
@@ -77,7 +89,9 @@ def call_codex(model_id, prompt, timeout=CODEX_DEFAULT_TIMEOUT):
         except (FileNotFoundError, OSError) as e:
             return None, f"codex cli error: {e}"
         try:
-            _, stderr = proc.communicate(input=prompt, timeout=timeout)
+            stdout, stderr = proc.communicate(input=prompt, timeout=timeout)
+            if event_sink is not None:
+                event_sink.append(stdout)
         except subprocess.TimeoutExpired:
             try:
                 os.killpg(os.getpgid(proc.pid), signal.SIGKILL)

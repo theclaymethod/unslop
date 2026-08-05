@@ -58,6 +58,13 @@ SPLITS: dict[str, str] = {
     "SKILL-MACRO-01": "tune",
     "SKILL-TIER-01": "tune",
     "SKILL-TITLE-01": "tune",
+    "SKILL-BURSTINESS-01": "tune",
+    "SKILL-SILHOUETTE-01": "tune",
+    "SKILL-CONTEXT-AUDIT-01": "tune",
+    "SKILL-RELATIONAL-AUDIT-01": "tune",
+    "SKILL-OBSERVATION-01": "tune",
+    "SKILL-ATTRIBUTION-02": "tune",
+    "SKILL-OBSERVATION-02": "tune",
     # holdout — measure, do not tune
     "SKILL-DEHEDGE-02": "holdout",
     "SKILL-LIST-01": "holdout",
@@ -113,6 +120,13 @@ DOMAIN: dict[str, str] = {
     "SKILL-MACRO-02": "report",
     "SKILL-TIER-01": "legal",
     "SKILL-TITLE-01": "presentation",
+    "SKILL-BURSTINESS-01": "finance",
+    "SKILL-SILHOUETTE-01": "legal",
+    "SKILL-CONTEXT-AUDIT-01": "security",
+    "SKILL-RELATIONAL-AUDIT-01": "operations",
+    "SKILL-OBSERVATION-01": "safety",
+    "SKILL-ATTRIBUTION-02": "operations",
+    "SKILL-OBSERVATION-02": "operations",
 }
 
 # Difficulty is a coarse hint for reporting, not a gate.

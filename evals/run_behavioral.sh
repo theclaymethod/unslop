@@ -12,7 +12,7 @@ elif [[ -n "${2:-}" ]]; then
   echo "Usage: evals/run_behavioral.sh [tune|holdout|holdback] [--uncached]" >&2
   exit 2
 else
-  cache_mode="${UNSLOP_BEHAVIORAL_CACHE_MODE:-off}"
+  cache_mode="${UNSLOP_BEHAVIORAL_CACHE_MODE:-read-write}"
 fi
 
 if [[ "$split" == "holdback" && "${UNSLOP_CONFIRM_HOLDBACK:-}" != "1" ]]; then
@@ -26,12 +26,11 @@ esac
 
 run_root="${UNSLOP_BEHAVIORAL_RUN_ROOT:-runs}"
 cache_dir="${UNSLOP_BEHAVIORAL_CACHE_DIR:-${run_root}/.cache/behavioral}"
-cache_identity="${UNSLOP_BEHAVIORAL_CACHE_IDENTITY:-}"
+automatic_identity="behavioral-$(shasum -a 256 \
+  evals/run_local.py evals/model_generate.py evals/cache_judge.py \
+  | shasum -a 256 | cut -d ' ' -f 1)"
+cache_identity="${UNSLOP_BEHAVIORAL_CACHE_IDENTITY:-$automatic_identity}"
 judge_identity="${UNSLOP_BEHAVIORAL_JUDGE_IDENTITY:-$cache_identity}"
-if [[ "$cache_mode" != "off" && ( -z "$cache_identity" || -z "$judge_identity" ) ]]; then
-  echo "cache mode requires UNSLOP_BEHAVIORAL_CACHE_IDENTITY (and optionally UNSLOP_BEHAVIORAL_JUDGE_IDENTITY)" >&2
-  exit 2
-fi
 
 # The behavioral acceptance provider is intentionally pinned. Generation is
 # dispatched by run_local with argv-safe provider selection; uncached judging

@@ -6857,7 +6857,7 @@
         "python3",
         "scripts/banned_phrase_scan.py"
       ],
-      "stdin": "During the weekly review meeting the analyst mentioned experts argue and the group moved on to the next agenda item.\nThe consultant wrote that industry reports suggest before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating many believe while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged it is widely regarded and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned according to experts and the group moved on to the next agenda item.\nThe consultant wrote that observers note before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating research suggests while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged represents a and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned constitutes a and the group moved on to the next agenda item.\nThe consultant wrote that functions as a before summarizing the quarterly figures for the assembled department heads.",
+      "stdin": "During the weekly review meeting the analyst mentioned experts argue and the group moved on to the next agenda item.\nThe consultant wrote that industry reports suggest before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating many believe while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged it is widely regarded and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned according to experts and the group moved on to the next agenda item.\nThe consultant wrote that observers note before summarizing the quarterly figures for the assembled department heads.\nMy colleague kept repeating research suggests while we worked through the long backlog of support tickets together.\nSomewhere in the middle of the draft the editor flagged represents a and asked for a plainer rewrite instead.\nDuring the weekly review meeting the analyst mentioned constitutes a groundbreaking transformation and the group moved on to the next agenda item.\nThe consultant wrote that functions as a seamless solution before summarizing the quarterly figures for the assembled department heads.",
       "failure_mode": "Catalogued banned phrases with no eval row can be silently dropped from BANNED_PHRASES with every gate green.",
       "correct_behavior": "Every phrase in the pack is flagged by the scanner.",
       "assertions": [
@@ -13114,6 +13114,229 @@
       ]
     },
     {
+      "id": "FP-93",
+      "category": "scanner_false_positive",
+      "protects": "jargon",
+      "title": "Robust hash verification is a concrete security procedure",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "The signing service performed robust hash verification on the replacement token.",
+      "failure_mode": "A context-free single-word ban treats a precise security property as vague business puffery.",
+      "correct_behavior": "No violations: robust modifies a concrete verification procedure in technical register.",
+      "assertions": [{"type": "json", "path": "total_violations", "equals": 0}]
+    },
+    {
+      "id": "REC-54",
+      "category": "scanner_recall",
+      "title": "Robust still flags in vague promotional collocations",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "Our robust solution unlocks seamless value for every stakeholder.",
+      "failure_mode": "Protecting concrete technical uses can accidentally suppress the vague promotional use.",
+      "correct_behavior": "Robust solution remains a jargon candidate.",
+      "assertions": [{"type": "violation_phrase_contains", "value": "robust"}]
+    },
+    {
+      "id": "FP-94",
+      "category": "scanner_false_positive",
+      "protects": "jargon",
+      "title": "Comprehensive survey and needs screen are domain-valid terms",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "The engineer completed a comprehensive visual survey. Intake staff completed a comprehensive needs screen for families with infants.",
+      "failure_mode": "A context-free single-word ban marks named inspection and safeguarding procedures as AI jargon.",
+      "correct_behavior": "No violations: both uses modify concrete domain procedures.",
+      "assertions": [{"type": "json", "path": "total_violations", "equals": 0}]
+    },
+    {
+      "id": "REC-55",
+      "category": "scanner_recall",
+      "title": "Comprehensive still flags in vague promotional collocations",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "This comprehensive solution transforms the customer journey.",
+      "failure_mode": "Protecting concrete domain procedures can accidentally suppress vague promotional use.",
+      "correct_behavior": "Comprehensive solution remains a jargon candidate.",
+      "assertions": [{"type": "violation_phrase_contains", "value": "comprehensive"}]
+    },
+    {
+      "id": "REC-56",
+      "category": "scanner_recall",
+      "title": "Leverage an audit stream remains a jargon collocation",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "Engineers will leverage the audit stream to review sessions.",
+      "failure_mode": "The leverage collocation gate omits another abstract resource and misses ordinary business jargon.",
+      "correct_behavior": "Leverage the audit stream remains a jargon candidate while financial leverage stays protected.",
+      "assertions": [{"type": "violation_phrase_contains", "value": "leverage the audit stream"}]
+    },
+    {
+      "id": "FN-32",
+      "category": "scanner_false_negative",
+      "title": "Inflated 'constitutes a groundbreaking transformation' still flags",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "The launch constitutes a groundbreaking transformation for every customer.",
+      "failure_mode": "Context-gating a legal or rule-language use must not suppress the inflated copula tell.",
+      "correct_behavior": "Flags the inflated copula as copula_avoidance.",
+      "assertions": [
+        {"type": "json", "path": "total_violations", "gte": 1},
+        {"type": "violation_category_equals", "value": "copula_avoidance"},
+        {"type": "violation_phrase_contains", "value": "constitutes a"}
+      ]
+    },
+    {
+      "id": "FP-95",
+      "category": "scanner_false_positive",
+      "protects": "copula_avoidance",
+      "title": "Legal 'constitutes a documented housing cost' is literal rule language",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "The lease constitutes a documented housing cost under rule 7.",
+      "failure_mode": "A context-free copula ban damages legal and benefits-review language that states what a record establishes under a rule.",
+      "correct_behavior": "No violations: 'constitutes a documented housing cost under rule 7' is literal rule language.",
+      "assertions": [{"type": "json", "path": "total_violations", "equals": 0}]
+    },
+    {
+      "id": "REC-57",
+      "category": "scanner_recall",
+      "title": "Constitutes remains a copula tell in promotional significance prose",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "This launch constitutes a groundbreaking transformation for the customer journey.",
+      "failure_mode": "Protecting literal legal uses can accidentally suppress the inflated significance use.",
+      "correct_behavior": "The promotional 'constitutes a groundbreaking transformation' collocation remains a copula_avoidance candidate.",
+      "assertions": [{"type": "violation_phrase_contains", "value": "constitutes a"}]
+    },
+    {
+      "id": "PAIR-15a",
+      "category": "paired_paragraph",
+      "title": "constitutes_a with twin flags inflated copula while sparing legal clause",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py",
+        "evals/fixtures/pairs/constitutes_a_with.txt"
+      ],
+      "failure_mode": "The contextual copula pair must flag only the promotional significance use, not the legal rule-language use.",
+      "correct_behavior": "At least one copula_avoidance violation for the inflated transformation clause.",
+      "assertions": [
+        {"type": "json", "path": "total_violations", "gte": 1},
+        {"type": "violation_category_equals", "value": "copula_avoidance"}
+      ]
+    },
+    {
+      "id": "PAIR-15b",
+      "category": "paired_paragraph",
+      "title": "constitutes_a without twin is phrase-clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py",
+        "evals/fixtures/pairs/constitutes_a_without.txt"
+      ],
+      "failure_mode": "The clean twin must retain the literal legal use without inheriting a copula violation.",
+      "correct_behavior": "No banned phrase violations.",
+      "assertions": [{"type": "json", "path": "total_violations", "equals": 0}]
+    },
+    {
+      "id": "PAIR-15c",
+      "category": "paired_paragraph",
+      "title": "constitutes_a without twin is structure-clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py",
+        "evals/fixtures/pairs/constitutes_a_without.txt"
+      ],
+      "failure_mode": "The clean twin should remain free of unrelated structure flags.",
+      "correct_behavior": "Structure scanner exits clean.",
+      "assertions": [{"type": "exit_code", "equals": 0}]
+    },
+    {
+      "id": "FN-33",
+      "category": "scanner_false_negative",
+      "title": "Inflated 'functions as a seamless solution' still flags",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "The platform functions as a seamless solution for every team.",
+      "failure_mode": "Context-gating a concrete technical role must not suppress vague promotional copula language.",
+      "correct_behavior": "Flags the inflated copula as copula_avoidance.",
+      "assertions": [
+        {"type": "json", "path": "total_violations", "gte": 1},
+        {"type": "violation_category_equals", "value": "copula_avoidance"},
+        {"type": "violation_phrase_contains", "value": "functions as a"}
+      ]
+    },
+    {
+      "id": "FP-96",
+      "category": "scanner_false_positive",
+      "protects": "copula_avoidance",
+      "title": "Concrete 'functions as a ceramic spacer' is a technical role",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "The insert functions as a ceramic spacer inside the housing.",
+      "failure_mode": "A context-free copula ban damages precise component descriptions in technical prose.",
+      "correct_behavior": "No violations: 'functions as a ceramic spacer' names a concrete mechanical role.",
+      "assertions": [{"type": "json", "path": "total_violations", "equals": 0}]
+    },
+    {
+      "id": "REC-58",
+      "category": "scanner_recall",
+      "title": "Functions remains a copula tell in vague framework prose",
+      "target": "script",
+      "command": ["python3", "scripts/banned_phrase_scan.py"],
+      "stdin": "The program functions as a strategic framework for customer transformation.",
+      "failure_mode": "Protecting concrete component roles can accidentally suppress inflated framework and transformation language.",
+      "correct_behavior": "The vague 'functions as a strategic framework' collocation remains a copula_avoidance candidate.",
+      "assertions": [{"type": "violation_phrase_contains", "value": "functions as a"}]
+    },
+    {
+      "id": "PAIR-16a",
+      "category": "paired_paragraph",
+      "title": "functions_as_a with twin flags vague copula while sparing ceramic component",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py",
+        "evals/fixtures/pairs/functions_as_a_with.txt"
+      ],
+      "failure_mode": "The contextual copula pair must flag the vague framework use, not the concrete technical role.",
+      "correct_behavior": "At least one copula_avoidance violation for the framework clause.",
+      "assertions": [
+        {"type": "json", "path": "total_violations", "gte": 1},
+        {"type": "violation_category_equals", "value": "copula_avoidance"}
+      ]
+    },
+    {
+      "id": "PAIR-16b",
+      "category": "paired_paragraph",
+      "title": "functions_as_a without twin is phrase-clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/banned_phrase_scan.py",
+        "evals/fixtures/pairs/functions_as_a_without.txt"
+      ],
+      "failure_mode": "The clean twin must retain the concrete component role without inheriting a copula violation.",
+      "correct_behavior": "No banned phrase violations.",
+      "assertions": [{"type": "json", "path": "total_violations", "equals": 0}]
+    },
+    {
+      "id": "PAIR-16c",
+      "category": "paired_paragraph",
+      "title": "functions_as_a without twin is structure-clean",
+      "target": "script",
+      "command": [
+        "python3",
+        "scripts/structure_scan.py",
+        "evals/fixtures/pairs/functions_as_a_without.txt"
+      ],
+      "failure_mode": "The clean twin should remain free of unrelated structure flags.",
+      "correct_behavior": "Structure scanner exits clean.",
+      "assertions": [{"type": "exit_code", "equals": 0}]
+    },
+    {
       "id": "CACHE-LOCAL-01",
       "category": "harness_cache",
       "title": "Luna generation cache hits only the immutable baseline and extracts clean Codex finals",
@@ -13165,7 +13388,7 @@
         "evals/fixtures/cache/check_behavioral_luna.py"
       ],
       "failure_mode": "The lower-level generator test can stay green while run_behavioral.sh routes generation or either judge branch back to Claude, selects a different Codex model, or writes its probe artifacts over a real run.",
-      "correct_behavior": "The canonical wrapper selects gpt-5.6-luna for generation and judging in both uncached and read-write cache modes, never calls Claude, and supports an isolated run root for the probe.",
+      "correct_behavior": "The canonical wrapper uses the safe read-write cache by default, selects gpt-5.6-luna for generation and judging in both default and explicit uncached modes, never calls Claude, and supports an isolated run root for the probe.",
       "assertions": [
         {
           "type": "exit_code",
@@ -13216,6 +13439,385 @@
         {
           "type": "stdout_contains",
           "value": "cached_valid_output=true"
+        }
+      ]
+    },
+    {
+      "id": "CORE-METRICS-01",
+      "category": "core_product_benchmark",
+      "title": "Core benchmark reports detection, repair, preservation, damage, and improvement separately",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/fixtures/core/check_metrics.py"
+      ],
+      "failure_mode": "A broad binary pass rate can hide missed AI tells, false alarms, failed repairs, or collateral damage and therefore cannot establish that UNSLOP improves AI-generated prose.",
+      "correct_behavior": "A span-annotated fixture is scored into separate detection precision/recall, repair success, preservation, collateral-damage, whole-document improvement, and clean-document no-op metrics. Clean cases do not dilute the improvement denominator.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "detection_precision=0.666667 detection_recall=1.000000"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "repair_success=0.500000 preservation=1.000000 damage_rate=0.500000"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "net_improvement=0.500000"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "clean_noop_rate=1.000000"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "deterministic_overrides=2"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "shotgun_rejected=true"
+        }
+      ]
+    },
+    {
+      "id": "CORE-RUNNER-01",
+      "category": "core_product_benchmark",
+      "title": "Core runner produces complete Luna and no-skill evidence without opening holdback",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/fixtures/core/check_runner.py"
+      ],
+      "failure_mode": "The scorecard can be populated by hand, omit failed arms, leak gold annotations into generation, or accidentally open the sealed holdback instead of measuring the actual diagnosis-to-rewrite pipeline.",
+      "correct_behavior": "Offline model fixtures exercise both arms through the same runner contract; outputs include one canonical copy of raw generation, validation, and independent adjudication evidence per case, compact run references and provenance, complete runs, and a holdback confirmation gate.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "arms=with_skill,without_skill runs=2"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "raw_evidence=true provenance=true"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "judge_blind=true"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "normalized_offsets=true"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "judge_model=gpt-5.6-sol judge_has_findings=false"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "judge_has_gold_semantics=true"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "shipping_contract=true post_validation=true"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "source_diagnostics=true"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "contextual_audit_prompt=true"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "change_coverage=true"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "semantic_blind_pass=true"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "isolated_calls=true"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "blocking_validation=true"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "soft_burstiness_advisory=true"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "preservation_warning_advisory=true"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "attribution_polarity_guard=true"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "soft_silhouette_advisory=true"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "empty_findings_noop=true"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "canonical_evidence=true"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "holdback_sealed=true"
+        }
+      ]
+    },
+    {
+      "id": "CORE-MANIFEST-01",
+      "category": "core_product_benchmark",
+      "title": "Core corpus keeps valid spans, split boundaries, provenance, and scanner annotation parity",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/check_core_benchmark.py"
+      ],
+      "failure_mode": "A malformed or self-contradictory corpus can report impressive metrics while using stale offsets, unannotated scanner hits, missing split coverage, or sources with unknown provenance.",
+      "correct_behavior": "The committed Luna-generated public corpus has valid disjoint annotations, two tune and four public holdout cases, both required arms, explicit provenance, at least one clean no-op document, and every deterministic scanner finding maps to a gold issue or protected contextual use. No holdback source is committed.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "core benchmark: 6 public cases; tune=2 holdout=4 holdback=0; scanner parity OK"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "contextual scanner false positives: tune>=1 holdout>=1"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "sealed holdback: 4 cases; sources_committed=false; metadata_hash=valid"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "scanner-independent gold issues: tune>=1 holdout>=1"
+        }
+      ]
+    },
+    {
+      "id": "CORE-EVIDENCE-01",
+      "category": "core_product_benchmark",
+      "title": "Core scorer rejects fabricated verdicts and stale or unverified evidence",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/fixtures/core/check_evidence.py"
+      ],
+      "failure_mode": "A caller can submit an unchanged rewrite, arbitrary findings or all-true booleans, and edit the normalized evidence copy while leaving the raw model response, judge prompt, and validation untouched to manufacture perfect metrics.",
+      "correct_behavior": "Acceptance scoring recomputes canonical generation data from the raw response, binds the judge prompt and validation hashes to the scored rewrites, and verifies pinned models, source/component hashes, blind-arm mapping, and adjudication consistency; correlated and stale forgeries are rejected.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "valid_runner_artifact=accepted"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "forged_artifact=rejected stale_artifact=rejected"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "correlated_rewrite=rejected correlated_findings=rejected"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "tool_call_event=rejected"
+        }
+      ]
+    },
+    {
+      "id": "CORE-ACCEPTANCE-01",
+      "category": "core_product_benchmark",
+      "title": "Frozen core acceptance gate rejects stale hashes and model-control forgery",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/fixtures/core/check_acceptance.py"
+      ],
+      "failure_mode": "A passing score file can be accepted after the benchmark, runner, shipping contract, or metrics implementation changed, or after evidence silently switches away from Luna and the independent judge.",
+      "correct_behavior": "The acceptance gate verifies every frozen SHA-256 input, recomputes the score from raw evidence, enforces absolute and paired thresholds, and rejects mutated hashes or model/isolation controls.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "valid_acceptance=accepted"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "mutated_frozen_hash=rejected"
+        },
+        {
+          "type": "stdout_contains",
+          "value": "mutated_model_control=rejected"
+        }
+      ]
+    },
+    {
+      "id": "SKILL-BURSTINESS-01",
+      "category": "do_no_harm",
+      "title": "An isolated soft cadence warning does not force a formal rewrite",
+      "target": "skill",
+      "prompt": "Humanize this finance note while preserving every fact: The reserve held $4.2 million at quarter-end. The treasury desk settled all obligations by Friday. The audit committee received the signed schedule on Monday.",
+      "failure_mode": "The validation doctrine treats one soft sentence-burstiness heuristic as an automatic blocker and forces needless cadence edits to already-clear formal prose.",
+      "correct_behavior": "Leave the clear formal note unchanged or make only a trivial local edit. Do not invent filler, merge facts, or vary sentence length merely to satisfy an isolated soft metric.",
+      "assertions": [
+        {
+          "type": "judge",
+          "check": "All three facts, dates, amount, and formal register remain intact, with no invented detail or wholesale reconstruction."
+        },
+        {
+          "type": "judge",
+          "check": "The answer does not add filler or visibly distort cadence merely to create sentence-length variance."
+        }
+      ]
+    },
+    {
+      "id": "SKILL-SILHOUETTE-01",
+      "category": "do_no_harm",
+      "title": "An uncorroborated soft silhouette score does not force a formal memo rewrite",
+      "target": "skill",
+      "prompt": "Humanize this procurement note without changing its facts or recommendation: The committee reviewed invoice 4471 under section 5.2. Three signed change orders authorize weekend inspection work at $165 per hour. The April order caps travel at $900. Approve $6,940 and withhold the unsupported $480 until its receipt arrives.",
+      "failure_mode": "A statistical resemblance to a preview-and-fulfill silhouette becomes an automatic blocker even when no concrete structure detector corroborates it, forcing needless reconstruction of concise formal prose.",
+      "correct_behavior": "Keep the concise legal-procurement note unchanged or make only local wording edits. Preserve every amount, instrument, section reference, and payment recommendation.",
+      "assertions": [
+        {
+          "type": "judge",
+          "check": "The answer preserves invoice 4471, section 5.2, three signed change orders, weekend inspection work, $165 per hour, the $900 travel cap, approval of $6,940, and withholding $480 pending a receipt."
+        },
+        {
+          "type": "judge",
+          "check": "The answer stays a concise formal procurement note and does not add an outline preview, recap, headings, filler, or a wholesale structural reconstruction."
+        }
+      ]
+    },
+    {
+      "id": "SKILL-CONTEXT-AUDIT-01",
+      "category": "contextual_diagnosis",
+      "title": "Find contradictions before soft phrase candidates and preserve domain-valid wording",
+      "target": "skill",
+      "prompt": "Humanize this incident note without changing verified facts: Access logs show 23 customer records exported between 02:06 and 02:11. The signing service performed robust hash verification on the replacement token. The draft alert says no customer data was accessed. Until the exported IDs are compared with account logs, the team cannot determine whether the records contained personal information or test data.",
+      "failure_mode": "Scanner steering makes the rewrite attack a domain-valid soft adjective while missing the direct contradiction between the export log and the draft alert.",
+      "correct_behavior": "Correct or qualify the false no-access statement, preserve robust hash verification as valid technical wording, and retain every time, count, token, and uncertainty boundary.",
+      "assertions": [
+        {
+          "type": "judge",
+          "check": "The answer resolves or explicitly qualifies the contradiction between 23 exported records and the draft claim that no customer data was accessed."
+        },
+        {
+          "type": "judge",
+          "check": "The answer preserves 23 records, 02:06-02:11, the replacement token, robust hash verification, the account-log comparison, and the unresolved personal-information-versus-test-data distinction."
+        },
+        {
+          "type": "judge",
+          "check": "The answer makes only the smallest necessary edits and does not rewrite already-clear sentences merely for style."
+        }
+      ]
+    },
+    {
+      "id": "SKILL-RELATIONAL-AUDIT-01",
+      "category": "contextual_diagnosis",
+      "title": "Audit attributed conflicts, distinct counts, and scope claims",
+      "target": "skill",
+      "prompt": "Humanize this operations note while preserving what each record actually says: The field sheet reports 42 mm at C3 and 28 mm at C4, but the draft summary lists 28 mm at C3 and 42 mm at C4. The dashboard reports 164 distinct guests, although four names remain unreconciled. The coordinator said every district resident was reached, but the queue covers only this center.",
+      "failure_mode": "A surface cleanup silently changes what an attributed draft reported, accepts an unsupported distinct count, or leaves a universal scope claim that the evidence cannot support.",
+      "correct_behavior": "Name all three conflicts without rewriting history: preserve the field-sheet values and the fact that the draft reversed them; qualify the distinct count; reject district-wide reach from one center's queue.",
+      "assertions": [
+        {
+          "type": "judge",
+          "check": "The answer identifies the C3/C4 reversal while preserving that the field sheet says 42/28 and the draft summary actually listed 28/42; it does not silently alter the attributed draft record."
+        },
+        {
+          "type": "judge",
+          "check": "The answer does not present 164 as a verified distinct-guest count while four names remain unreconciled."
+        },
+        {
+          "type": "judge",
+          "check": "The answer does not infer that every district resident was reached from a queue limited to one center."
+        }
+      ]
+    },
+    {
+      "id": "SKILL-OBSERVATION-01",
+      "category": "do_no_harm",
+      "title": "An uncontradicted safety observation is evidence, not an unsupported claim",
+      "target": "skill",
+      "prompt": "Audit and humanize this closeout note: The supervisor inspected the dry line at 22:05 and signed the release. I returned the sample kit to the lab cabinet. No tools or loose fasteners remained inside the guard.",
+      "failure_mode": "The semantic audit invents an evidence burden and weakens a clear first-person safety record because it lacks a second statement proving the observation.",
+      "correct_behavior": "Leave the short operational record unchanged; all three statements are direct, internally consistent observations or completed actions.",
+      "assertions": [
+        {
+          "type": "judge",
+          "check": "The answer preserves the 22:05 inspection and signed release, return of the sample kit, and the statement that no tools or loose fasteners remained."
+        },
+        {
+          "type": "judge",
+          "check": "The answer does not add doubt, disclaimers, evidence demands, or unsupported-claim language to this internally consistent record."
+        }
+      ]
+    },
+    {
+      "id": "SKILL-ATTRIBUTION-02",
+      "category": "preservation",
+      "title": "Preserve an attributed universal claim while stating contradictory evidence separately",
+      "target": "skill",
+      "prompt": "Audit and humanize this evacuation note without changing what anyone reportedly said: The incident commander said every household in Zones 3 and 4 had received the order. The radio log contains no confirmation for 19 addresses. The evacuation was complete.",
+      "failure_mode": "The rewrite fixes the unsupported conclusion by flipping the polarity of the commander's attributed statement, changing the historical record from said every to said not every.",
+      "correct_behavior": "Preserve exactly that the commander said every household received the order, state separately that the radio log leaves 19 addresses unconfirmed, and qualify the completion conclusion.",
+      "assertions": [
+        {
+          "type": "judge",
+          "check": "The answer preserves that the incident commander said every household in Zones 3 and 4 had received the order; it does not claim that the commander said not every household was confirmed."
+        },
+        {
+          "type": "judge",
+          "check": "The answer separately preserves the radio log's lack of confirmation for 19 addresses and does not endorse the evacuation as complete."
+        }
+      ]
+    },
+    {
+      "id": "SKILL-OBSERVATION-02",
+      "category": "do_no_harm",
+      "title": "Do not invent a contradiction in an unchallenged reviewer observation",
+      "target": "skill",
+      "prompt": "Audit and humanize this eligibility note: The reviewer is missing the corrected wage total and is using the wrong household member for the start date. Reconcile the pay stub and applicant statement before deciding eligibility.",
+      "failure_mode": "The semantic audit treats a direct, uncontradicted operational observation as unsupported blame and silently changes the responsible actor from the reviewer to the worksheet.",
+      "correct_behavior": "Preserve the reviewer attribution and the two concrete defects. Make no factual correction unless the source supplies conflicting evidence.",
+      "assertions": [
+        {
+          "type": "judge",
+          "check": "The answer preserves that the reviewer is missing the corrected wage total and using the wrong household member for the start date; it does not transfer those actions to a worksheet or another actor."
+        },
+        {
+          "type": "judge",
+          "check": "The answer retains the instruction to reconcile the pay stub and applicant statement before deciding eligibility and adds no unsupported doubt or blame."
         }
       ]
     },

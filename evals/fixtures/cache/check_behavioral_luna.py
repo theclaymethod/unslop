@@ -72,12 +72,7 @@ def _run(root: Path, env: dict[str, str], cached: bool) -> None:
     run_root = root / ("cached" if cached else "uncached")
     command = ["bash", "evals/run_behavioral.sh", "tune"]
     current = dict(env, UNSLOP_BEHAVIORAL_RUN_ROOT=str(run_root))
-    if cached:
-        current.update(
-            UNSLOP_BEHAVIORAL_CACHE_MODE="read-write",
-            UNSLOP_BEHAVIORAL_CACHE_IDENTITY="luna-wrapper-v1",
-        )
-    else:
+    if not cached:
         command.append("--uncached")
     proc = subprocess.run(command, cwd=ROOT, env=current, capture_output=True, text=True)
     if proc.returncode:

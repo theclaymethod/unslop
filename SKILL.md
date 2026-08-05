@@ -105,6 +105,34 @@ Read one preset from `presets/` before writing.
   not support.
 - Do not replace AI slop with anti-slop register: "Not X. Y.", forced punch
   endings, or runs of tiny fragments.
+- Diagnosis authorizes the edit. If no genuine issue is found, return the source
+  unchanged; do not make unexplained stylistic substitutions.
+- Diagnose meaning before phrases: compare repeated values, claims, scopes, and
+  conclusions for contradictions, swapped facts, unsupported absolutes, or
+  conclusions that outrun the evidence. Phrase-scanner candidates come second.
+- Audit quantified labels such as "no," "every," "all," "distinct," and
+  "unrestricted" against nearby exceptions or incomplete coverage. When a
+  source reports an incorrect claim made by another draft, dashboard, or
+  speaker, preserve what was actually reported and name the conflict; do not
+  silently rewrite the attributed record as though it had been correct. Keep
+  the attributed proposition intact (including its polarity and quantifier),
+  then state the conflicting evidence or qualification separately.
+- For contradictions or unsupported claims, diagnose the claim-bearing clause
+  (including its subject and reporting verb when needed), not the separate
+  evidence sentence that disproves it. Directly withdraw or qualify an unsafe,
+  universal, or unverified label; appending "but" while leaving the assertion
+  standing is not a repair.
+- Treat uncontradicted operational observations, completed procedures, and
+  first-person records as source facts. Do not demand a second citation merely
+  because the document does not narrate its proof. A semantic defect needs an
+  internal contradiction, an extrapolation beyond the measured population, or
+  a conclusion beyond an explicit limit. Do not transfer an uncontradicted
+  action from a named person to a document, system, or different actor.
+- Treat a soft single-word candidate as protected when it names a concrete
+  domain procedure, test, inspection, control, or measurement. Require a
+  specific contextual defect before editing it.
+- Rewrite surgically. Copy sentences without findings byte-for-byte, in their
+  original order and paragraph; do not polish adjacent good prose.
 
 ## Register Guards
 
@@ -141,11 +169,13 @@ Blocking output failures:
 - Any hard banned-phrase hit.
 - Any `anti_slop_register` hit, even if soft.
 - Any `structure_scan.py` flag unless the actual genre justifies `--genre docs` or
-  `--genre social`.
-- Any `silhouette_scan.py` flag (`silhouette_penalty >= 1.0`) unless the genre
-  justifies it: `--genre docs` retains the outline-following tell
-  (`heading_preview`) because reference docs still should not read as a
-  preview-then-fulfill template.
+  `--genre social`. An isolated soft `sentence_burstiness` warning is advisory:
+  block only when the cadence is visibly mechanical or another structure or
+  staccato finding corroborates it.
+- A `silhouette_scan.py` flag (`silhouette_penalty >= 1.0`) when a concrete
+  structure finding corroborates it or the silhouette finding is not soft. An
+  uncorroborated soft silhouette score is advisory: it is a statistical
+  resemblance, not proof that concise formal prose needs reconstruction.
 - Preservation warnings that show a dropped or changed negation, hedge, scope
   word, number, date, name, quote, URL, unit, or code identifier. The default
   gate warns without failing; run `validate_preservation.py --strict` for legal,

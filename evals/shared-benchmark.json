@@ -1694,6 +1694,272 @@
       ]
     },
     {
+      "id": "SKILL-BURSTINESS-01",
+      "split": "tune",
+      "kind": "do_no_harm",
+      "domain": "finance",
+      "difficulty": "hard",
+      "trigger_type": "explicit",
+      "success_goals": [
+        "An isolated soft cadence warning does not force a formal rewrite"
+      ],
+      "prompt": "Humanize this finance note while preserving every fact: The reserve held $4.2 million at quarter-end. The treasury desk settled all obligations by Friday. The audit committee received the signed schedule on Monday.",
+      "expected_behavior": [
+        "Leave the clear formal note unchanged or make only a trivial local edit. Do not invent filler, merge facts, or vary sentence length merely to satisfy an isolated soft metric."
+      ],
+      "assertions": [
+        {
+          "name": "skill-burstiness-01-judge-1",
+          "type": "judge",
+          "rubric": [
+            "All three facts, dates, amount, and formal register remain intact, with no invented detail or wholesale reconstruction."
+          ]
+        },
+        {
+          "name": "skill-burstiness-01-judge-2",
+          "type": "judge",
+          "rubric": [
+            "The answer does not add filler or visibly distort cadence merely to create sentence-length variance."
+          ]
+        }
+      ],
+      "tags": [
+        "do_no_harm",
+        "adversarial",
+        "failure_mode:The validation doctrine treats one soft sentence-burstiness "
+      ]
+    },
+    {
+      "id": "SKILL-SILHOUETTE-01",
+      "split": "tune",
+      "kind": "do_no_harm",
+      "domain": "legal",
+      "difficulty": "hard",
+      "trigger_type": "explicit",
+      "success_goals": [
+        "An uncorroborated soft silhouette score does not force a formal memo rewrite"
+      ],
+      "prompt": "Humanize this procurement note without changing its facts or recommendation: The committee reviewed invoice 4471 under section 5.2. Three signed change orders authorize weekend inspection work at $165 per hour. The April order caps travel at $900. Approve $6,940 and withhold the unsupported $480 until its receipt arrives.",
+      "expected_behavior": [
+        "Keep the concise legal-procurement note unchanged or make only local wording edits. Preserve every amount, instrument, section reference, and payment recommendation."
+      ],
+      "assertions": [
+        {
+          "name": "skill-silhouette-01-judge-1",
+          "type": "judge",
+          "rubric": [
+            "The answer preserves invoice 4471, section 5.2, three signed change orders, weekend inspection work, $165 per hour, the $900 travel cap, approval of $6,940, and withholding $480 pending a receipt."
+          ]
+        },
+        {
+          "name": "skill-silhouette-01-judge-2",
+          "type": "judge",
+          "rubric": [
+            "The answer stays a concise formal procurement note and does not add an outline preview, recap, headings, filler, or a wholesale structural reconstruction."
+          ]
+        }
+      ],
+      "tags": [
+        "do_no_harm",
+        "adversarial",
+        "failure_mode:A statistical resemblance to a preview-and-fulfill silhouett"
+      ]
+    },
+    {
+      "id": "SKILL-CONTEXT-AUDIT-01",
+      "split": "tune",
+      "kind": "contextual_diagnosis",
+      "domain": "security",
+      "difficulty": "hard",
+      "trigger_type": "explicit",
+      "success_goals": [
+        "Find contradictions before soft phrase candidates and preserve domain-valid wording"
+      ],
+      "prompt": "Humanize this incident note without changing verified facts: Access logs show 23 customer records exported between 02:06 and 02:11. The signing service performed robust hash verification on the replacement token. The draft alert says no customer data was accessed. Until the exported IDs are compared with account logs, the team cannot determine whether the records contained personal information or test data.",
+      "expected_behavior": [
+        "Correct or qualify the false no-access statement, preserve robust hash verification as valid technical wording, and retain every time, count, token, and uncertainty boundary."
+      ],
+      "assertions": [
+        {
+          "name": "skill-context-audit-01-judge-1",
+          "type": "judge",
+          "rubric": [
+            "The answer resolves or explicitly qualifies the contradiction between 23 exported records and the draft claim that no customer data was accessed."
+          ]
+        },
+        {
+          "name": "skill-context-audit-01-judge-2",
+          "type": "judge",
+          "rubric": [
+            "The answer preserves 23 records, 02:06-02:11, the replacement token, robust hash verification, the account-log comparison, and the unresolved personal-information-versus-test-data distinction."
+          ]
+        },
+        {
+          "name": "skill-context-audit-01-judge-3",
+          "type": "judge",
+          "rubric": [
+            "The answer makes only the smallest necessary edits and does not rewrite already-clear sentences merely for style."
+          ]
+        }
+      ],
+      "tags": [
+        "contextual_diagnosis",
+        "adversarial",
+        "failure_mode:Scanner steering makes the rewrite attack a domain-valid sof"
+      ]
+    },
+    {
+      "id": "SKILL-RELATIONAL-AUDIT-01",
+      "split": "tune",
+      "kind": "contextual_diagnosis",
+      "domain": "operations",
+      "difficulty": "hard",
+      "trigger_type": "explicit",
+      "success_goals": [
+        "Audit attributed conflicts, distinct counts, and scope claims"
+      ],
+      "prompt": "Humanize this operations note while preserving what each record actually says: The field sheet reports 42 mm at C3 and 28 mm at C4, but the draft summary lists 28 mm at C3 and 42 mm at C4. The dashboard reports 164 distinct guests, although four names remain unreconciled. The coordinator said every district resident was reached, but the queue covers only this center.",
+      "expected_behavior": [
+        "Name all three conflicts without rewriting history: preserve the field-sheet values and the fact that the draft reversed them; qualify the distinct count; reject district-wide reach from one center's queue."
+      ],
+      "assertions": [
+        {
+          "name": "skill-relational-audit-01-judge-1",
+          "type": "judge",
+          "rubric": [
+            "The answer identifies the C3/C4 reversal while preserving that the field sheet says 42/28 and the draft summary actually listed 28/42; it does not silently alter the attributed draft record."
+          ]
+        },
+        {
+          "name": "skill-relational-audit-01-judge-2",
+          "type": "judge",
+          "rubric": [
+            "The answer does not present 164 as a verified distinct-guest count while four names remain unreconciled."
+          ]
+        },
+        {
+          "name": "skill-relational-audit-01-judge-3",
+          "type": "judge",
+          "rubric": [
+            "The answer does not infer that every district resident was reached from a queue limited to one center."
+          ]
+        }
+      ],
+      "tags": [
+        "contextual_diagnosis",
+        "adversarial",
+        "failure_mode:A surface cleanup silently changes what an attributed draft "
+      ]
+    },
+    {
+      "id": "SKILL-OBSERVATION-01",
+      "split": "tune",
+      "kind": "do_no_harm",
+      "domain": "safety",
+      "difficulty": "hard",
+      "trigger_type": "explicit",
+      "success_goals": [
+        "An uncontradicted safety observation is evidence, not an unsupported claim"
+      ],
+      "prompt": "Audit and humanize this closeout note: The supervisor inspected the dry line at 22:05 and signed the release. I returned the sample kit to the lab cabinet. No tools or loose fasteners remained inside the guard.",
+      "expected_behavior": [
+        "Leave the short operational record unchanged; all three statements are direct, internally consistent observations or completed actions."
+      ],
+      "assertions": [
+        {
+          "name": "skill-observation-01-judge-1",
+          "type": "judge",
+          "rubric": [
+            "The answer preserves the 22:05 inspection and signed release, return of the sample kit, and the statement that no tools or loose fasteners remained."
+          ]
+        },
+        {
+          "name": "skill-observation-01-judge-2",
+          "type": "judge",
+          "rubric": [
+            "The answer does not add doubt, disclaimers, evidence demands, or unsupported-claim language to this internally consistent record."
+          ]
+        }
+      ],
+      "tags": [
+        "do_no_harm",
+        "adversarial",
+        "failure_mode:The semantic audit invents an evidence burden and weakens a "
+      ]
+    },
+    {
+      "id": "SKILL-ATTRIBUTION-02",
+      "split": "tune",
+      "kind": "preservation",
+      "domain": "operations",
+      "difficulty": "hard",
+      "trigger_type": "explicit",
+      "success_goals": [
+        "Preserve an attributed universal claim while stating contradictory evidence separately"
+      ],
+      "prompt": "Audit and humanize this evacuation note without changing what anyone reportedly said: The incident commander said every household in Zones 3 and 4 had received the order. The radio log contains no confirmation for 19 addresses. The evacuation was complete.",
+      "expected_behavior": [
+        "Preserve exactly that the commander said every household received the order, state separately that the radio log leaves 19 addresses unconfirmed, and qualify the completion conclusion."
+      ],
+      "assertions": [
+        {
+          "name": "skill-attribution-02-judge-1",
+          "type": "judge",
+          "rubric": [
+            "The answer preserves that the incident commander said every household in Zones 3 and 4 had received the order; it does not claim that the commander said not every household was confirmed."
+          ]
+        },
+        {
+          "name": "skill-attribution-02-judge-2",
+          "type": "judge",
+          "rubric": [
+            "The answer separately preserves the radio log's lack of confirmation for 19 addresses and does not endorse the evacuation as complete."
+          ]
+        }
+      ],
+      "tags": [
+        "preservation",
+        "adversarial",
+        "failure_mode:The rewrite fixes the unsupported conclusion by flipping the"
+      ]
+    },
+    {
+      "id": "SKILL-OBSERVATION-02",
+      "split": "tune",
+      "kind": "do_no_harm",
+      "domain": "operations",
+      "difficulty": "hard",
+      "trigger_type": "explicit",
+      "success_goals": [
+        "Do not invent a contradiction in an unchallenged reviewer observation"
+      ],
+      "prompt": "Audit and humanize this eligibility note: The reviewer is missing the corrected wage total and is using the wrong household member for the start date. Reconcile the pay stub and applicant statement before deciding eligibility.",
+      "expected_behavior": [
+        "Preserve the reviewer attribution and the two concrete defects. Make no factual correction unless the source supplies conflicting evidence."
+      ],
+      "assertions": [
+        {
+          "name": "skill-observation-02-judge-1",
+          "type": "judge",
+          "rubric": [
+            "The answer preserves that the reviewer is missing the corrected wage total and using the wrong household member for the start date; it does not transfer those actions to a worksheet or another actor."
+          ]
+        },
+        {
+          "name": "skill-observation-02-judge-2",
+          "type": "judge",
+          "rubric": [
+            "The answer retains the instruction to reconcile the pay stub and applicant statement before deciding eligibility and adds no unsupported doubt or blame."
+          ]
+        }
+      ],
+      "tags": [
+        "do_no_harm",
+        "adversarial",
+        "failure_mode:The semantic audit treats a direct, uncontradicted operation"
+      ]
+    },
+    {
       "id": "SKILL-TITLE-01",
       "split": "tune",
       "kind": "headline_reconstruction",
