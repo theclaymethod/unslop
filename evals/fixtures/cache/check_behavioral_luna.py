@@ -13,7 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT))
 
-from evals.build_shared_benchmark import build_manifest
+from evals.build_shared_benchmark import build_manifest  # noqa: E402
 
 
 def _write_tools(bin_dir: Path) -> None:

@@ -23,7 +23,7 @@ def run_contract(label: str, checks: Mapping[str, Check]) -> int:
             return_code = 0 if result is None else int(result)
         except SystemExit as exc:
             return_code = exc.code if isinstance(exc.code, int) else 1
-        except Exception:  # pragma: no cover - retained as failure evidence
+        except Exception:  # noqa: BLE001  # pragma: no cover - failure evidence
             return_code = 1
             traceback.print_exc(file=stderr)
 

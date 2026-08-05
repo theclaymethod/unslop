@@ -199,7 +199,7 @@ def _scan_source(source: str) -> Dict[str, Any]:
     """Run the product phrase scanner and convert line/column findings to spans."""
     try:
         violations = scan_for_violations(source)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 - scanner boundary must fail closed
         raise RunnerError("deterministic scanner failed: {}".format(exc))
     if not isinstance(violations, list):
         raise RunnerError("deterministic scanner returned a non-list")
@@ -1582,7 +1582,7 @@ def _call_model(model: str, prompt: str, timeout: int, label: str) -> Tuple[str,
                 isolated=True,
                 event_sink=events,
             )
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 - model adapter boundary
         raise RunnerError("{} model call failed: {}".format(label, exc))
     if response is None:
         raise RunnerError("{} model call failed: {}".format(label, error or "no response"))
