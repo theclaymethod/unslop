@@ -1,0 +1,8 @@
+{
+  "name": "unslop",
+  "version": "2.3.0",
+  "description": "Remove AI writing patterns from prose: audit-only cleanup, two-pass rewrite, voice teach/mimic.",
+  "author": {
+    "name": "claytonkim"
+  }
+}

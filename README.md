@@ -77,6 +77,14 @@ The Python scripts under `scripts/` run on their own, with no third-party depend
 Python 3.8+ and the standard library. Call them from CI, a pre-publish check, or another agent,
 and you never load the skill at all.
 
+### Devin
+
+The repo carries a `.devin-plugin/plugin.json` manifest, and `skills/unslop/`
+symlinks the skill's runtime files (`SKILL.md`, `references/`, `presets/`,
+`scripts/`, `evals/`) into the layout Devin expects. Install it as a Devin
+plugin pointed at this repo and the `unslop` skill becomes available in
+sessions.
+
 ## Three Detection Layers
 
 Detection stacks three deterministic scanners, coarse to fine. Each one returns JSON and exits
