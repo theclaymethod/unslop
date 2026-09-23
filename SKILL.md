@@ -1,6 +1,6 @@
 ---
-name: unslop
-description: Remove AI writing patterns from prose using either audit-only detection or a two-pass rewrite flow (diagnosis then reconstruction). Use this skill when editing, reviewing, or rewriting AI-generated content to make it sound human. Triggers on requests to "humanize", "de-slop", "fix AI text", "make it sound human", "remove AI patterns", or when reviewing text that contains obvious AI tells like "Here's the thing:", "Let that sink in", or "In today's fast-paced landscape". Also use when the user pastes text and says it "sounds like ChatGPT", "sounds robotic", "needs to sound more natural", or asks you to "clean up" drafted content before publishing.
+name: deslop
+description: Improve prose that sounds AI-generated, vague, over-polished, or robotic. Use when asked to de-slop, humanise, make writing sound natural, remove AI tells, clean up a draft, flag cringe wording, audit prose before publishing, or replace filler and business jargon without changing the author's meaning.
 license: MIT
 user-invocable: true
 argument-hint: "[teach · cleanup · rewrite · mimic] [input]"
@@ -9,7 +9,7 @@ metadata:
   version: "2.3.0"
 ---
 
-# Unslop
+# Deslop
 
 Humanize AI-generated prose. Audit first. Rewrite only when the user asks for a rewrite.
 
@@ -19,10 +19,10 @@ presets supply optional voice, but neither can override the core contract.
 
 ## Routing
 
-**When the user invokes a sub-command (`/unslop teach ...`, `/unslop cleanup
+**When the user invokes a sub-command (`/deslop teach ...`, `/deslop cleanup
 ...`), you MUST read `references/commands/<command>.md` before acting.
 Non-optional — the command file defines the flow, and skipping it drops steps the
-user expects.** A bare `/unslop <text>` with no leading command word defaults to
+user expects.** A bare `/deslop <text>` with no leading command word defaults to
 `rewrite`. If the first word does not match a command but the intent clearly maps
 to one (e.g. "flag the AI tells, don't change anything" → `cleanup` report-only),
 load that command file and proceed as if invoked.

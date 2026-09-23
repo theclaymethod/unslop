@@ -900,6 +900,37 @@ Single words that appear at disproportionately high rates in AI text.
 **Hard severity**: Always an AI tell regardless of context.
 **Soft severity**: Context-dependent — may be appropriate in academic or formal writing.
 
+### Abstract authority language
+
+These terms often let a draft sound weighty without saying what happened. They
+are **context-only**: keep them when they name a real technical, legal, or
+operational concept. Otherwise replace the abstraction with the concrete fact,
+rule, action, mechanism, or consequence.
+
+| Term | Reads as AI when | Better phrasing | Keep it when |
+|------|-----------------|----------------|--------------|
+| material | "a material improvement" gives no measure | name the measured change or concrete impact | it means legally, financially, or operationally significant under a defined threshold |
+| canonical | "the canonical approach" does not identify authority | name the source or chosen approach | it identifies the authoritative source, representation, or documented standard |
+| contract | "the contract is clear" hides the promise | state the API behaviour, agreement, or obligation | it means an API, legal, or published behavioural contract |
+| framework | "a robust framework" names no mechanism | name the process, controls, or decision rule | it names a defined method such as STRIDE or NIST CSF |
+| alignment | "drives alignment" hides the decision | state who agreed to what | it describes a documented agreement between named parties |
+| leverage | "leverage the platform" is business padding | use, apply, or depend on | it describes actual financial leverage |
+| robust | "a robust solution" gives no property | name the failure handling, coverage, or performance property | it is supported by explicit resilience criteria |
+| comprehensive | "a comprehensive review" does not state scope | list the systems, controls, or questions reviewed | it names an enumerated scope |
+| strategic | "a strategic priority" gives no objective | state the objective, decision, or trade-off | it distinguishes a documented long-term decision from routine work |
+
+### How to use this reference
+
+- **Hard-banned**: remove or replace in ordinary prose unless the surrounding
+  text falls under a stated exemption.
+- **Soft-banned**: flag for review. Keep it only if the sentence provides a
+  mechanism, definition, action, measure, or named source.
+- **Context-only**: do not treat the word as a tell by itself. Check whether it
+  names a real term of art or merely supplies borrowed authority.
+
+One questionable word is not proof that prose is AI-written. Look for repeated
+clusters, formulaic structures, vague claims, and a lack of concrete detail.
+
 ---
 
 ## Punctuation Abuse
@@ -1014,6 +1045,26 @@ Patterns added from external sources. Most academic single-words are `soft`
 | "treasure trove", "ever-evolving", "ever-changing" | Cliche AI vocabulary |
 
 **Sources:** Wikipedia [Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing); Berens & Kobak, "Delving into ChatGPT usage in academic writing," *Science Advances* (2024), [llm-excess-vocab](https://github.com/berenslab/llm-excess-vocab); [hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop).
+
+### Vocabulary clusters and phrase patterns
+
+Online writing research identifies these as useful review signals when several
+appear together. They are normally **soft-banned**, not automatic findings.
+
+| Tell | Example to avoid | Plain replacement |
+|------|------------------|-------------------|
+| AI vocabulary cluster | "Additionally, this pivotal framework fosters a vibrant ecosystem." | State the next fact directly and name the mechanism. |
+| vague association | "The service is associated with identity management." | "The service validates user tokens." |
+| inflated copula | "The control serves as a cornerstone of security." | "The control blocks unauthorised deployment." |
+| false contrast | "This is not a feature, but a capability." | State the capability and its observable effect. |
+| manufactured importance | "It is important to note that the policy exists." | State the policy and what it requires. |
+| generic conclusion | "The future looks bright as the platform evolves." | State the next decision, risk, or measurable outcome. |
+| formulaic outlook | "Challenges remain, but future opportunities are promising." | Name the unresolved constraint and proposed action. |
+| chatbot affirmation | "Great question. I hope this helps." | Start with the answer; end when the answer is complete. |
+
+Common cluster members: `additionally`, `crucial`, `intricate`, `pivotal`,
+`testament`, `vibrant`, `landscape`, `interplay`, `underscore`, and `foster`.
+Use the existing category notes above before editing a legitimate technical use.
 
 ---
 
