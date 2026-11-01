@@ -54,6 +54,9 @@ Install to any supported coding agent with [npx skills](https://github.com/verce
 # Install to Claude Code (global)
 npx skills add theclaymethod/unslop -g -a claude-code
 
+# Install to Codex (global)
+npx skills add theclaymethod/unslop -g -a codex
+
 # Install to several agents at once
 npx skills add theclaymethod/unslop -g -a claude-code -a cursor -a codex
 
@@ -68,10 +71,35 @@ npx skills add theclaymethod/unslop --list
 
 ```bash
 git clone https://github.com/theclaymethod/unslop.git ~/dev/unslop
+mkdir -p ~/.claude/skills
 ln -s ~/dev/unslop ~/.claude/skills/unslop
-# Or wire it as a slash command:
-ln -s ~/dev/unslop/SKILL.md ~/.claude/commands/unslop.md
 ```
+
+For Codex, link the whole skill folder so its scripts and references stay available:
+
+```bash
+mkdir -p ~/.agents/skills
+ln -s ~/dev/unslop ~/.agents/skills/unslop
+```
+
+For project-only installation, use `.agents/skills/unslop` inside the target
+project instead. These discovery paths and symlink support follow the
+[official Codex skill documentation](https://learn.chatgpt.com/docs/build-skills).
+If the skill does not appear, restart Codex.
+
+Invoke it in Codex with `$unslop` (Claude Code uses `/unslop`):
+
+```text
+$unslop cleanup --report draft.md
+$unslop rewrite draft.md
+$unslop teach
+$unslop mimic draft.md
+```
+
+Both agents share the same contracts and Python tools. Basic audits and rewrites
+need no Claude CLI. Optional model-backed evaluation and refine runners require
+their own generator configuration; the refine runner defaults to `claude -p`,
+so configure `--generate-cmd` before using it in a Codex-only environment.
 
 The Python scripts under `scripts/` run on their own, with no third-party dependencies, just
 Python 3.8+ and the standard library. Call them from CI, a pre-publish check, or another agent,
@@ -342,7 +370,7 @@ not prove that UNSLOP improves prose.
 - **Compact scanner evidence.** Scanner, preservation, and maintenance examples live in
   explicit contract tables. Current coverage is 36/36 structural patterns, 16/16 literal
   triggers, and 20/20 protected categories, with zero expected failures.
-- **Behavioral layer.** `evals/shared-benchmark.json` is generated from 12 `skill` cases with
+- **Behavioral layer.** `evals/shared-benchmark.json` is generated from 14 `skill` cases with
   three ablations. It is useful for shaping and regression checks, but it is not the core
   product scoreboard.
 

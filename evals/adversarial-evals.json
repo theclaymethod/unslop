@@ -341,6 +341,21 @@
       ]
     },
     {
+      "id": "SKILL-CODEX-ROUTE-01",
+      "category": "mode_routing",
+      "title": "Codex skill invocation honors report-only cleanup",
+      "target": "skill",
+      "prompt": "$unslop cleanup --report\nFlag the AI tells, change nothing: Here's the thing: our dashboard is a game-changer.",
+      "failure_mode": "A Claude-only slash-command router ignores the Codex skill mention or falls back to rewriting despite --report.",
+      "correct_behavior": "Route $unslop cleanup --report to cleanup report-only. Identify the specific tells and assess them without returning a rewritten draft or asking the user to use Claude.",
+      "assertions": [
+        {
+          "type": "judge",
+          "check": "Output flags specific wording from the supplied draft and explains the issues. It does not provide a replacement draft, ask which mode to use, or require Claude or /unslop."
+        }
+      ]
+    },
+    {
       "id": "SKILL-REGISTER-01",
       "category": "preset_routing",
       "title": "Formal/legal register: don't strip load-bearing terms",

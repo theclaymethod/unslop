@@ -19,6 +19,11 @@ presets supply optional voice, but neither can override the core contract.
 
 ## Routing
 
+Use `$unslop` in Codex and `/unslop` in Claude Code. Both prefixes use the
+same commands, flags, defaults, and contracts below; for example,
+`$unslop cleanup --report` routes to cleanup report-only. Treat the invocation
+prefix as routing syntax, not input prose.
+
 **When the user invokes a sub-command (`/unslop teach ...`, `/unslop cleanup
 ...`), you MUST read `references/commands/<command>.md` before acting.
 Non-optional — the command file defines the flow, and skipping it drops steps the
@@ -26,6 +31,17 @@ user expects.** A bare `/unslop <text>` with no leading command word defaults to
 `rewrite`. If the first word does not match a command but the intent clearly maps
 to one (e.g. "flag the AI tells, don't change anything" → `cleanup` report-only),
 load that command file and proceed as if invoked.
+
+### Resource paths and execution
+
+Resolve `references/`, `presets/`, `scripts/`, and `evals/` relative to the
+directory containing this installed `SKILL.md`, not the user's working directory.
+Use absolute script paths when working in another project. Resolve input files
+and `.unslop/voice/` relative to the user's project; keep generated artifacts
+there rather than in the skill installation. Ordinary audits and rewrites run
+with the host agent and Python scanners; they do not require the Claude CLI or
+subagents. Optional model-backed runners have their own CLI configuration;
+select a generator available in the host environment before using them.
 
 | Command | Purpose | File |
 |---------|---------|------|
