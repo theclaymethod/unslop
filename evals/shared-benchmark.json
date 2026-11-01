@@ -209,6 +209,37 @@
       ]
     },
     {
+      "id": "SKILL-CODEX-ROUTE-01",
+      "split": "tune",
+      "kind": "mode_routing",
+      "domain": "marketing",
+      "difficulty": "hard",
+      "trigger_type": "explicit",
+      "success_goals": [
+        "Codex skill invocation honors report-only cleanup"
+      ],
+      "prompt": "$unslop cleanup --report\nFlag the AI tells, change nothing: Here's the thing: our dashboard is a game-changer.",
+      "expected_behavior": [
+        "Route $unslop cleanup --report to cleanup report-only. Identify the specific tells and assess them without returning a rewritten draft or asking the user to use Claude."
+      ],
+      "assertions": [
+        {
+          "name": "skill-codex-route-01-judge",
+          "type": "judge",
+          "rubric": [
+            "Output flags specific wording from the supplied draft and explains the issues. It does not provide a replacement draft, ask which mode to use, or require Claude or /unslop."
+          ],
+          "severity": "gate",
+          "oracle": "live"
+        }
+      ],
+      "tags": [
+        "mode_routing",
+        "adversarial",
+        "failure_mode:A Claude-only slash-command router ignores the Codex skill m"
+      ]
+    },
+    {
       "id": "SKILL-REGISTER-01",
       "split": "holdout",
       "kind": "preset_routing",
