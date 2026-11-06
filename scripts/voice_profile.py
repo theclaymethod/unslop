@@ -17,6 +17,8 @@ import statistics
 import sys
 from pathlib import Path
 
+from _pathsafe import contained_files
+
 FUNCTION_WORDS = """
 the of and to in a is that it for as with was on be by he i this are or his from at
 which but have an had they you were their one all we can her has there been if more
@@ -42,9 +44,8 @@ SENT_RE = re.compile(r"[^.!?]+[.!?]?")
 
 
 def iter_docs(root):
-    for path in sorted(Path(root).rglob("*")):
-        if path.suffix.lower() in {".txt", ".md"} and path.is_file():
-            yield path
+    for path in contained_files(Path(root), {".txt", ".md"}):
+        yield path
 
 
 def normalize(text):

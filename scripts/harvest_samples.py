@@ -24,6 +24,7 @@ import argparse
 import json
 import re
 import sys
+import unicodedata
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -33,6 +34,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 import banned_phrase_scan  # noqa: E402
 import structure_scan  # noqa: E402
+from _pathsafe import contained_files  # noqa: E402
 
 
 WORD_RE = re.compile(r"[A-Za-z0-9]+(?:[-'][A-Za-z0-9]+)?")
@@ -42,7 +44,70 @@ COMMAND_RE = re.compile(
     r"sed|python3?|npm|git)\b.*(?:/[\w./-]+|--?\w+))",
     re.I,
 )
-TAG_RE = re.compile(r"<(?:system-reminder|[^>\s]+)[^>]*>[\s\S]*?</(?:system-reminder|[^>\s]+)>", re.I)
+
+
+def _strip_paired_tags(text: str) -> str:
+    """Drop paired tags in one forward pass.
+
+    An unclosed ``<`` used to hit an overlapping regex and backtrack. With no
+    closing tag there is nothing to strip, and each later search starts after
+    the previous tag instead of re-expanding the same run.
+    """
+    if "</" not in text:
+        return text
+    out: list[str] = []
+    i = 0
+    n = len(text)
+    while i < n:
+        if text[i] != "<":
+            out.append(text[i])
+            i += 1
+            continue
+        end_name = i + 1
+        while end_name < n and text[end_name] not in "> \t\r\n/":
+            end_name += 1
+        if end_name == i + 1 or end_name >= n or text[end_name] == "/":
+            out.append(text[i])
+            i += 1
+            continue
+        gt = text.find(">", end_name)
+        if gt == -1:
+            out.append(text[i:])
+            break
+        found = _find_close_tag(text, gt + 1, text[i + 1:end_name])
+        if found == -1:
+            out.append(text[i])
+            i += 1
+            continue
+        out.append(" ")
+        i = found
+    return "".join(out)
+
+
+def _find_close_tag(text: str, start: int, name: str) -> int:
+    """Return the index just after a matching close tag, or -1.
+
+    The search stays on the original string so a case fold cannot move the
+    cut relative to the caller's offsets.
+    """
+    target = name.casefold()
+    i = start
+    while True:
+        found = text.find("</", i)
+        if found == -1:
+            return -1
+        end_name = found + 2
+        while end_name < len(text) and text[end_name] not in "> \t\r\n":
+            end_name += 1
+        if (
+            end_name < len(text)
+            and text[end_name] == ">"
+            and text[found + 2:end_name].casefold() == target
+        ):
+            return end_name + 1
+        i = found + 2
+
+
 QUOTE_ASSISTANT_RE = re.compile(r"(?im)^\s*(?:>|you said:|assistant:|claude said:)")
 FILLER_RE = re.compile(r"\b(?:um|uh)\b,?", re.I)
 DATE_FLOOR = 0.0
@@ -126,8 +191,20 @@ def is_codex_envelope(entry: dict[str, Any]) -> bool:
     return entry.get("type") in CODEX_TOP_TYPES and isinstance(entry.get("payload"), dict)
 
 
+def _injection_key(text: str) -> str:
+    """Normalize a message before the instruction-prefix check.
+
+    Format characters (BOM, zero-width space) and case variants are not part
+    of the wrapper's meaning. NFKC folds compatibility lookalikes first.
+    """
+    normalized = unicodedata.normalize("NFKC", text)
+    visible = "".join(ch for ch in normalized if unicodedata.category(ch) != "Cf")
+    return visible.strip().casefold()
+
+
 def is_injection_wrapper(text: str) -> bool:
-    return text.strip().startswith(CODEX_INJECTION_PREFIXES)
+    key = _injection_key(text)
+    return any(key.startswith(prefix.casefold()) for prefix in CODEX_INJECTION_PREFIXES)
 
 
 def detect_jsonl_adapter(path: Path) -> str:
@@ -153,7 +230,7 @@ def detect_jsonl_adapter(path: Path) -> str:
 
 
 def strip_transcript_noise(text: str) -> str:
-    text = TAG_RE.sub(" ", text)
+    text = _strip_paired_tags(text)
     lines = []
     for line in text.splitlines():
         if re.match(r"^\s*>", line):
@@ -369,10 +446,7 @@ def collect_sources(paths: list[Path], warnings: list[str]) -> tuple[list[dict[s
             continue
         files: list[Path]
         if source.is_dir():
-            files = sorted(
-                [p for p in source.rglob("*") if p.suffix.lower() in {".jsonl", ".md", ".txt"}],
-                key=lambda p: str(p),
-            )
+            files = contained_files(source, {".jsonl", ".md", ".txt"})
         else:
             files = [source]
         for file in files:

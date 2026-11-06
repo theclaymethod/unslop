@@ -29,7 +29,7 @@
         },
         {
           "type": "stdout_contains",
-          "value": "maintenance contract: 11/11 passed"
+          "value": "maintenance contract: 17/17 passed"
         },
         {
           "type": "stdout_contains",
