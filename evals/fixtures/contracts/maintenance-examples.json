@@ -1,7 +1,7 @@
 {
   "schema": "unslop-maintenance-contract-v1",
   "version": 1,
-  "exact_total": 11,
+  "exact_total": 17,
   "examples": [
     {
       "id": "AS-03",
@@ -271,6 +271,138 @@
         {
           "type": "exit_code",
           "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "REGX-02",
+      "category": "robustness",
+      "title": "Harvest tag stripping stays linear on an unclosed angle bracket",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/fixtures/security/check_tag_redos.py"
+      ],
+      "failure_mode": "An unclosed < in a transcript makes tag stripping backtrack long enough to stall harvest.",
+      "correct_behavior": "Closed system-reminder tags are still removed, and a 40k unclosed bracket finishes in under 0.15s.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "tag-strip=ok"
+        }
+      ]
+    },
+    {
+      "id": "HARV-SEC-01",
+      "category": "robustness",
+      "title": "Disguised instruction wrappers stay out of harvested prose",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/fixtures/security/check_injection_prefix.py"
+      ],
+      "failure_mode": "A zero-width prefix or a different tag case lets Codex instruction dumps through the harvest filter.",
+      "correct_behavior": "Literal, case-folded, and zero-width instruction wrappers are dropped, and ordinary prose is kept.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "injection zwsp=absent case=absent literal=absent kept=yes"
+        }
+      ]
+    },
+    {
+      "id": "HARV-SEC-02",
+      "category": "robustness",
+      "title": "Directory scans do not read symlink targets outside the root",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/fixtures/security/check_symlink_scan.py"
+      ],
+      "failure_mode": "A notes.txt symlink inside a scanned folder can pull an outside file into harvest output and voice samples.",
+      "correct_behavior": "The real file in the folder is read, and the symlink target is not.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "symlink harvest=contained voice=contained"
+        }
+      ]
+    },
+    {
+      "id": "WIKI-SEC-01",
+      "category": "robustness",
+      "title": "Wikipedia prompt fields stay inside an untrusted data fence",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/fixtures/security/check_wiki_prompt.py"
+      ],
+      "failure_mode": "A Wikipedia heading or bold phrase can break out of the integration prompt, and the module tells operators to pipe it into a Bash-enabled agent.",
+      "correct_behavior": "Untrusted fields stay inside a data fence, cannot open a new heading, and the tool does not recommend shell permissions.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "wiki-prompt=fenced"
+        }
+      ]
+    },
+    {
+      "id": "WIKI-SEC-02",
+      "category": "robustness",
+      "title": "Wikipedia fetch rejects off-site responses and oversized bodies",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/fixtures/security/check_wiki_fetch.py"
+      ],
+      "failure_mode": "A redirect or a huge response body is parsed as Wikipedia wikitext.",
+      "correct_behavior": "A normal Wikipedia response still parses. An off-site final URL is refused. An oversized body is rejected before parsing.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "wiki-fetch happy=ok redirect=refused size=capped"
+        }
+      ]
+    },
+    {
+      "id": "CONTRIB-SEC-01",
+      "category": "robustness",
+      "title": "Contribution bundles cannot escape .unslop/contrib through paths or symlinks",
+      "target": "script",
+      "command": [
+        "python3",
+        "evals/fixtures/security/check_contrib_paths.py"
+      ],
+      "failure_mode": "Scaffold follows a pre-planted symlink and verify writes a report outside the contribution root.",
+      "correct_behavior": "The symlink target is unchanged, and an outside bundle is rejected before its report is rewritten.",
+      "assertions": [
+        {
+          "type": "exit_code",
+          "equals": 0
+        },
+        {
+          "type": "stdout_contains",
+          "value": "contrib symlink=preserved outside=preserved"
         }
       ]
     }

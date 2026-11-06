@@ -42,7 +42,7 @@ REQUIRED_AGGREGATE_ROWS = {
             {"type": "exit_code", "equals": 0},
             {
                 "type": "stdout_contains",
-                "value": "maintenance contract: 11/11 passed",
+                "value": "maintenance contract: 17/17 passed",
             },
             {"type": "stdout_contains", "value": "unexpected=0"},
         ],

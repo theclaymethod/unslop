@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import subprocess
 import sys
@@ -30,8 +31,35 @@ def read_text(path: Path) -> str:
         raise SystemExit(2) from exc
 
 
+def write_text_nofollow(path: Path, text: str) -> None:
+    """Write ``text`` without following a symlink at the final path component."""
+    flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC | os.O_NOFOLLOW
+    try:
+        fd = os.open(path, flags, 0o644)
+    except OSError:
+        if not path.is_symlink():
+            raise
+        path.unlink()
+        fd = os.open(path, flags, 0o644)
+    with os.fdopen(fd, "w", encoding="utf-8") as handle:
+        handle.write(text)
+
+
 def write_json(path: Path, data: object) -> None:
-    path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    write_text_nofollow(path, json.dumps(data, indent=2, sort_keys=True) + "\n")
+
+
+def contained_bundle(path: Path) -> Path | None:
+    """Return the resolved bundle only when it is a directory inside CONTRIB_ROOT."""
+    try:
+        resolved = path.resolve()
+        root = CONTRIB_ROOT.resolve()
+        resolved.relative_to(root)
+    except (OSError, ValueError):
+        return None
+    if resolved == root:
+        return None
+    return resolved
 
 
 def sha256_text(text: str) -> str:
@@ -231,8 +259,8 @@ def cmd_scaffold(args: argparse.Namespace) -> int:
     write_json(bundle / "row_fn.json", row_fn(args.pattern_name, args.tell, redacted))
     write_json(bundle / "row_fp_TEMPLATE.json", row_fp_template(args.pattern_name, args.category, args.tell))
     write_json(bundle / "manifest.json", manifest)
-    (bundle / "snippet.txt").write_text(redacted, encoding="utf-8")
-    (bundle / "report.md").write_text(render_report(manifest, redacted), encoding="utf-8")
+    write_text_nofollow(bundle / "snippet.txt", redacted)
+    write_text_nofollow(bundle / "report.md", render_report(manifest, redacted))
     print(json.dumps({"bundle": str(bundle.relative_to(ROOT)), "status": "scaffolded"}, indent=2, sort_keys=True))
     return 0
 
@@ -313,18 +341,35 @@ def verify_bundle(bundle: Path, run_gates: bool = True) -> tuple[bool, str]:
             ok = ok and proc.returncode == 0
     final = "\n\n".join(gate_results)
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    report_path.write_text(render_report(manifest, snippet, final, (bundle / "row_rec.json").exists()), encoding="utf-8")
+    write_text_nofollow(
+        report_path,
+        render_report(manifest, snippet, final, (bundle / "row_rec.json").exists()),
+    )
     return ok, final
 
 
+def _reject_escaped_bundle(path: Path) -> int | None:
+    if contained_bundle(path) is not None:
+        return None
+    print(json.dumps({"error": "bundle must stay inside .unslop/contrib", "bundle": str(path)}))
+    return 2
+
+
 def cmd_verify(args: argparse.Namespace) -> int:
-    ok, message = verify_bundle(Path(args.bundle), run_gates=not args.no_gates)
+    bundle = Path(args.bundle)
+    rejected = _reject_escaped_bundle(bundle)
+    if rejected is not None:
+        return rejected
+    ok, message = verify_bundle(bundle, run_gates=not args.no_gates)
     print(message)
     return 0 if ok else 1
 
 
 def cmd_report(args: argparse.Namespace) -> int:
     bundle = Path(args.bundle)
+    rejected = _reject_escaped_bundle(bundle)
+    if rejected is not None:
+        return rejected
     if not bundle.exists():
         print(json.dumps({"error": "missing bundle", "bundle": str(bundle)}))
         return 2
