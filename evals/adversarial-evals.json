@@ -913,6 +913,29 @@
           "check": "The announcement preserves the pilot from 6 May to 20 May and leaves this informative paragraph unchanged: Who can join? Only the 24 support agents on the evening shift. Maya will collect their notes on 21 May."
         }
       ]
+    },
+    {
+      "id": "SKILL-EDITORIAL-HEADINGS-01",
+      "category": "headline_review",
+      "title": "Audit page headings and successful rewrite examples",
+      "target": "skill",
+      "prompt": "Audit this editing page. Report defects and propose replacements.\n\nSee what the editor would change.\nThe report quotes each passage and gives the reason for each cut.\n\nA cleaner rewrite still has to keep the facts.\nStrict mode scores eight criteria.\n\nCustomer focus\nExample of a successful rewrite: Companies that know their customers win. The rest guess.\n\nInstall the CLI on macOS\nRun the installer.",
+      "failure_mode": "The editor approves promotional headings and a slogan presented as clean copy, or rewrites the concrete installation instruction.",
+      "correct_behavior": "Give descriptive headings grounded in the adjacent copy, flag the unsupported claim in the successful rewrite, and preserve the specific installation heading.",
+      "assertions": [
+        {
+          "type": "judge",
+          "check": "Identify both the generic invitation and the factual-preservation maxim, and propose headings about report findings and rewrite scoring."
+        },
+        {
+          "type": "judge",
+          "check": "Flag the unsupported winner/loser contrast in the model output. Do not invent a result."
+        },
+        {
+          "type": "judge",
+          "check": "Preserve the concrete macOS installation heading."
+        }
+      ]
     }
   ]
 }

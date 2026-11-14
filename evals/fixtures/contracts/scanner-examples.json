@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exact_total": 44,
+  "exact_total": 47,
   "examples": [
     {
       "id": "QE-04",
@@ -453,7 +453,7 @@
         },
         {
           "type": "violation_phrase_contains",
-        "value": "whether you're a beginner or"
+          "value": "whether you're a beginner or"
         }
       ]
     },
@@ -815,6 +815,46 @@
           "equals": 14
         }
       ]
+    },
+    {
+      "id": "REC-CIRCULAR-EDIT",
+      "target": "script",
+      "category": "scanner_recall",
+      "stdin": "Edit the sentence that needs it.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 1
+        }
+      ]
+    },
+    {
+      "id": "REC-UNSUPPORTED-WIN",
+      "target": "script",
+      "category": "scanner_recall",
+      "stdin": "Companies that know their customers win. The rest guess.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 1
+        }
+      ]
+    },
+    {
+      "id": "FP-CONCRETE-EDIT",
+      "target": "script",
+      "category": "scanner_false_positive",
+      "stdin": "Edit the sentence that needs a citation. The slide quotes “Edit the sentence that needs it.” as an example.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ],
+      "protects": "slogan_fragment"
     }
   ]
 }

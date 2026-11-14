@@ -4,6 +4,8 @@
 
 Read the whole source first, including headings and endings. Find the smallest span with a concrete defect. Explain what it obscures, repeats, exaggerates, or contradicts. Empty framing can go when deletion costs no meaning. Replace vague headings or praise with the actual actor, action, or result in the source. For requested structural edits, cut redundant transitions and closing recaps.
 
+Review headings, captions, feature descriptions, and examples presented as successful rewrites individually, even when the scanners report no findings. Ask what this section actually shows. Replace an invitation to discover a benefit, an instruction that merely repeats its object, or a maxim that could introduce unrelated products with the specific operation, evidence, or subject below it. In body copy, remove an unsupported payoff or winner/loser contrast. Keep a concrete task heading, an attributed quotation, and intentional examples labeled as bad writing. Check rewritten examples for newly invented claims.
+
 Review each hard scanner hit. Protect quotations, literal and technical uses, measured claims, genuine offers, and language natural to the genre. A scanner hit, unusual rhythm, unsupported suspicion, or personal preference cannot justify a change. Use only the source as evidence.
 
 Resolve internal contradictions without inventing facts. Keep attributed statements intact. When the source recommends acting on a contradicted claim, explicitly correct the recommendation as well as identifying the conflict. Reject every recommended action that exceeds an explicit limit, including repeats and conditional steps. Leave already acknowledged uncertainty intact.

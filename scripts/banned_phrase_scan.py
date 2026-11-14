@@ -236,6 +236,19 @@ for _banned_phrase in BANNED_PHRASES:
 # Compact structural pack. Domain-sensitive branches are gated narrowly so
 # literal construction, mechanics, law, medicine, and code remain clean.
 STRUCTURAL_PATTERNS: list[dict[str, str]] = [
+    # Shipped headings that restate the action, and unsupported winner/loser copy.
+    {
+        "pattern": r"\b(?:edit the (?:sentence|passage|text) that needs (?:it|editing)|fix the (?:part|problem) that needs fixing)\b",
+        "category": "slogan_fragment",
+        "severity": "soft",
+        "suggestion": "Name the specific edit or the defect the reader will learn to fix.",
+    },
+    {
+        "pattern": r"\b(?:companies|teams|brands) that [^.!?\n]{1,75}\bwin\.\s+the rest (?:guess|lose|follow)\b",
+        "category": "slogan_fragment",
+        "severity": "soft",
+        "suggestion": "Replace the unsupported winner/loser contrast with the observation in the source.",
+    },
     # Emphasis and throat-clearing.
     {
         "pattern": r"(?:^|(?<=[.!?])\s+)(?P<finding>(?:full stop|period)\.)",
