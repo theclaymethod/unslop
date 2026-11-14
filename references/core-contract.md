@@ -1,75 +1,18 @@
 # UNSLOP core rewrite contract
 
-## Goal
-
-Repair concrete AI-writing or clarity defects. Leave everything else unchanged;
-prefer a no-op to an uncertain edit.
-
 ## Findings
 
-Quote the smallest defective span and explain the contextual defect: formulaic
-framing, empty or inflated abstraction, unsupported rhetorical certainty,
-opaque or mixed metaphor, misleading heading, needless repetition, or clear
-internal contradiction or ambiguity. Track every hard scanner match and other
-defect as confirmed or protected, with a reason; repair every confirmed span.
-Read every sentence before scanner output, including headings and endings.
-Phrase lists are incomplete; recognize paraphrased scaffolding by function. Confirm filler when deletion loses no meaning;
-replace inflated diction with its plain equivalent. Punctuation, vocabulary,
-cadence, and structure alone prove neither a defect nor authorship.
+Read the whole source first, including headings and endings. Find the smallest span with a concrete defect. Explain what it obscures, repeats, exaggerates, or contradicts. Empty framing can go when deletion costs no meaning. Replace vague headings or praise with the actual actor, action, or result in the source. For requested structural edits, cut redundant transitions and closing recaps.
 
-Do not fact-check or infer truth from the date or outside knowledge. Missing
-proof alone does not make a plan, offer, future date, promotion, technical term,
-literal phrase, or attribution defective.
+Review each hard scanner hit. Protect quotations, literal and technical uses, measured claims, genuine offers, and language natural to the genre. A scanner hit, unusual rhythm, unsupported suspicion, or personal preference cannot justify a change. Use only the source as evidence.
 
-Compare the source's claims. Qualify a status contradicted by observations.
-Explicitly reject every initial, conditional, or repeat action that exceeds a
-stated limit; a hedge does not make it safe. Preserve evidence and quantities.
-Keep attributed claims intact and state conflicts separately. Make no edit when
-nearby prose already states the conflict and uncertainty. Attribution does not
-protect a separate operative recommendation.
-
-A scanner match alone never authorizes an edit. Protect literal, domain-valid,
-quoted, attributed, accurately caveated, or genre-natural uses. In ordinary
-business prose, confirm stock praise, filler, or vague evaluation only when
-context supplies no mechanism, definition, action, or measure. A noun referent
-alone is insufficient: "game-changer for the product" stays vague unless the
-text says what changes. "Actionable" is valid with defined actions; "raises the
-bar" is valid when literal or measured. Soft cadence and document-shape scores
-never authorize edits alone.
-
-For headings and slide titles, replace inanimate agency, tool personification,
-or vague transformation with the actor, test, mechanism, result, decision, or
-completion criterion. Renaming the same abstraction is not a repair. When macro
-cleanup is requested, remove connective scaffolding and a moralizing recap coda,
-including repeated facts; its lesson is not protected.
-
-Inspect slogans and closing calls to action even when tools are quiet. Flag
-false equivalence, contradicted certainty, empty abstraction, or incompatible
-metaphors. Protect concrete promotions, genuine aphorisms, capped offers, future
-plans, and concrete calls to action unless the source contradicts them. A stock
-journey or milestone sentence adding no fact, action, or claim is empty.
+Resolve internal contradictions without inventing facts. Keep attributed statements intact. When the source recommends acting on a contradicted claim, explicitly correct the recommendation as well as identifying the conflict. Reject every recommended action that exceeds an explicit limit, including repeats and conditional steps. Leave already acknowledged uncertainty intact.
 
 ## Rewrite
 
-Edit only sentences with confirmed findings, using the smallest repair. Copy
-every other sentence byte-for-byte in its original order and paragraph. With no
-findings, return the source exactly.
+Edit only confirmed defects. Copy other sentences byte-for-byte in their original order and paragraphs. With no findings, return the source exactly. Preserve facts, scope, attribution, code, quotations, register and uncertainty. Keep “never”, “must” and “all” exactly where they define requirements. Return one validated replacement per list item. A preset changes delivery only.
 
-Preserve facts, quantities, dates, names, quotations, citations, code, units,
-scope, uncertainty, attribution, register, and meaning. Add no claims, advice,
-personality, anecdote, certainty, or conclusion. Delete empty framing; do not
-substitute filler or create staccato anti-slop prose. Re-read for missed defects
-and introduced filler; stop at matters of taste. Preserve force-bearing "never", "must", and
-"all" exactly in safety, security, legal, and technical rules. Presets change
-delivery, not facts. For lists, return one validated replacement per item.
-
-For audit-only requests, report findings and protections without rewriting;
-report each requested load-bearing span separately. Exact no-op applies to
-rewrites, not audits that must report protections.
-
-## Decision rule
-
-Return a finding only when the contextual defect is clearer than preservation.
+For an audit, report each requested span and why you would repair or protect it. Leave the source intact.
 
 ## Validation
 

@@ -619,7 +619,7 @@ def main() -> int:
             "SOURCE DIAGNOSTICS" in with_skill_prompt
             and '"structure"' in with_skill_prompt
             and '"silhouette"' in with_skill_prompt
-            and '"readability"' in with_skill_prompt
+            and '"readability"' not in with_skill_prompt
             and '"constraints"' in with_skill_prompt
             and "SOURCE DIAGNOSTICS" not in baseline_prompt
         )

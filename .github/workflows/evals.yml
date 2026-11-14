@@ -21,6 +21,6 @@ jobs:
       - name: Lint
         run: pipx install ruff && ruff check .
       - name: Install skill benchmark harness
-        run: pipx install git+https://github.com/adewale/skill-eval-harness.git
+        run: pipx install git+https://github.com/adewale/skill-eval-harness.git@7760b945d1d8fd26152b8190f802e14bed393ca9
       - name: Run repository checks
         run: python3 evals/check.py

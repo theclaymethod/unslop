@@ -576,7 +576,6 @@ def _source_diagnostics(case: Dict[str, Any]) -> Dict[str, Any]:
     silhouette = scan_silhouette(source, reference, genre)
     silhouette["reference_path"] = _relative_repo_path(SILHOUETTE_REFERENCE_PATH)
     silhouette["reference_sha256"] = _reference_metadata(SILHOUETTE_REFERENCE_PATH)["sha256"]
-    readability = calculate_readability(source)
     constraint_result = {
         "input_length": len(source),
         "constraint_count": len(constraints),
@@ -588,7 +587,6 @@ def _source_diagnostics(case: Dict[str, Any]) -> Dict[str, Any]:
         "banned_phrase": banned,
         "structure": structure,
         "silhouette": silhouette,
-        "readability": readability,
         "constraints": constraint_result,
     }
 
@@ -1080,7 +1078,6 @@ def _needs_with_skill_generation(
         "silhouette": source_diagnostics.get(
             "silhouette", {"penalty": 0.0, "flags": []}
         ),
-        "readability": source_diagnostics.get("readability", {"flags": []}),
     }
     return bool(_validation_blockers(diagnostic_validation))
 
@@ -1162,7 +1159,6 @@ def _generation_prompt(
             "banned_phrase": {"findings": scanner_findings or []},
             "structure": {"flags": diagnostics.get("structure", {}).get("flags", [])},
             "silhouette": {"flags": diagnostics.get("silhouette", {}).get("flags", [])},
-            "readability": {"flags": diagnostics.get("readability", {}).get("flags", [])},
         }
         scanner_section = """
 SCANNER-BLIND SOURCE-AUDIT FINDINGS from the source-first audit:
@@ -1197,7 +1193,8 @@ MERGE PROTOCOL:
    original paragraph. No findings
    means an exact no-op.
 7. Repair ordinary writing defects with a natural in-place replacement inside
-   the sentence that contains each finding. Do not append editorial instructions
+   the sentence that contains each finding. Read the repaired sentence in context;
+   keep the reporting verb when the evidence still needs attribution. Do not append editorial instructions
    such as "do not treat this as" or commentary about what the reader should
    believe. The explicit `do not` rule above applies only to unsafe actions.
    When attribution must remain exact, keep the reported clause verbatim and
@@ -1228,8 +1225,8 @@ replacement (for example, the following lowercase word when deleting an
 opener); do not widen the span beyond that boundary repair.
 Put any separate text needed to prove a relational problem in evidence_spans;
 evidence spans are strictly read-only and cannot overlap the writable target.
-Use an empty evidence_spans list for a local issue. Return []
-when there are no issues. The rewrite
+Use an empty evidence_spans list for a local issue. With no issues, return an empty
+findings list in the object. The rewrite
 must be the complete document, not a diff. If findings is [], copy SOURCE into
 rewrite byte-for-byte; no diagnosis means no edit.
 
@@ -1282,11 +1279,11 @@ Return exactly one JSON object with this shape:
 Copy finding and evidence quotes exactly from SOURCE; software locates unique
 quotes. Only for repeated quotes, add zero-based half-open start/end offsets to
 identify the intended occurrence. A finding cannot cross a sentence boundary. Put separate
-relational support in evidence_spans; these spans are read-only and cannot
-overlap the writable finding. Use [] when no separate evidence is needed.
+relational support in evidence_spans only when needed. Evidence must be disjoint
+from EVERY writable finding in the response. Quote only the protected fact;
+use [] when the finding needs no separate evidence.
 Put every confirmed writing or clarity defect in findings. Do not return a rewrite
-or repeat the document; this pass diagnoses only. Return [] when no contextual
-defect is present.
+or repeat the document. With no defects, return {{"findings":[]}}.
 
 {}
 """.format(_shipping_contract()["resolved_contract"].split("## Findings\n", 1)[1].split("## Rewrite\n", 1)[0], _render_source(case))

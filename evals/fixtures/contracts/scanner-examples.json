@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exact_total": 41,
+  "exact_total": 44,
   "examples": [
     {
       "id": "QE-04",
@@ -768,6 +768,51 @@
           "type": "json",
           "path": "total_violations",
           "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "REC-NOTE-LEAD",
+      "target": "script",
+      "category": "scanner_recall",
+      "stdin": "It’s worth noting that orders close at noon.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "violations.0.phrase",
+          "equals": "it’s worth noting that"
+        }
+      ]
+    },
+    {
+      "id": "FP-NOTE-LEAD",
+      "target": "script",
+      "category": "scanner_false_positive",
+      "stdin": "The editor asked whether it was worth noting that date. She typed “It is important to note that” into the search box.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "total_violations",
+          "equals": 0
+        }
+      ],
+      "protects": "throat_clearing"
+    },
+    {
+      "id": "REC-EMPHASIS-SPAN",
+      "target": "script",
+      "category": "scanner_recall",
+      "stdin": "Did it ship? Full stop.",
+      "assertions": [
+        {
+          "type": "json",
+          "path": "violations.0.phrase",
+          "equals": "full stop."
+        },
+        {
+          "type": "json",
+          "path": "violations.0.column",
+          "equals": 14
         }
       ]
     }

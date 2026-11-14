@@ -72,7 +72,7 @@ The behavioral layer uses the local Codex runtime with `gpt-5.6-luna` for both
 generation and judging. It does not call Claude.
 
 ```bash
-uv tool install git+https://github.com/adewale/skill-eval-harness.git
+uv tool install git+https://github.com/adewale/skill-eval-harness.git@7760b945d1d8fd26152b8190f802e14bed393ca9
 
 skill-benchmark validate evals/shared-benchmark.json --strict-leakage
 

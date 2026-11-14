@@ -321,7 +321,7 @@ def build_manifest(source: dict) -> dict:
         "harness": {
             "name": "skill-eval-harness",
             "url": HARNESS_URL,
-            "version": "0.4.2 (git 31ec7655)",
+            "version": "0.6.0 (git 7760b945)",
         },
         # skill_paths are resolved by the harness relative to the git repo root
         # (not the manifest dir, which is what `script` assertion cwd uses).
