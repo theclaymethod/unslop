@@ -602,6 +602,39 @@
         "adversarial",
         "failure_mode:The editor only removes familiar catalog phrases, leaves par"
       ]
+    },
+    {
+      "id": "SKILL-EDITORIAL-HEADINGS-01",
+      "split": "tune",
+      "kind": "headline_review",
+      "domain": "operations",
+      "difficulty": "hard",
+      "trigger_type": "explicit",
+      "success_goals": [
+        "Audit page headings and successful rewrite examples"
+      ],
+      "prompt": "Audit this editing page. Report defects and propose replacements.\n\nSee what the editor would change.\nThe report quotes each passage and gives the reason for each cut.\n\nA cleaner rewrite still has to keep the facts.\nStrict mode scores eight criteria.\n\nCustomer focus\nExample of a successful rewrite: Companies that know their customers win. The rest guess.\n\nInstall the CLI on macOS\nRun the installer.",
+      "expected_behavior": [
+        "Give descriptive headings grounded in the adjacent copy, flag the unsupported claim in the successful rewrite, and preserve the specific installation heading."
+      ],
+      "assertions": [
+        {
+          "name": "skill-editorial-headings-01-judge",
+          "type": "judge",
+          "rubric": [
+            "Identify both the generic invitation and the factual-preservation maxim, and propose headings about report findings and rewrite scoring.",
+            "Flag the unsupported winner/loser contrast in the model output. Do not invent a result.",
+            "Preserve the concrete macOS installation heading."
+          ],
+          "severity": "gate",
+          "oracle": "live"
+        }
+      ],
+      "tags": [
+        "headline_review",
+        "adversarial",
+        "failure_mode:The editor approves promotional headings and a slogan presen"
+      ]
     }
   ],
   "ablations": [

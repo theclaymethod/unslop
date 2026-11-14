@@ -49,6 +49,7 @@ SPLITS: dict[str, str] = {
     "SKILL-ATTRIBUTION-02": "tune",
     "SKILL-SAFETY-SEMANTIC-02": "tune",
     "SKILL-CORE-DIRTY-01": "tune",
+    "SKILL-EDITORIAL-HEADINGS-01": "tune",
     "SKILL-PARAPHRASE-01": "tune",
     "SKILL-DEHEDGE-02": "holdout",
     "SKILL-REGISTER-01": "holdout",
@@ -67,6 +68,7 @@ DOMAIN: dict[str, str] = {
     "SKILL-ATTRIBUTION-02": "operations",
     "SKILL-SAFETY-SEMANTIC-02": "safety",
     "SKILL-CORE-DIRTY-01": "product",
+    "SKILL-EDITORIAL-HEADINGS-01": "operations",
     "SKILL-PARAPHRASE-01": "operations",
 }
 
