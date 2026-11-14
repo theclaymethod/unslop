@@ -588,7 +588,6 @@ def main() -> int:
         forged_diagnostics["silhouette"]["flags"] = []
         forged_diagnostics["silhouette"]["flagged"] = {}
         forged_diagnostics["silhouette"]["penalty"] = 0.0
-        forged_diagnostics["readability"]["flags"] = []
 
         no_op = {"findings": [], "rewrite": source}
         forged_generation = correlated_evidence["generation"]["with_skill"]

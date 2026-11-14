@@ -238,10 +238,16 @@ for _banned_phrase in BANNED_PHRASES:
 STRUCTURAL_PATTERNS: list[dict[str, str]] = [
     # Emphasis and throat-clearing.
     {
-        "pattern": r"(?:^|[.!?]\s+)(?:full stop|period)\.",
+        "pattern": r"(?:^|(?<=[.!?])\s+)(?P<finding>(?:full stop|period)\.)",
         "category": "emphasis_crutch",
         "severity": "hard",
         "suggestion": "Cut the one-word emphasis sentence.",
+    },
+    {
+        "pattern": r"(?:^[ \t]*|[.!?]\s+|\n[ \t]*\n[ \t]*)(?P<finding>it(?:['’]s| is) (?:worth noting|important to note) that)\b",
+        "category": "throat_clearing",
+        "severity": "soft",
+        "suggestion": "Can the sentence start with the fact that follows?",
     },
     {
         "pattern": r"\bthe real \w+ (?:is|isn't|was|wasn't|remains)\b",
@@ -644,24 +650,25 @@ def scan_for_violations(text: str, include_quoted: bool = False) -> list[Violati
         if len(matches) < min_matches:
             continue
         for match in matches:
+            group = "finding" if "finding" in match.re.groupindex else 0
+            start, end = match.span(group)
             if _suppress_contextual_match(
-                match.group().lower(),
+                match.group(group).lower(),
                 pattern_info["category"],
                 scan_text,
-                match.start(),
-                match.end(),
+                start,
+                end,
             ):
                 continue
-            pos = match.start()
             line_num, column, context = _line_col_context(
-                text, line_starts, pos, line_context_cache
+                text, line_starts, start, line_context_cache
             )
 
             violations.append({
                 # Preserve the pre-fix lowercase phrase field: STRUCTURAL_PATTERNS
                 # regexes are lowercase literals, previously matched against a
                 # lowered copy of the text, so match.group() was always lowercase.
-                "phrase": match.group().lower(),
+                "phrase": match.group(group).lower(),
                 "category": pattern_info["category"],
                 "severity": pattern_info.get("severity", "hard"),
                 "line_number": line_num,
@@ -669,7 +676,7 @@ def scan_for_violations(text: str, include_quoted: bool = False) -> list[Violati
                 "context": context,
                 "suggestion": pattern_info["suggestion"]
             })
-            spans.append((match.start(), match.end()))
+            spans.append((start, end))
 
     # Frequency-gated structural findings (min_matches > 1) describe the DOCUMENT, not
     # a single span. A broad, unrelated match (e.g. anti_slop_register spanning several

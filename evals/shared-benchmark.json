@@ -5,7 +5,7 @@
   "harness": {
     "name": "skill-eval-harness",
     "url": "https://github.com/adewale/skill-eval-harness",
-    "version": "0.4.2 (git 31ec7655)"
+    "version": "0.6.0 (git 7760b945)"
   },
   "skill_paths": [
     "SKILL.md",

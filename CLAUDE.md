@@ -39,7 +39,7 @@ python3 evals/check.py
 Install the harness if needed:
 
 ```bash
-uv tool install git+https://github.com/adewale/skill-eval-harness.git
+uv tool install git+https://github.com/adewale/skill-eval-harness.git@7760b945d1d8fd26152b8190f802e14bed393ca9
 ```
 
 Use `run_adversarial.py --only PREFIX` or `--case ID` only to diagnose a

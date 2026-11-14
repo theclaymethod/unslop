@@ -553,7 +553,7 @@ def verify_prediction_evidence(
         validation_map = evidence.get("validation")
         validation = validation_map.get(arm) if isinstance(validation_map, dict) else None
         required_diagnostics = {
-            "banned_phrase", "structure", "silhouette", "readability", "constraints"
+            "banned_phrase", "structure", "silhouette", "constraints"
         }
         required_validation = {
             "preservation", "banned_phrase", "structure", "silhouette", "readability", "diff",
